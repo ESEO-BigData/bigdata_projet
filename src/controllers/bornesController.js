@@ -184,3 +184,43 @@ exports.getBornesStats = async (req, res) => {
         return responseFormatter.error(res, 'Erreur lors du calcul des statistiques des bornes', error);
     }
 };
+
+// Obtenir le nombre de bornes par région
+exports.getBornesByRegion = async (req, res) => {
+    try {
+        const regionName = req.params.regionName;
+
+        // 1. Récupérer tous les départements de la région
+        const departementsData = await DepartementEtRegion.find({ REGION: regionName });
+
+        // 2. Récupérer toutes les communes de ces départements
+        const codesDepartements = departementsData.map(dept => dept.DEPARTEMENT);
+        const communesData = await NbVehiculesParCommune.find({
+            codeDepartement: { $in: codesDepartements }
+        });
+
+        // 3. Compter les bornes pour chaque commune
+        let totalBornes = 0;
+        let totalPointsDeCharge = 0;
+
+        for (const commune of communesData) {
+            const bornes = await BorneElectrique.find({
+                'properties.consolidated_commune': commune.LIBGEO
+            });
+
+            totalBornes += bornes.length;
+            totalPointsDeCharge += bornes.reduce((sum, borne) => {
+                return sum + (borne.properties.nbre_pdc || 0);
+            }, 0);
+        }
+
+        return responseFormatter.success(res, {
+            region: regionName,
+            totalBornes,
+            totalPointsDeCharge
+        });
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la récupération des bornes par région', error);
+    }
+};
+

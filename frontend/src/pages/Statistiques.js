@@ -784,25 +784,35 @@ function exportCommunesToCSV(communes) {
 
 
 // Fonction pour charger les données de comparaison
+// Fonction pour charger les données de comparaison
 function loadComparisonData() {
     // Initialiser le contenu de l'onglet Comparaisons
     const comparisonTab = document.getElementById('comparaison-tab');
     comparisonTab.innerHTML = `
     <div class="comparison-container">
-      <h2>Comparaison entre régions</h2>
+      <h2>Comparaison de territoires</h2>
       
       <div class="comparison-controls">
-        <div class="region-selector">
-          <label for="region1">Région 1:</label>
-          <select id="region1">
-            <option value="">Sélectionnez une région</option>
+        <div class="entity-type-selector">
+          <label for="entity-type">Type de territoire :</label>
+          <select id="entity-type">
+            <option value="region">Régions</option>
+            <option value="departement">Départements</option>
+            <option value="commune">Communes</option>
           </select>
         </div>
         
-        <div class="region-selector">
-          <label for="region2">Région 2:</label>
-          <select id="region2">
-            <option value="">Sélectionnez une région</option>
+        <div class="entity-selector">
+          <label for="entity1">Territoire 1 :</label>
+          <select id="entity1">
+            <option value="">Sélectionnez un territoire</option>
+          </select>
+        </div>
+        
+        <div class="entity-selector">
+          <label for="entity2">Territoire 2 :</label>
+          <select id="entity2">
+            <option value="">Sélectionnez un territoire</option>
           </select>
         </div>
         
@@ -833,8 +843,8 @@ function loadComparisonData() {
             <thead>
               <tr>
                 <th>Indicateur</th>
-                <th id="region1-name">Région 1</th>
-                <th id="region2-name">Région 2</th>
+                <th id="entity1-name">Territoire 1</th>
+                <th id="entity2-name">Territoire 2</th>
                 <th>Différence</th>
               </tr>
             </thead>
@@ -848,70 +858,131 @@ function loadComparisonData() {
     </div>
   `;
 
-    // Charger la liste des régions
-    loadRegionsForComparison();
+    // Configurer le changement de type d'entité
+    document.getElementById('entity-type').addEventListener('change', loadEntitiesForComparison);
+
+    // Charger la liste des entités initiale (régions par défaut)
+    loadEntitiesForComparison();
 
     // Configurer le bouton de comparaison
-    document.getElementById('compare-button').addEventListener('click', compareRegions);
+    document.getElementById('compare-button').addEventListener('click', compareEntities);
 
     // Configurer le bouton d'export
     document.getElementById('export-comparison').addEventListener('click', exportComparisonData);
 }
 
-// Fonction pour charger la liste des régions dans les sélecteurs
-function loadRegionsForComparison() {
-    fetch('/api/vehicules/regions')
+// Fonction pour charger les entités selon le type sélectionné
+function loadEntitiesForComparison() {
+    const entityType = document.getElementById('entity-type').value;
+    const entity1Select = document.getElementById('entity1');
+    const entity2Select = document.getElementById('entity2');
+
+    // Réinitialiser les sélecteurs
+    entity1Select.innerHTML = '<option value="">Sélectionnez un territoire</option>';
+    entity2Select.innerHTML = '<option value="">Sélectionnez un territoire</option>';
+
+    let apiEndpoint = '';
+
+    switch(entityType) {
+        case 'region':
+            apiEndpoint = '/api/vehicules/regions';
+            break;
+        case 'departement':
+            apiEndpoint = '/api/departements';
+            break;
+        case 'commune':
+            apiEndpoint = '/api/vehicules/communes?limit=100'; // Limiter pour éviter de charger trop de communes
+            break;
+    }
+
+    fetch(apiEndpoint)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const regions = data.data;
-                const region1Select = document.getElementById('region1');
-                const region2Select = document.getElementById('region2');
+                let entities = [];
 
-                // Trier les régions par nom
-                regions.sort((a, b) => a.REGION.localeCompare(b.REGION));
+                // Adapter selon le type d'entité
+                if (entityType === 'region') {
+                    entities = data.data;
+                    entities.sort((a, b) => a.REGION.localeCompare(b.REGION));
 
-                // Ajouter les options aux sélecteurs
-                regions.forEach(region => {
-                    const option1 = document.createElement('option');
-                    option1.value = region.REGION;
-                    option1.textContent = region.REGION;
-                    region1Select.appendChild(option1);
+                    entities.forEach(entity => {
+                        const option1 = document.createElement('option');
+                        option1.value = entity.REGION;
+                        option1.textContent = entity.REGION;
+                        entity1Select.appendChild(option1);
 
-                    const option2 = document.createElement('option');
-                    option2.value = region.REGION;
-                    option2.textContent = region.REGION;
-                    region2Select.appendChild(option2);
-                });
+                        const option2 = document.createElement('option');
+                        option2.value = entity.REGION;
+                        option2.textContent = entity.REGION;
+                        entity2Select.appendChild(option2);
+                    });
+                }
+                else if (entityType === 'departement') {
+                    entities = data.data;
+                    entities.sort((a, b) => a.DEPARTEMENT.localeCompare(b.DEPARTEMENT));
 
-                // Sélectionner par défaut les deux premières régions
-                if (regions.length >= 2) {
-                    region1Select.value = regions[0].REGION;
-                    region2Select.value = regions[1].REGION;
+                    entities.forEach(entity => {
+                        const option1 = document.createElement('option');
+                        option1.value = entity.DEPARTEMENT;
+                        option1.textContent = `${entity.DEPARTEMENT} - ${entity.NOM}`;
+                        entity1Select.appendChild(option1);
+
+                        const option2 = document.createElement('option');
+                        option2.value = entity.DEPARTEMENT;
+                        option2.textContent = `${entity.DEPARTEMENT} - ${entity.NOM}`;
+                        entity2Select.appendChild(option2);
+                    });
+                }
+                else if (entityType === 'commune') {
+                    entities = data.data.vehiculesCommune;
+                    entities.sort((a, b) => a.LIBGEO.localeCompare(b.LIBGEO));
+
+                    entities.forEach(entity => {
+                        const option1 = document.createElement('option');
+                        option1.value = entity.CODGEO;
+                        option1.textContent = entity.LIBGEO;
+                        entity1Select.appendChild(option1);
+
+                        const option2 = document.createElement('option');
+                        option2.value = entity.CODGEO;
+                        option2.textContent = entity.LIBGEO;
+                        entity2Select.appendChild(option2);
+                    });
+                }
+
+                // Sélectionner par défaut les deux premières entités
+                if (entities.length >= 2) {
+                    entity1Select.selectedIndex = 1;
+                    entity2Select.selectedIndex = 2;
                 }
             }
         })
-        .catch(error => console.error('Erreur lors du chargement des régions:', error));
+        .catch(error => console.error(`Erreur lors du chargement des ${entityType}s:`, error));
 }
 
-// Fonction pour comparer les régions sélectionnées
-function compareRegions() {
-    const region1 = document.getElementById('region1').value;
-    const region2 = document.getElementById('region2').value;
+// Fonction pour comparer les entités sélectionnées
+function compareEntities() {
+    const entityType = document.getElementById('entity-type').value;
+    const entity1Id = document.getElementById('entity1').value;
+    const entity2Id = document.getElementById('entity2').value;
 
-    if (!region1 || !region2) {
-        alert('Veuillez sélectionner deux régions à comparer');
+    if (!entity1Id || !entity2Id) {
+        alert('Veuillez sélectionner deux territoires à comparer');
         return;
     }
 
     // Mettre à jour les en-têtes du tableau
-    document.getElementById('region1-name').textContent = region1;
-    document.getElementById('region2-name').textContent = region2;
+    const entity1Name = document.getElementById('entity1').options[document.getElementById('entity1').selectedIndex].text;
+    const entity2Name = document.getElementById('entity2').options[document.getElementById('entity2').selectedIndex].text;
 
-    // Charger les données pour les deux régions
+    document.getElementById('entity1-name').textContent = entity1Name;
+    document.getElementById('entity2-name').textContent = entity2Name;
+
+    // Charger les données pour les deux entités
     Promise.all([
-        fetchRegionData(region1),
-        fetchRegionData(region2)
+        fetchEntityData(entityType, entity1Id, entity1Name),
+        fetchEntityData(entityType, entity2Id, entity2Name)
     ])
         .then(([data1, data2]) => {
             // Créer les graphiques de comparaison
@@ -922,44 +993,67 @@ function compareRegions() {
             // Remplir le tableau comparatif
             populateComparisonTable(data1, data2);
         })
-        .catch(error => console.error('Erreur lors de la comparaison des régions:', error));
+        .catch(error => console.error('Erreur lors de la comparaison des territoires:', error));
 }
 
-// Fonction pour récupérer les données d'une région
-function fetchRegionData(regionName) {
-    return Promise.all([
-        // Données des véhicules
-        fetch(`/api/vehicules/regions/nom/${regionName}`)
-            .then(response => response.json())
-            .then(data => data.success ? data.data : null),
+// Fonction pour récupérer les données d'une entité
+function fetchEntityData(entityType, entityId, entityName) {
+    let vehiclesPromise, bornesPromise;
 
-        // Données des bornes (agrégées par région)
-        fetch('/api/bornes/statistiques/departements')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Filtrer pour ne garder que les départements de la région spécifiée
-                    return data.data.filter(dept => dept.nomRegion === regionName);
-                }
-                return [];
-            })
-    ])
+    switch(entityType) {
+        case 'region':
+            vehiclesPromise = fetch(`/api/vehicules/regions/nom/${entityId}`)
+                .then(response => response.json())
+                .then(data => data.success ? data.data : null);
+
+            bornesPromise = fetch(`/api/bornes/communes/region/${entityId}`)
+                .then(response => response.json())
+                .then(data => data.success ? data.data : { totalBornes: 0 });
+            break;
+
+        case 'departement':
+            vehiclesPromise = fetch(`/api/vehicules/communes/departement/${entityId}`)
+                .then(response => response.json())
+                .then(data => data.success ? {
+                    somme_NB_VP_RECHARGEABLES_EL: data.data.totalVehicules || 0
+                } : null);
+
+            bornesPromise = fetch(`/api/bornes/communes/departement/${entityId}`)
+                .then(response => response.json())
+                .then(data => data.success ? data.data : { totalBornes: 0 });
+            break;
+
+        case 'commune':
+            vehiclesPromise = fetch(`/api/vehicules/communes/code/${entityId}`)
+                .then(response => response.json())
+                .then(data => data.success ? {
+                    somme_NB_VP_RECHARGEABLES_EL: data.data.NB_VP_RECHARGEABLES_EL || 0
+                } : null);
+
+            bornesPromise = fetch(`/api/bornes/communes/commune/${entityName}`)
+                .then(response => response.json())
+                .then(data => data.success ? {
+                    totalBornes: data.data.nombre_bornes || 0
+                } : { totalBornes: 0 });
+            break;
+    }
+
+    return Promise.all([vehiclesPromise, bornesPromise])
         .then(([vehiculesData, bornesData]) => {
-            // Calculer le nombre total de bornes pour la région
-            const totalBornes = bornesData.reduce((sum, dept) => sum + dept.nombreBornes, 0);
-            const totalPointsDeCharge = bornesData.reduce((sum, dept) => sum + dept.nombrePointsDeCharge, 0);
-
             // Retourner un objet avec toutes les données
             return {
-                nom: regionName,
+                nom: entityName,
                 vehicules: vehiculesData ? vehiculesData.somme_NB_VP_RECHARGEABLES_EL : 0,
-                bornes: totalBornes,
-                pointsDeCharge: totalPointsDeCharge,
-                ratio: totalBornes > 0 ? (vehiculesData.somme_NB_VP_RECHARGEABLES_EL / totalBornes).toFixed(1) : 'N/A',
-                departements: bornesData
+                bornes: bornesData.totalBornes || 0,
+                pointsDeCharge: bornesData.totalPointsDeCharge || bornesData.totalBornes || 0,
+                ratio: bornesData.totalBornes > 0 ?
+                    (vehiculesData.somme_NB_VP_RECHARGEABLES_EL / bornesData.totalBornes).toFixed(1) : 'N/A'
             };
         });
 }
+
+
+
 
 // Fonction pour créer le graphique de comparaison des véhicules
 function createVehiclesComparisonChart(data1, data2) {
@@ -1090,13 +1184,22 @@ function createRatioComparisonChart(data1, data2) {
 // Fonction pour remplir le tableau comparatif
 function populateComparisonTable(data1, data2) {
     const tableBody = document.querySelector('#comparison-table tbody');
+
+    // Vider le tableau avant de le remplir
     tableBody.innerHTML = '';
 
     // Calculer les différences
     const vehiculesDiff = data1.vehicules - data2.vehicules;
     const bornesDiff = data1.bornes - data2.bornes;
     const pointsDiff = data1.pointsDeCharge - data2.pointsDeCharge;
-    const ratioDiff = parseFloat(data1.ratio) - parseFloat(data2.ratio);
+
+    // Calculer la différence de ratio (en gérant les cas où ratio est "N/A")
+    let ratioDiff = 0;
+    if (data1.ratio !== 'N/A' && data2.ratio !== 'N/A') {
+        ratioDiff = parseFloat(data1.ratio) - parseFloat(data2.ratio);
+    } else {
+        ratioDiff = 'N/A';
+    }
 
     // Ajouter les lignes au tableau
     const rows = [
@@ -1125,7 +1228,7 @@ function populateComparisonTable(data1, data2) {
             indicator: 'Véhicules par borne',
             value1: data1.ratio,
             value2: data2.ratio,
-            diff: ratioDiff.toFixed(1),
+            diff: typeof ratioDiff === 'number' ? ratioDiff.toFixed(1) : ratioDiff,
             diffClass: ratioDiff > 0 ? 'positive' : ratioDiff < 0 ? 'negative' : ''
         }
     ];
@@ -1141,6 +1244,7 @@ function populateComparisonTable(data1, data2) {
         tableBody.appendChild(tr);
     });
 }
+
 
 // Fonction pour exporter les données de comparaison
 function exportComparisonData() {
