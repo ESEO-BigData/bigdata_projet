@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb');
-const config = require('./config');
+const config = require('./config/config');
 
 async function testConnection() {
     // Si options est vide, on peut simplement passer l'URI
