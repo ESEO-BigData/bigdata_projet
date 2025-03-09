@@ -34,8 +34,16 @@ module.exports = {
     devServer: {
         historyApiFallback: true,
         port: 8080,
-        proxy: {
-            '/api': 'http://localhost:3000'
+        // Modification du proxy pour utiliser un tableau au lieu d'un objet
+        proxy: [
+            {
+                context: ['/api'],
+                target: 'http://localhost:3000',
+                secure: false
+            }
+        ],
+        static: {
+            directory: path.join(__dirname, 'public')
         }
     },
     plugins: [
