@@ -1,39 +1,293 @@
-**1. Configuration de l’environnement de développement**  
-- **Installation de WebStorm sur macOS** : Téléchargez et installez l’IDE WebStorm depuis le site officiel de JetBrains. Assurez-vous que WebStorm fonctionne correctement sur le Mac (ou tout autre éditeur/IDE de votre choix si nécessaire).  
-- **Configuration de Node.js et npm** : Installez Node.js (version LTS recommandée) sur votre machine. Cela installera également npm (le gestionnaire de paquets Node). Vérifiez l’installation en exécutant `node -v` et `npm -v` dans le terminal. Configurez éventuellement le chemin Node/npm si nécessaire.  
-- **Installation et configuration de MongoDB Atlas** : Créez un compte sur MongoDB Atlas et créez un **cluster** MongoDB en ligne. Configurez un **nom d’utilisateur** et un **mot de passe** pour la base de données. Ajoutez l’**adresse IP** de votre machine (ou utilisez 0.0.0.0/0 en développement) aux IP autorisées pour vous connecter au cluster. Notez l’**URI de connexion** fourni par Atlas (il inclut l’hôte du cluster et les identifiants de connexion).  
-- **Mise en place d’un fichier de configuration pour la connexion à la base** : Dans le projet, créez un fichier de configuration (par exemple un fichier `.env` pour les variables d’environnement ou un fichier config.js) contenant l’URI de connexion MongoDB Atlas et d’autres informations sensibles (comme les identifiants). Assurez-vous que ce fichier est **exclu du contrôle de version** (gitignore) afin de protéger les données sensibles.  
-- **Gestion des accès pour chaque membre du groupe** : Sur MongoDB Atlas, ajoutez chaque membre du groupe de projet avec les permissions appropriées (par exemple en leur créant un compte ou en partageant les identifiants de connexion de façon sécurisée). Vérifiez que chaque membre peut se connecter à la base de données. En parallèle, assurez-vous que tous les membres disposent de l’environnement de développement configuré (Node, WebStorm, accès au repo du projet, etc.).  
+# Projet d'Analyse des Véhicules Électriques en France
 
-**2. Développement du back-end avec Node.js et Express**  
-- **Initialisation du projet avec npm** : Créez un dossier de projet backend, puis initialisez-le avec `npm init` pour générer un fichier `package.json`. Renseignez les informations de base (nom, version, etc.) ou utilisez `npm init -y` pour les valeurs par défaut.  
-- **Installation des bibliothèques nécessaires** : Installez les dépendances back-end essentielles via npm : par exemple `express` (framework web), `mongoose` ou `mongodb` (pour interagir avec MongoDB), `dotenv` (pour gérer les variables d’environnement), éventuellement `cors` (si le front-end est sur un domaine/port différent), et d’autres librairies utiles. Par exemple : `npm install express mongoose dotenv cors`.  
-- **Connexion à MongoDB Atlas** : Dans le code (par ex. un fichier `index.js` ou `app.js`), utilisez Mongoose ou le pilote MongoDB pour vous connecter à la base de données Atlas. Chargez l’URI de connexion depuis le fichier de configuration/variables d’environnement (process.env). Gérez les événements de connexion (succès ou erreur) pour confirmer que l’application se connecte bien à la base au démarrage.  
-- **Organisation de la structure du projet** : Organisez le code serveur en suivant les bonnes pratiques. Par exemple, créez des dossiers pour les **modèles** (schemas Mongoose pour BornesElectriques, Region, etc.), les **routes** (définition des routes Express pour chaque ressource API), et les **contrôleurs** (logique métier pour traiter les requêtes, si le projet le justifie). Séparez l’app.js (configuration de l’app Express) des fichiers de route. Assurez-vous que le tout reste clair et maintenable.  
-- **Création des routes API** : Développez les routes RESTful nécessaires pour interagir avec les collections MongoDB:  
-  - *BornesElectriques* : route(s) pour récupérer la liste des bornes, ajouter une borne, etc.  
-  - *NbVehiculesParRegion* : route pour récupérer le nombre de véhicules électriques par région.  
-  - *Region* : route pour récupérer les informations de région (et possiblement créer/mettre à jour si nécessaire).  
-  - *NbVehiculesParCommune* : route pour accéder aux statistiques par commune.  
-  - *DepartementEtRegion* : route pour obtenir la correspondance entre départements et régions.  
-  Implémentez les méthodes HTTP appropriées (GET pour lecture, POST pour ajout, PUT/PATCH pour mise à jour, DELETE si suppression nécessaire). Utilisez Mongoose pour faire les requêtes sur MongoDB Atlas et renvoyer les résultats en JSON.  
-- **Tests des routes API avec Postman** : Une fois les routes créées, testez-les une par une en utilisant un outil comme Postman ou Insomnia. Vérifiez que chaque endpoint renvoie les données attendues ou effectue l’action prévue (par ex., que GET /bornes renvoie la liste des bornes électriques depuis la base). Testez également les cas d’erreur (par ex., demande d’une ressource qui n’existe pas) pour vous assurer que le back-end gère correctement les erreurs et renvoie des codes HTTP appropriés.  
+Ce projet vise à développer une application web complète en JavaScript pour analyser et visualiser des données relatives aux véhicules électriques en France. L'application exploite une base de données MongoDB Atlas existante et propose diverses visualisations interactives.
 
-**3. Développement du front-end en JavaScript**  
-- **Choix de la méthode pour le front-end** : Optez pour la solution la plus simple pour ce projet. Si l’interface est basique, un front-end en **JavaScript Vanilla** (pur) peut suffire avec éventuellement un peu de **HTML/CSS**. Si l’application nécessite une interface utilisateur plus dynamique ou structurée, envisagez un framework léger comme **Vue.js** (ou React/Angular si déjà familiers, mais cela ajoute de la complexité). Le but est d’avoir une base simple à maintenir par tous les membres du groupe.  
-- **Structuration des fichiers du front-end** : Créez un répertoire dédié au front-end (si le projet n’est pas monolithique) ou servez des fichiers statiques via Express. Organisez les fichiers en séparant le HTML, le CSS et le JS. Si vous utilisez un framework comme Vue.js, mettez en place la structure de projet correspondante (composants, etc.). Sinon, avec du JavaScript simple, créez par exemple un fichier `index.html` principal, un fichier `app.js` pour la logique front-end, et des fichiers CSS pour le style.  
-- **Création des pages et composants de l’interface utilisateur** : Concevez l’interface utilisateur. Par exemple, une page d’accueil avec un aperçu des statistiques globales, une page ou section pour les détails par région, etc. Créez les éléments HTML nécessaires (boutons, menus, conteneurs pour les graphiques et la carte). Si usage d’un framework, créez les composants (par ex. un composant `StatsRegional` pour afficher les stats par région, un composant `CarteBornes` pour la carte des bornes, etc.). Assurez une navigation claire entre les différentes vues (par exemple via un menu ou des onglets).  
-- **Connexion du front-end au back-end via API** : Écrivez le code JavaScript pour appeler les routes API que vous avez créées. Utilisez la fonction `fetch()` (ou Axios) pour envoyer des requêtes HTTP vers le back-end et récupérer les données JSON. Par exemple, appeler l’endpoint `/api/nbVehiculesParRegion` pour obtenir le nombre de véhicules par région et afficher ces données dans la page. Gérez les réponses asynchrones avec des promesses ou `async/await`. Implémentez un retour visuel pour l’utilisateur pendant le chargement des données (spinner ou message de chargement). Vérifiez que le front-end reçoit bien les données du back-end et les affiche correctement.  
+## Contexte du projet
 
-**4. Mise en place des visualisations et de la carte interactive**  
-- **Intégration d’une bibliothèque de graphiques** : Pour représenter visuellement les statistiques (par ex. le nombre de véhicules électriques par région ou commune), intégrez une bibliothèque de graphiques telle que **Chart.js** (simple à utiliser) ou **D3.js** (plus puissant mais plus complexe). Par exemple, utilisez un graphique en barres ou un graphique en secteurs pour montrer la part des véhicules par région. Installez la bibliothèque choisie (via `<script>` CDN dans le HTML, ou via npm si application front-end construite) et créez un ou plusieurs graphiques alimentés par les données reçues de l’API.  
-- **Affichage des statistiques** : Sur la page appropriée, affichez les chiffres clés (par exemple, le total de véhicules électriques, la région ayant le plus de véhicules, etc.) de manière claire. Utilisez des composants visuels attrayants (graphiques, compteurs) pour rendre ces données faciles à comprendre. Chaque statistique ou graphique doit être mis à jour dynamiquement avec les données en direct depuis la base via l’API.  
-- **Mise en place d’une carte interactive** : Intégrez une carte pour visualiser des informations géographiques liées aux véhicules électriques. Pour cela, utilisez une bibliothèque comme **Leaflet.js** (libre et facile à manipuler) ou l’API Google Maps. La carte pourrait afficher, par exemple, les **bornes de recharge électriques** (points localisés) ou utiliser un code couleur par région en fonction du nombre de véhicules. Configurez la carte pour qu’elle se centre sur la zone géographique voulue (par exemple, la France si les données sont françaises).  
-- **Liaison des données de la base avec la carte** : Récupérez depuis l’API les données nécessaires pour la carte (par exemple la liste des bornes avec leurs coordonnées GPS, ou la liste des régions avec une valeur numérique). Utilisez ces données pour ajouter des **marqueurs** sur la carte (dans le cas des bornes de recharge, chaque borne = un marqueur avec éventuellement un pop-up affichant des détails). Si vous affichez des données par région, utilisez un calque géographique (GeoJSON des régions) et appliquez un style en fonction des données (par exemple coloration d’une région en fonction du nombre de véhicules). Assurez-vous que l’interaction est fluide – par exemple, possibilité de cliquer sur un marqueur ou une région pour afficher plus d’infos. Testez que la carte affiche bien toutes les données attendues.  
+Ce projet est réalisé dans le cadre d'une formation en école d'ingénieur et se concentre sur l'analyse de données liées à la mobilité électrique en France. L'objectif est de créer une application permettant d'explorer et d'analyser différentes données concernant:
 
-**5. Finalisation et tests**  
-- **Tests de bout en bout des fonctionnalités** : Effectuez des tests complets de l’application. Par exemple, lancez le back-end et le front-end ensemble et parcourez toutes les fonctionnalités comme le ferait un utilisateur lambda. Vérifiez la chaîne complète : le front-end envoie bien les requêtes, le back-end répond correctement et les données s’affichent côté client. Testez différents scénarios, y compris des cas limites (aucune donnée, données très volumineuses, etc.). Si possible, réalisez ces tests sur différents navigateurs et appareils pour assurer la compatibilité.  
-- **Correction des bugs et optimisation du code** : À la suite des tests, corrigez tous les problèmes rencontrés. Cela peut inclure des bugs fonctionnels (une route API qui plante sur un cas particulier, un affichage incorrect sur la carte, etc.) ou des problèmes de performance (requêtes trop lentes, front-end qui rame avec beaucoup de données). Optimisez le code si nécessaire : par exemple, améliorez les requêtes MongoDB en ajoutant des filtres ou des index sur les collections Atlas, nettoyez le code front-end et factorisez les fonctions répétitives. Assurez-vous également que la structure du projet est bien organisée et que le code est lisible (mise en forme, commentaires si besoin).  
-- **Documentation du projet** : Rédigez une documentation claire pour le projet. Incluez un **README** en racine du projet expliquant comment installer et lancer l’application (instructions pour installer les dépendances, configurer les variables d’environnement, lancer le serveur Node et le front-end, etc.). Documentez également l’**API** (liste des endpoints, paramètres attendus, structure des données renvoyées) pour que toute personne qui utilise ou teste l’application comprenne comment s’en servir. Si le projet est remis à un examinateur ou déployé, ajoutez toute information pertinente (par exemple, des identifiants de test, ou comment accéder à la démo en ligne). Enfin, assurez-vous que le code source final est versionné proprement (dernier commit fonctionnel, sans fichiers inutiles).  
+- Les bornes de recharge électriques
+- La répartition des véhicules électriques par région et commune
+- Les caractéristiques démographiques des territoires
 
-En suivant ces étapes de manière organisée, le groupe pourra réaliser le projet d’application web sur les véhicules électriques de manière efficace et structurée. Chaque étape garantit que l’environnement est prêt, que le back-end et le front-end communiquent correctement, que les données sont présentées de façon interactive, et que l’application finale est fiable et bien documentée.
+## Architecture technique
+
+L'application est entièrement développée en JavaScript avec:
+
+- **Back-end**: Node.js
+- **Front-end**: JavaScript vanilla ou framework front-end léger
+- **Base de données**: MongoDB Atlas (déjà configurée)
+- **Déploiement**: Local uniquement (localhost)
+
+## Structure de la base de données
+
+La base de données "VehiculesElectriques" contient 5 collections principales:
+
+### 1. BornesElectriques (123 749 documents)
+Contient les informations sur les bornes de recharge en France avec les champs suivants:
+- `_id`: Identifiant unique ObjectId
+- `type`: Type de donnée (généralement "Feature")
+- `properties`: Objet contenant les détails de la borne
+  - `accessibilite_pmr`: Accessibilité pour personnes à mobilité réduite
+  - `adresse_station`: Adresse complète
+  - `code_insee_commune`: Code INSEE de la commune
+  - `condition_acces`: Conditions d'accès à la borne
+  - `consolidated_code_postal`: Code postal
+  - `consolidated_commune`: Nom de la commune
+  - `consolidated_latitude`: Coordonnée GPS latitude
+  - `consolidated_longitude`: Coordonnée GPS longitude
+  - `contact_amenageur`: Email de contact de l'aménageur
+  - `contact_operateur`: Email de contact de l'opérateur
+  - `created_at`: Date de création de l'entrée
+  - `date_maj`: Date de mise à jour
+  - `date_mise_en_service`: Date de mise en service
+  - `gratuit`: Gratuité du service (true/false)
+  - `horaires`: Horaires d'ouverture
+  - `id_pdc_itinerance`: Identifiant du point de charge en itinérance
+  - `id_pdc_local`: Identifiant local du point de charge
+  - `id_station_itinerance`: Identifiant de la station en itinérance
+  - `id_station_local`: Identifiant local de la station
+  - `implantation_station`: Type d'implantation
+  - `nbre_pdc`: Nombre de points de charge
+  - `nom_amenageur`: Nom de l'aménageur
+  - `nom_enseigne`: Nom de l'enseigne
+  - `nom_operateur`: Nom de l'opérateur
+  - `nom_station`: Nom de la station
+  - `observations`: Commentaires ou observations
+  - `paiement_acte`: Paiement à l'acte (true/false)
+  - `paiement_autre`: Autre mode de paiement (true/false)
+  - `paiement_cb`: Paiement par carte bancaire (true/false)
+  - `prise_type_2`: Disponibilité de prise Type 2 (true/false)
+  - `prise_type_autre`: Disponibilité d'autres types de prises (true/false)
+  - `prise_type_chademo`: Disponibilité de prise CHAdeMO (true/false)
+  - `prise_type_combo_ccs`: Disponibilité de prise Combo CCS (true/false)
+  - `prise_type_ef`: Disponibilité de prise EF (true/false)
+  - `puissance_nominale`: Puissance nominale en kW
+  - `raccordement`: Type de raccordement
+  - `reservation`: Possibilité de réservation (true/false)
+  - `restriction_gabarit`: Restrictions de gabarit
+  - `station_deux_roues`: Station pour deux-roues (true/false)
+  - `tarification`: Informations sur la tarification
+  - `telephone_operateur`: Numéro de téléphone de l'opérateur
+
+### 2. NbVehiculesParRegion (13 documents)
+Contient le nombre total de véhicules électriques rechargeables par région:
+- `_id`: Identifiant unique ObjectId
+- `REGION`: Nom de la région
+- `somme_NB_VP_RECHARGEABLES_EL`: Nombre total de véhicules électriques rechargeables dans la région
+
+### 3. Region (101 documents)
+Contient des informations détaillées sur les régions:
+- `_id`: Identifiant unique ObjectId
+- `NUMÉRO`: Numéro du département
+- `NOM`: Nom du département
+- `REGION`: Nom de la région d'appartenance
+- `CHEF LIEU`: Ville chef-lieu
+- `SUPERFICIE (km²)`: Superficie en kilomètres carrés
+- `POPULATION`: Nombre d'habitants
+- `DENSITE (habitants/km2)`: Densité de population
+
+### 4. NbVehiculesParCommune (35 193 documents)
+Contient les données sur les véhicules par commune:
+- `_id`: Identifiant unique ObjectId
+- `CODGEO`: Code géographique de la commune
+- `LIBGEO`: Nom de la commune
+- `EPCI`: Code de l'Établissement Public de Coopération Intercommunale
+- `LIBEPCI`: Nom de l'EPCI
+- `DATE_ARRETE`: Date de l'arrêté des données
+- `NB_VP_RECHARGEABLES_EL`: Nombre de véhicules particuliers électriques rechargeables
+- `NB_VP_RECHARGEABLES_GAZ`: Nombre de véhicules particuliers à gaz rechargeables
+- `NB_VP`: Nombre total de véhicules particuliers
+
+### 5. DepartementEtRegion (97 documents)
+Contient des informations croisées sur les départements et régions:
+- `_id`: Identifiant unique ObjectId
+- `DEPARTEMENT`: Numéro du département
+- `somme_NB_VP_RECHARGEABLES_EL`: Nombre total de véhicules électriques rechargeables dans le département
+- `NOM`: Nom du département
+- `REGION`: Nom de la région d'appartenance
+- `CHEF LIEU`: Ville chef-lieu
+- `SUPERFICIE (km²)`: Superficie en kilomètres carrés
+- `POPULATION`: Nombre d'habitants
+- `DENSITE (habitants/km2)`: Densité de population
+
+## Fonctionnalités principales
+
+L'application permettra de:
+
+1. **Visualiser la répartition géographique** des bornes de recharge et des véhicules électriques sur une carte interactive de la France
+2. **Explorer les données par territoire** (région, département, commune) avec des statistiques détaillées
+3. **Analyser les corrélations** entre différentes variables (densité de population, nombre de bornes, nombre de véhicules)
+4. **Générer des graphiques et tableaux de bord** pour une compréhension rapide des données
+5. **Filtrer les données** selon différents critères pour des analyses personnalisées
+
+## Valeur ajoutée
+
+Cette application permettra de:
+- Identifier les zones bien équipées en infrastructures de recharge
+- Repérer les disparités territoriales dans l'adoption des véhicules électriques
+- Analyser les facteurs potentiels influençant la transition vers la mobilité électrique
+- Fournir des données objectives pour la planification d'infrastructures futures
+
+Le projet est hébergé sur GitHub à l'adresse: https://github.com/ESEO-BigData/bigdata_projet
+
+
+# Plan du projet sur les véhicules électriques.
+
+## Phase 0 : Configuration initiale (déjà réalisée)
+
+Vous avez déjà configuré l'environnement de développement avec WebStorm sur MacOS et mis en place la structure du projet sur GitHub, incluant les configurations nécessaires pour la connexion à MongoDB Atlas et la gestion des accès pour les membres du groupe.
+
+## Phase 1 : Mise en place du Back-end
+
+### Lot 1.1 : Configuration de base du serveur Node.js
+
+- Installer les dépendances essentielles (Express, Mongoose, dotenv, cors)
+- Créer le fichier server.js pour initialiser le serveur Express
+- Configurer les middlewares de base (express.json, cors)
+- Mettre en place la gestion des variables d'environnement avec dotenv
+
+
+### Lot 1.2 : Connexion à MongoDB Atlas
+
+- Créer un fichier de configuration pour la connexion à la base de données
+- Implémenter la logique de connexion avec Mongoose
+- Mettre en place un système de gestion des erreurs de connexion
+- Tester la connexion à la base de données
+
+
+### Lot 1.3 : Modélisation des données
+
+- Créer les modèles Mongoose pour chaque collection :
+  - BornesElectriques
+  - NbVehiculesParRegion
+  - Region
+  - NbVehiculesParCommune
+  - DepartementEtRegion
+- Définir les schémas avec les types de données appropriés
+- Ajouter des méthodes statiques utiles pour les requêtes fréquentes
+
+
+### Lot 1.4 : Développement des contrôleurs
+
+- Créer un contrôleur pour les bornes électriques (récupération, filtrage)
+- Créer un contrôleur pour les véhicules par région
+- Créer un contrôleur pour les informations régionales
+- Créer un contrôleur pour les véhicules par commune
+- Créer un contrôleur pour les départements et régions
+- Implémenter des fonctions d'agrégation pour les statistiques
+
+
+### Lot 1.5 : Configuration des routes API
+
+- Définir les routes pour les bornes électriques
+- Définir les routes pour les données de véhicules par région
+- Définir les routes pour les informations régionales
+- Définir les routes pour les données de véhicules par commune
+- Définir les routes pour les départements et régions
+- Créer des routes spécifiques pour les statistiques agrégées
+
+
+### Lot 1.6 : Tests et validation du back-end
+
+- Tester chaque route avec Postman ou un outil similaire
+- Vérifier la performance des requêtes à la base de données
+- Optimiser les requêtes si nécessaire (indexation, projections)
+- Documenter les endpoints API
+
+
+## Phase 2 : Développement du Front-end
+
+### Lot 2.1 : Structure de base et configuration
+
+- Mettre en place la structure des fichiers (HTML, CSS, JS)
+- Installer les bibliothèques nécessaires (D3.js, Leaflet, Chart.js)
+- Configurer webpack ou un autre bundler si nécessaire
+- Créer la page d'accueil et la structure de navigation
+
+
+### Lot 2.2 : Développement de la carte interactive
+
+- Intégrer Leaflet pour la carte de France
+- Configurer les couches de base de la carte
+- Implémenter le découpage des régions et départements
+- Ajouter les interactions (clic, survol) sur les régions
+- Créer les popups d'information
+
+
+### Lot 2.3 : Visualisation des bornes électriques
+
+- Développer la logique de récupération des données de bornes
+- Créer les marqueurs pour les bornes sur la carte
+- Implémenter le clustering pour gérer la densité des bornes
+- Ajouter des filtres (puissance, disponibilité, etc.)
+- Créer une légende explicative
+
+
+### Lot 2.4 : Visualisation des données de véhicules électriques
+
+- Créer des graphiques pour la répartition des véhicules par région
+- Développer des visualisations pour les données par commune
+- Implémenter une fonction de recherche par commune
+- Ajouter des indicateurs de comparaison entre régions
+
+
+### Lot 2.5 : Tableaux de bord et statistiques
+
+- Créer un tableau de bord principal avec les KPIs essentiels
+- Développer des graphiques de tendance et de répartition
+- Implémenter des visualisations pour les corrélations (densité de population vs. bornes)
+- Ajouter des fonctionnalités d'export de données
+
+
+### Lot 2.6 : Fonctionnalités avancées
+
+- Développer un système de filtres croisés
+- Implémenter des analyses comparatives entre régions
+- Créer des visualisations de densité (heatmaps)
+- Ajouter des fonctionnalités de projection et prévision
+
+
+### Lot 2.7 : Responsive design et optimisation
+
+- Adapter l'interface pour différentes tailles d'écran
+- Optimiser le chargement des données volumineuses
+- Améliorer les performances de rendu des visualisations
+- Tester sur différents navigateurs
+
+
+## Phase 3 : Intégration et finalisation
+
+### Lot 3.1 : Intégration back-end/front-end
+
+- Connecter toutes les visualisations aux endpoints API
+- Gérer les états de chargement et les erreurs
+- Optimiser les requêtes côté client
+- Mettre en place un système de mise en cache si nécessaire
+
+
+### Lot 3.2 : Tests d'intégration
+
+- Tester l'application complète en environnement local
+- Vérifier la cohérence des données affichées
+- Tester les performances avec des volumes de données réels
+- Corriger les bugs identifiés
+
+
+### Lot 3.3 : Documentation
+
+- Documenter l'architecture technique
+- Créer un guide d'utilisation
+- Documenter les API et les modèles de données
+- Préparer une présentation du projet
+
+
+### Lot 3.4 : Préparation à la démonstration
+
+- Préparer un jeu de données de démonstration
+- Créer un scénario de démonstration
+- Anticiper les questions techniques
+- Préparer une démonstration des fonctionnalités clés
+
+Ce plan vous permettra d'avancer méthodiquement dans le développement de votre application d'analyse des véhicules électriques. Chaque lot peut être assigné à différents membres du groupe en fonction de leurs compétences, et vous pourrez suivre la progression facilement.
+
