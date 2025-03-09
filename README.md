@@ -21,7 +21,7 @@ L'application est entièrement développée en JavaScript avec:
 
 ## Structure de la base de données
 
-La base de données "VehiculesElectriques" contient 5 collections principales:
+La base de données "VehiculesElectriques" contient 6 collections principales:
 
 ### 1. BornesElectriques (123 749 documents)
 Contient les informations sur les bornes de recharge en France avec les champs suivants:
@@ -110,6 +110,18 @@ Contient des informations croisées sur les départements et régions:
 - `SUPERFICIE (km²)`: Superficie en kilomètres carrés
 - `POPULATION`: Nombre d'habitants
 - `DENSITE (habitants/km2)`: Densité de population
+
+### 6. BornesCommuneDepartementRegion (5837 documents)
+Contient les données sur les bornes de recharge électrique par commune:
+- `_id`: Identifiant unique ObjectId
+- `commune`: Nom de la commune
+- `nombre_bornes`: Nombre de bornes de recharge dans la commune
+- `nombre_points_charge`: Nombre de points de recharge dans la commune
+- `ratio_bornes_points`: Ratio du nombre de borne sur le nombre de point de charge
+- `departement`: Nom du département
+- `code_departement`: Code du département (format 2 caractères)
+- `region`: Nom de la région d'appartenance
+- `code_postal`: Code postal de la commune (format 5 caractères)
 
 ## Fonctionnalités principales
 
