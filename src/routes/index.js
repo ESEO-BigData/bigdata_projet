@@ -8,6 +8,8 @@ const regionRoutes = require('./regionRoutes');
 const nbVehiculesCommuneRoutes = require('./nbVehiculesCommuneRoutes');
 const departementRegionRoutes = require('./departementRegionRoutes');
 const bornesCommuneDepartementRegionRoutes = require('./bornesCommuneDepartementRegionRoutes');
+const pointDeChargeRoutes = require('./pointDeChargeRoutes');
+
 
 // Configuration des routes
 router.use('/bornes', bornesRoutes);
@@ -16,6 +18,8 @@ router.use('/regions', regionRoutes);
 router.use('/vehicules/communes', nbVehiculesCommuneRoutes);
 router.use('/departements', departementRegionRoutes);
 router.use('/bornes/communes', bornesCommuneDepartementRegionRoutes);
+router.use('/points-de-charge', pointDeChargeRoutes);
+
 
 // Route racine
 router.get('/', (req, res) => {
@@ -27,7 +31,8 @@ router.get('/', (req, res) => {
             vehiculesRegions: '/api/vehicules/regions',
             regions: '/api/regions',
             vehiculesCommunes: '/api/vehicules/communes',
-            departements: '/api/departements'
+            departements: '/api/departements',
+            pointsDeCharge: '/api/points-de-charge'
         }
     });
 });
