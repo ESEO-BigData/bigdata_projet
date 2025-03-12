@@ -17,8 +17,13 @@ export function renderBornesMap(container) {
 
     let allBornesData = [];
     let individualMarkers = [];
+    let departementMarkers = [];
+    let regionMarkers = [];
+    let departementLayer = null;
+    let departementGeojson = null;
+    let departementInfos = {};
 
-    // Charger les limites régionales
+    // Charger les contours des régions
     fetch('https://france-geojson.gregoiredavid.fr/repo/regions.geojson')
         .then(res => res.json())
         .then(geojson => {
@@ -33,123 +38,177 @@ export function renderBornesMap(container) {
             }).addTo(map);
         });
 
-    // Charger les bornes
-    fetch('/api/points-de-charge')
+    // Charger les contours des départements
+    fetch('https://france-geojson.gregoiredavid.fr/repo/departements.geojson')
         .then(res => res.json())
-        .then(result => {
-            const data = result.data?.data || result.data || result;
+        .then(geojson => {
+            departementGeojson = geojson;
+        });
 
-            if (!Array.isArray(data)) {
-                console.error("❌ Données non valides : attend un tableau.");
-                return;
-            }
-
-            allBornesData = data;
-            console.log("📦 Total de lignes de points de charge récupérées :", data.length);
-
-            const regionsMap = {};
-            let totalGlobalBornes = 0;
-            let totalGlobalPointsDeCharge = 0;
-            let totalBornesMissingRegion = 0;
-            let totalBornesInvalid = 0;
-
-            // Regrouper par région
-            data.forEach((borne, index) => {
-                const region = borne.region;
-                const nbBornes = Number(borne.nombre_bornes || 0);
-
-                if (!region) {
-                    console.warn(`❌ Région manquante [ligne ${index}] :`, borne);
-                    totalBornesMissingRegion++;
-                    return;
-                }
-
-                if (!regionsMap[region]) {
-                    regionsMap[region] = {
-                        totalBornes: 0,
-                        totalPointsDeCharge: 0,
-                        latitudes: [],
-                        longitudes: []
-                    };
-                }
-
-                if (isNaN(nbBornes)) {
-                    console.warn(`⚠️ nombre_bornes invalide [ligne ${index}] :`, borne.nombre_bornes);
-                    totalBornesInvalid++;
-                }
-
-                regionsMap[region].totalBornes += nbBornes;
-                regionsMap[region].totalPointsDeCharge += 1;
-                totalGlobalBornes += nbBornes;
-                totalGlobalPointsDeCharge += 1;
-
-                if (borne.consolidated_latitude && borne.consolidated_longitude) {
-                    regionsMap[region].latitudes.push(borne.consolidated_latitude);
-                    regionsMap[region].longitudes.push(borne.consolidated_longitude);
-                }
+    // Charger les véhicules par région
+    fetch('/api/vehicules/regions')
+        .then(res => res.json())
+        .then(vehiculesRes => {
+            const vehiculesByRegion = {};
+            (vehiculesRes.data || []).forEach(item => {
+                vehiculesByRegion[item.REGION] = item.somme_NB_VP_RECHARGEABLES_EL;
             });
 
-            // 💬 Logs finaux
-            console.log("✅ Total global des bornes comptabilisées :", totalGlobalBornes);
-            console.log("✅ Total global des points de charge comptabilisés :", totalGlobalPointsDeCharge);
-            console.log("⚠️ Bornes ignorées car région manquante :", totalBornesMissingRegion);
-            console.log("⚠️ Bornes avec valeur invalide dans nombre_bornes :", totalBornesInvalid);
-
-            // Marqueurs région
-            Object.entries(regionsMap).forEach(([region, info]) => {
-                const avgLat = info.latitudes.reduce((a, b) => a + b, 0) / info.latitudes.length;
-                const avgLon = info.longitudes.reduce((a, b) => a + b, 0) / info.longitudes.length;
-
-                const marker = L.marker([avgLat, avgLon]).addTo(map);
-                marker.bindPopup(`
-          <strong>${region}</strong><br>
-          Total de bornes : ${info.totalBornes}<br>
-          Total de points de charge : ${info.totalPointsDeCharge}
-        `);
-            });
-
-            // ✅ Fonction pour mettre à jour les points visibles
-            function updateIndividualMarkers() {
-                const zoom = map.getZoom();
-                const bounds = map.getBounds();
-
-                // Supprimer anciens marqueurs
-                individualMarkers.forEach(marker => map.removeLayer(marker));
-                individualMarkers = [];
-
-                if (zoom >= 8) {
-                    const visibleBornes = allBornesData.filter(borne =>
-                        borne.consolidated_latitude &&
-                        borne.consolidated_longitude &&
-                        bounds.contains([borne.consolidated_latitude, borne.consolidated_longitude])
-                    );
-
-                    visibleBornes.forEach(borne => {
-                        const marker = L.circleMarker(
-                            [borne.consolidated_latitude, borne.consolidated_longitude],
-                            { radius: 6 }
-                        ).addTo(map);
-
-                        marker.bindPopup(`
-              <strong>${borne.consolidated_commune || 'Commune inconnue'}</strong><br>
-              ${borne.adresse_station || ''}<br>
-              Bornes : ${borne.nombre_bornes || 'N/A'}
-            `);
-
-                        individualMarkers.push(marker);
+            // Charger les infos des départements
+            fetch('/api/departements')
+                .then(res => res.json())
+                .then(deptRes => {
+                    (deptRes.data || []).forEach(dep => {
+                        departementInfos[dep.NOM] = {
+                            lat: dep.latitude_chef_lieu,
+                            lon: dep.longitude_chef_lieu,
+                            vehicules: dep.somme_NB_VP_RECHARGEABLES_EL || 0
+                        };
                     });
 
-                    console.log(`🔍 Zoom >=8 → ${visibleBornes.length} points individuels affichés.`);
-                } else {
-                    console.log("🔎 Zoom <8 → Points individuels masqués.");
-                }
-            }
+                    // Charger les bornes
+                    fetch('/api/points-de-charge')
+                        .then(res => res.json())
+                        .then(result => {
+                            const data = result.data?.data || result.data || result;
+                            if (!Array.isArray(data)) return;
 
-            // 👉 Rafraîchir les points sur zoom ET déplacement
-            map.on('zoomend', updateIndividualMarkers);
-            map.on('moveend', updateIndividualMarkers);
-        })
-        .catch(err => {
-            console.error('❌ Erreur chargement des points de charge :', err);
+                            allBornesData = data;
+                            const regionsMap = {};
+                            const departementsMap = {};
+
+                            // Regrouper par région et département
+                            data.forEach(borne => {
+                                const region = borne.region;
+                                const dept = borne.departement;
+                                const nbBornes = Number(borne.nombre_bornes || 0);
+
+                                if (region) {
+                                    if (!regionsMap[region]) {
+                                        regionsMap[region] = {
+                                            totalBornes: 0,
+                                            totalPointsDeCharge: 0,
+                                            latitudes: [],
+                                            longitudes: []
+                                        };
+                                    }
+                                    regionsMap[region].totalBornes += nbBornes;
+                                    regionsMap[region].totalPointsDeCharge += 1;
+                                    if (borne.consolidated_latitude && borne.consolidated_longitude) {
+                                        regionsMap[region].latitudes.push(borne.consolidated_latitude);
+                                        regionsMap[region].longitudes.push(borne.consolidated_longitude);
+                                    }
+                                }
+
+                                if (dept) {
+                                    if (!departementsMap[dept]) {
+                                        departementsMap[dept] = {
+                                            totalBornes: 0,
+                                            totalPointsDeCharge: 0
+                                        };
+                                    }
+                                    departementsMap[dept].totalBornes += nbBornes;
+                                    departementsMap[dept].totalPointsDeCharge += 1;
+                                }
+                            });
+
+                            // ➕ Marqueurs par région (initial)
+                            Object.entries(regionsMap).forEach(([region, info]) => {
+                                const avgLat = info.latitudes.reduce((a, b) => a + b, 0) / info.latitudes.length;
+                                const avgLon = info.longitudes.reduce((a, b) => a + b, 0) / info.longitudes.length;
+                                const nbVehicules = vehiculesByRegion[region] || 0;
+
+                                const marker = L.marker([avgLat, avgLon]).addTo(map);
+                                marker.bindPopup(`
+                  <strong>${region}</strong><br>
+                  Total de bornes : ${info.totalBornes}<br>
+                  Total de points de charge : ${info.totalPointsDeCharge}<br>
+                  Véhicules électriques : ${nbVehicules}
+                `);
+                                regionMarkers.push(marker);
+                            });
+
+                            // 🔄 Mise à jour dynamique au zoom / move
+                            function updateMapDisplay() {
+                                const zoom = map.getZoom();
+                                const bounds = map.getBounds();
+
+                                // ➖ Masquer les marqueurs de régions au zoom >=8
+                                if (zoom >= 8) {
+                                    regionMarkers.forEach(m => map.removeLayer(m));
+                                } else {
+                                    regionMarkers.forEach(m => m.addTo(map));
+                                }
+
+                                // ➕ Départements (contours + points)
+                                if (zoom >= 8) {
+                                    if (!departementLayer && departementGeojson) {
+                                        departementLayer = L.geoJSON(departementGeojson, {
+                                            style: {
+                                                color: 'black',
+                                                weight: 2,
+                                                opacity: 0.8,
+                                                dashArray: '4,4',
+                                                fillOpacity: 0
+                                            }
+                                        }).addTo(map);
+                                    }
+
+                                    departementMarkers.forEach(m => map.removeLayer(m));
+                                    departementMarkers = [];
+
+                                    Object.entries(departementsMap).forEach(([deptName, info]) => {
+                                        const deptInfo = departementInfos[deptName];
+                                        if (!deptInfo || !deptInfo.lat || !deptInfo.lon) return;
+
+                                        const marker = L.marker([deptInfo.lat, deptInfo.lon]).addTo(map);
+                                        marker.bindPopup(`
+                      <strong>${deptName}</strong><br>
+                      Total de bornes : ${info.totalBornes}<br>
+                      Total de points de charge : ${info.totalPointsDeCharge}<br>
+                      Véhicules électriques : ${deptInfo.vehicules}
+                    `);
+                                        departementMarkers.push(marker);
+                                    });
+                                } else {
+                                    if (departementLayer) {
+                                        map.removeLayer(departementLayer);
+                                        departementLayer = null;
+                                    }
+                                    departementMarkers.forEach(m => map.removeLayer(m));
+                                    departementMarkers = [];
+                                }
+
+                                // ➕ Points individuels au zoom ≥ 10
+                                individualMarkers.forEach(m => map.removeLayer(m));
+                                individualMarkers = [];
+
+                                if (zoom >= 9) {
+                                    const visibleBornes = allBornesData.filter(borne =>
+                                        borne.consolidated_latitude &&
+                                        borne.consolidated_longitude &&
+                                        bounds.contains([borne.consolidated_latitude, borne.consolidated_longitude])
+                                    );
+
+                                    visibleBornes.forEach(borne => {
+                                        const marker = L.circleMarker(
+                                            [borne.consolidated_latitude, borne.consolidated_longitude],
+                                            { radius: 6 }
+                                        ).addTo(map);
+
+                                        marker.bindPopup(`
+                      <strong>${borne.consolidated_commune || 'Commune inconnue'}</strong><br>
+                      ${borne.adresse_station || ''}<br>
+                      Bornes : ${borne.nombre_bornes || 'N/A'}
+                    `);
+                                        individualMarkers.push(marker);
+                                    });
+                                }
+                            }
+
+                            map.on('zoomend', updateMapDisplay);
+                            map.on('moveend', updateMapDisplay);
+                        });
+                });
         });
 }
