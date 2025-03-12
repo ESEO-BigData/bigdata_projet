@@ -108,23 +108,21 @@ export function renderBornesMap(container) {
         `);
             });
 
-            // Affichage dynamique des points de charge individuels au zoom
-            map.on('zoomend', () => {
+            // ✅ Fonction pour mettre à jour les points visibles
+            function updateIndividualMarkers() {
                 const zoom = map.getZoom();
                 const bounds = map.getBounds();
 
-                if (zoom >= 8) {
-                    // Supprimer les anciens marqueurs
-                    individualMarkers.forEach(marker => map.removeLayer(marker));
-                    individualMarkers = [];
+                // Supprimer anciens marqueurs
+                individualMarkers.forEach(marker => map.removeLayer(marker));
+                individualMarkers = [];
 
-                    const visibleBornes = allBornesData.filter(borne => {
-                        return (
-                            borne.consolidated_latitude &&
-                            borne.consolidated_longitude &&
-                            bounds.contains([borne.consolidated_latitude, borne.consolidated_longitude])
-                        );
-                    });
+                if (zoom >= 8) {
+                    const visibleBornes = allBornesData.filter(borne =>
+                        borne.consolidated_latitude &&
+                        borne.consolidated_longitude &&
+                        bounds.contains([borne.consolidated_latitude, borne.consolidated_longitude])
+                    );
 
                     visibleBornes.forEach(borne => {
                         const marker = L.circleMarker(
@@ -143,11 +141,13 @@ export function renderBornesMap(container) {
 
                     console.log(`🔍 Zoom >=8 → ${visibleBornes.length} points individuels affichés.`);
                 } else {
-                    individualMarkers.forEach(marker => map.removeLayer(marker));
-                    individualMarkers = [];
                     console.log("🔎 Zoom <8 → Points individuels masqués.");
                 }
-            });
+            }
+
+            // 👉 Rafraîchir les points sur zoom ET déplacement
+            map.on('zoomend', updateIndividualMarkers);
+            map.on('moveend', updateIndividualMarkers);
         })
         .catch(err => {
             console.error('❌ Erreur chargement des points de charge :', err);
