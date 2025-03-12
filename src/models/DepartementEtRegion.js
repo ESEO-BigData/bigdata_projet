@@ -33,6 +33,14 @@ const DepartementEtRegionSchema = new mongoose.Schema({
     "DENSITE (habitants/km2)": {
         type: Number,
         required: true
+    },
+    latitude_chef_lieu: {
+        type: Number,
+        required: false
+    },
+    longitude_chef_lieu: {
+        type: Number,
+        required: false
     }
 }, {
     collection: 'DepartementEtRegion',
