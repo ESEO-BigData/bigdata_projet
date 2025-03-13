@@ -224,3 +224,72 @@ exports.getBornesByRegion = async (req, res) => {
     }
 };
 
+exports.getBornesElectriquesByAdresseOrId = async (req, res) => {
+    try {
+        const { adresse, id } = req.query;
+
+        if (!adresse && !id) {
+            return responseFormatter.badRequest(res, 'Paramètre "adresse" ou "id" requis');
+        }
+
+        const query = { $or: [] };
+        if (adresse) query.$or.push({ 'properties.adresse_station': adresse });
+        if (id) query.$or.push({ 'properties.id_station_itinerance': id });
+
+        const bornes = await BorneElectrique.find(query);
+
+        if (!bornes || bornes.length === 0) {
+            return responseFormatter.notFound(res, 'Aucune borne correspondante trouvée');
+        }
+
+        let missingInfoCount = 0;
+        let missingPaiement = 0;
+        let missingPrise = 0;
+        let missingPuissance = 0;
+        let missingMultiple = 0;
+
+        const formatted = bornes.map(borne => {
+            const paiement = {
+                acte: borne.properties.paiement_acte,
+                autre: borne.properties.paiement_autre,
+                cb: borne.properties.paiement_cb
+            };
+
+            const types_prise = {
+                type2: borne.properties.prise_type_2,
+                chademo: borne.properties.prise_type_chademo,
+                combo_ccs: borne.properties.prise_type_combo_ccs,
+                ef: borne.properties.prise_type_ef
+            };
+
+            const puissance_kw = borne.properties.puissance_nominale;
+
+            const hasPaiement = paiement.acte || paiement.cb || paiement.autre;
+            const hasPrise = types_prise.type2 || types_prise.chademo || types_prise.combo_ccs || types_prise.ef;
+            const hasPuissance = puissance_kw !== undefined && puissance_kw !== null;
+
+            let missing = 0;
+            if (!hasPaiement) { missing++; missingPaiement++; }
+            if (!hasPrise) { missing++; missingPrise++; }
+            if (!hasPuissance) { missing++; missingPuissance++; }
+            if (missing > 1) missingMultiple++;
+            if (missing > 0) missingInfoCount++;
+
+            return { paiement, types_prise, puissance_kw };
+        });
+
+        /*console.log(`📊 Vérification des données complémentaires :`);
+        console.log(`→ Total de points de charge trouvés : ${bornes.length}`);
+        console.log(`→ Points sans informations complètes : ${missingInfoCount}`);
+        console.log(`   - Sans info puissance : ${missingPuissance}`);
+        console.log(`   - Sans info type de prise : ${missingPrise}`);
+        console.log(`   - Sans info méthode de paiement : ${missingPaiement}`);
+        console.log(`   - Manquent ≥ 2 types d'information : ${missingMultiple}`);*/
+
+        return responseFormatter.success(res, formatted);
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la récupération des détails des bornes', error);
+    }
+};
+
+

@@ -12,6 +12,7 @@ router.get('/proximite', bornesController.getBornesProximite);
 router.get('/typeprise/:typePrise', bornesController.getBornesByTypePrise);
 router.get('/statistiques', bornesController.getBornesStats);
 router.get('/region/:regionName', bornesController.getBornesByRegion);
+router.get('/details', bornesController.getBornesElectriquesByAdresseOrId);
 
 
 module.exports = router;
