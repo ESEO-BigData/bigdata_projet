@@ -76,3 +76,29 @@ footer {
 .chart-container {
     margin: 2rem 0;
 }
+
+.heatmap-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap; /* pour responsive */
+}
+
+#heatmap-container {
+    flex: 1 1 70%;
+    min-width: 600px;
+    height: 500px;
+}
+
+.heatmap-legend-box {
+    flex: 0 0 250px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    background: white;
+    font-size: 14px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    height: fit-content;
+    margin-top: 140px;
+}
+
