@@ -488,13 +488,22 @@ function createDepartementsChart(departements) {
         type: 'bar',
         data: {
             labels: departements.map(dept => `${dept.code} - ${dept.departement}`),
-            datasets: [{
-                label: 'Nombre de véhicules électriques',
-                data: departements.map(dept => dept.totalVehiculesElectriques),
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Véhicules électriques',
+                    data: departements.map(dept => dept.totalVehiculesElectriques),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Véhicules thermiques',
+                    data: departements.map(dept => dept.totalVehicules - dept.totalVehiculesElectriques),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -519,8 +528,12 @@ function createDepartementsChart(departements) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Nombre de véhicules électriques'
-                    }
+                        text: 'Nombre de véhicules'
+                    },
+                    stacked: false
+                },
+                x: {
+                    stacked: false
                 }
             },
             onClick: (event, elements) => {
@@ -603,13 +616,22 @@ function createCommunesByDepartementChart(communes) {
         type: 'bar',
         data: {
             labels: topCommunes.map(commune => commune.commune),
-            datasets: [{
-                label: 'Nombre de véhicules électriques',
-                data: topCommunes.map(commune => commune.NB_VP_RECHARGEABLES_EL),
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Véhicules électriques',
+                    data: topCommunes.map(commune => commune.NB_VP_RECHARGEABLES_EL),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Véhicules thermiques',
+                    data: topCommunes.map(commune => commune.NB_VP - commune.NB_VP_RECHARGEABLES_EL),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -634,8 +656,12 @@ function createCommunesByDepartementChart(communes) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Nombre de véhicules électriques'
-                    }
+                        text: 'Nombre de véhicules'
+                    },
+                    stacked: false
+                },
+                x: {
+                    stacked: false
                 }
             }
         }

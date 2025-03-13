@@ -576,7 +576,7 @@ exports.compareRegions = async (req, res) => {
     }
 };
 
-// ✅ Obtenir le total des véhicules électriques d'une région à partir des données communes (DOM-TOM compatible)
+// Obtenir le total des véhicules électriques d'une région à partir des données communes (DOM-TOM compatible)
 exports.getNbVehiculesELByRegion = async (req, res) => {
     try {
         const region = req.params.region;
