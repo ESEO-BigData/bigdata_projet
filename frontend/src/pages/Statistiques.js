@@ -400,6 +400,24 @@ function loadCommunesData() {
       
       <div class="filter-container">
         <div class="departement-selector">
+        <div class="sort-controls">
+  <div class="sort-by">
+    <label for="sort-by-select">Trier par :</label>
+    <select id="sort-by-select">
+      <option value="vehiculesElectriques">Véhicules électriques</option>
+      <option value="vehiculesThermiques">Véhicules thermiques</option>
+      <option value="bornes">Bornes de recharge</option>
+    </select>
+  </div>
+  <div class="sort-order">
+    <label for="sort-order-select">Ordre :</label>
+    <select id="sort-order-select">
+      <option value="desc">Décroissant</option>
+      <option value="asc">Croissant</option>
+    </select>
+  </div>
+  <button id="apply-sort" class="btn">Appliquer</button>
+</div>
           <label for="departement-select">Sélectionner un département :</label>
           <select id="departement-select">
             <option value="">Choisir un département</option>
@@ -415,6 +433,24 @@ function loadCommunesData() {
     <div class="communes-container" style="display: none;">
       <div class="back-button-container">
         <button id="back-to-departements" class="btn">← Retour aux départements</button>
+        <div class="sort-controls">
+  <div class="sort-by">
+    <label for="communes-sort-by-select">Trier par :</label>
+    <select id="communes-sort-by-select">
+      <option value="vehiculesElectriques">Véhicules électriques</option>
+      <option value="vehiculesThermiques">Véhicules thermiques</option>
+      <option value="bornes">Bornes de recharge</option>
+    </select>
+  </div>
+  <div class="sort-order">
+    <label for="communes-sort-order-select">Ordre :</label>
+    <select id="communes-sort-order-select">
+      <option value="desc">Décroissant</option>
+      <option value="asc">Croissant</option>
+    </select>
+  </div>
+  <button id="communes-apply-sort" class="btn">Appliquer</button>
+</div>
       </div>
       
       <h2>Communes du département <span id="selected-departement-name"></span></h2>
@@ -444,8 +480,10 @@ function loadCommunesData() {
     <span id="page-info">Page 1 sur 1</span>
     <button id="next-page" class="pagination-btn">Suivant</button>
   </div>
+    <div class="export-container">
+    <button id="export-communes-csv" class="export-btn">Exporter en CSV</button>
+  </div>
 </div>
-
     </div>
   `;
 
@@ -455,6 +493,11 @@ function loadCommunesData() {
     // Configurer le sélecteur de département
     setupDepartementSelector();
 
+    // Configurer les contrôles de tri
+    setupSortControls();
+
+    // Configurer le bouton d'export
+    setupExportButton();
     // Configurer le bouton de retour
     document.getElementById('back-to-departements').addEventListener('click', () => {
         document.querySelector('.departements-container').style.display = 'block';
@@ -481,8 +524,33 @@ function loadTopDepartements() {
 }
 
 // Fonction pour créer le graphique des départements
-function createDepartementsChart(departements) {
+function createDepartementsChart(departements, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
     const ctx = document.getElementById('departements-chart').getContext('2d');
+
+    // Trier les départements selon le critère choisi
+    departements.sort((a, b) => {
+        let valueA, valueB;
+
+        switch(sortBy) {
+            case 'vehiculesElectriques':
+                valueA = a.totalVehiculesElectriques;
+                valueB = b.totalVehiculesElectriques;
+                break;
+            case 'vehiculesThermiques':
+                valueA = a.totalVehicules - a.totalVehiculesElectriques;
+                valueB = b.totalVehicules - b.totalVehiculesElectriques;
+                break;
+            case 'bornes':
+                valueA = a.totalBornes;
+                valueB = b.totalBornes;
+                break;
+        }
+
+        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
+    });
+
+    // Limiter à 10 départements
+    const topDepartements = departements.slice(0, 10);
 
     // Détruire le graphique existant s'il y en a un
     if (window.departementsChart) {
@@ -493,20 +561,27 @@ function createDepartementsChart(departements) {
     window.departementsChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: departements.map(dept => `${dept.code} - ${dept.departement}`),
+            labels: topDepartements.map(dept => `${dept.code} - ${dept.departement}`),
             datasets: [
                 {
                     label: 'Véhicules électriques',
-                    data: departements.map(dept => dept.totalVehiculesElectriques),
+                    data: topDepartements.map(dept => dept.totalVehiculesElectriques),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
                 },
                 {
                     label: 'Véhicules thermiques',
-                    data: departements.map(dept => dept.totalVehicules - dept.totalVehiculesElectriques),
+                    data: topDepartements.map(dept => dept.totalVehicules - dept.totalVehiculesElectriques),
                     backgroundColor: 'rgba(255, 99, 132, 0.6)',
                     borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Bornes de recharge',
+                    data: topDepartements.map(dept => dept.totalBornes),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }
             ]
@@ -519,14 +594,7 @@ function createDepartementsChart(departements) {
                 },
                 title: {
                     display: true,
-                    text: 'Top 10 des départements par nombre de véhicules électriques'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw.toLocaleString('fr-FR')} véhicules`;
-                        }
-                    }
+                    text: 'Top 10 des départements'
                 }
             },
             scales: {
@@ -534,19 +602,15 @@ function createDepartementsChart(departements) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Nombre de véhicules'
-                    },
-                    stacked: false
-                },
-                x: {
-                    stacked: false
+                        text: 'Nombre'
+                    }
                 }
             },
             onClick: (event, elements) => {
                 if (elements.length > 0) {
                     const index = elements[0].index;
-                    const departementCode = departements[index].code;
-                    const departementName = departements[index].departement;
+                    const departementCode = topDepartements[index].code;
+                    const departementName = topDepartements[index].departement;
                     loadCommunesByDepartement(departementCode, departementName);
                 }
             }
@@ -582,6 +646,68 @@ function setupDepartementSelector() {
     });
 }
 
+// Ajouter après setupDepartementSelector()
+function setupSortControls() {
+    // Contrôles de tri pour les départements
+    document.getElementById('apply-sort').addEventListener('click', () => {
+        const sortBy = document.getElementById('sort-by-select').value;
+        const sortOrder = document.getElementById('sort-order-select').value;
+
+        fetch('/api/bornes-communes/statistiques/correlation')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    createDepartementsChart(data.data.departements, sortBy, sortOrder);
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des départements:', error));
+    });
+
+    // Contrôles de tri pour les communes
+    document.getElementById('communes-apply-sort').addEventListener('click', () => {
+        const sortBy = document.getElementById('communes-sort-by-select').value;
+        const sortOrder = document.getElementById('communes-sort-order-select').value;
+        const departementCode = document.getElementById('selected-departement-code').value;
+        const departementName = document.getElementById('selected-departement-name').textContent;
+
+        fetch(`/api/bornes-communes/departement/${departementCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
+                }
+            })
+            .catch(error => console.error('Erreur lors du chargement des communes:', error));
+    });
+}
+
+function setupExportButton() {
+    document.getElementById('export-communes-csv').addEventListener('click', () => {
+        // Créer le contenu CSV
+        let csvContent = 'Commune,Code postal,Véhicules électriques,Pourcentage,Total véhicules,Bornes de recharge\n';
+
+        communesData.forEach(commune => {
+            const pourcentage = ((commune.NB_VP_RECHARGEABLES_EL / commune.NB_VP) * 100).toFixed(2);
+            csvContent += `"${commune.commune}","${commune.code_postal}",${commune.NB_VP_RECHARGEABLES_EL},${pourcentage},${commune.NB_VP},${commune.nombre_bornes}\n`;
+        });
+
+        // Créer un objet Blob avec le contenu CSV
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        // Créer un lien de téléchargement
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `communes-${document.getElementById('selected-departement-name').textContent}.csv`);
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+}
+
 // Fonction pour charger les communes d'un département
 function loadCommunesByDepartement(departementCode, departementName) {
     fetch(`/api/bornes-communes/departement/${departementCode}`)
@@ -592,22 +718,52 @@ function loadCommunesByDepartement(departementCode, departementName) {
                 document.querySelector('.departements-container').style.display = 'none';
                 document.querySelector('.communes-container').style.display = 'block';
 
+                // Stocker le code du département pour les tris futurs
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.id = 'selected-departement-code';
+                hiddenInput.value = departementCode;
+                document.querySelector('.communes-container').appendChild(hiddenInput);
+
                 // Mettre à jour le nom du département sélectionné
                 document.getElementById('selected-departement-name').textContent = departementName;
 
-                // Trier les communes par nombre de véhicules électriques
-                const communes = data.data.communes.sort((a, b) => b.NB_VP_RECHARGEABLES_EL - a.NB_VP_RECHARGEABLES_EL);
+                // Obtenir les valeurs de tri actuelles
+                const sortBy = document.getElementById('communes-sort-by-select').value;
+                const sortOrder = document.getElementById('communes-sort-order-select').value;
 
-                createCommunesByDepartementChart(communes);
-                populateCommunesTable(communes);
+                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
+                populateCommunesTable(data.data.communes);
             }
         })
         .catch(error => console.error('Erreur lors du chargement des communes:', error));
 }
 
 // Fonction pour créer le graphique des communes par département
-function createCommunesByDepartementChart(communes) {
+function createCommunesByDepartementChart(communes, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
     const ctx = document.getElementById('communes-by-departement-chart').getContext('2d');
+
+    // Trier les communes selon le critère choisi
+    communes.sort((a, b) => {
+        let valueA, valueB;
+
+        switch(sortBy) {
+            case 'vehiculesElectriques':
+                valueA = a.NB_VP_RECHARGEABLES_EL;
+                valueB = b.NB_VP_RECHARGEABLES_EL;
+                break;
+            case 'vehiculesThermiques':
+                valueA = a.NB_VP - a.NB_VP_RECHARGEABLES_EL;
+                valueB = b.NB_VP - b.NB_VP_RECHARGEABLES_EL;
+                break;
+            case 'bornes':
+                valueA = a.nombre_bornes;
+                valueB = b.nombre_bornes;
+                break;
+        }
+
+        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
+    });
 
     // Limiter à 20 communes pour la lisibilité du graphique
     const topCommunes = communes.slice(0, 20);
@@ -636,6 +792,13 @@ function createCommunesByDepartementChart(communes) {
                     backgroundColor: 'rgba(255, 99, 132, 0.6)',
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
+                },
+                {
+                    label: 'Bornes de recharge',
+                    data: topCommunes.map(commune => commune.nombre_bornes),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
                 }
             ]
         },
@@ -647,14 +810,7 @@ function createCommunesByDepartementChart(communes) {
                 },
                 title: {
                     display: true,
-                    text: `Top 20 des communes du département par nombre de véhicules électriques`
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw.toLocaleString('fr-FR')} véhicules`;
-                        }
-                    }
+                    text: `Top 20 des communes du département`
                 }
             },
             scales: {
@@ -662,12 +818,8 @@ function createCommunesByDepartementChart(communes) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Nombre de véhicules'
-                    },
-                    stacked: false
-                },
-                x: {
-                    stacked: false
+                        text: 'Nombre'
+                    }
                 }
             }
         }
