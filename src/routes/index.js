@@ -17,7 +17,7 @@ router.use('/vehicules/regions', nbVehiculesRegionRoutes);
 router.use('/regions', regionRoutes);
 router.use('/vehicules/communes', nbVehiculesCommuneRoutes);
 router.use('/departements', departementRegionRoutes);
-router.use('/bornes/communes', bornesCommuneDepartementRegionRoutes);
+router.use('/bornes-communes', bornesCommuneDepartementRegionRoutes);
 router.use('/points-de-charge', pointDeChargeRoutes);
 
 
