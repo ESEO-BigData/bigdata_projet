@@ -21,10 +21,10 @@ L'application est entièrement développée en JavaScript avec:
 
 ## Structure de la base de données
 
-La base de données "VehiculesElectriques" contient 6 collections principales:
+La base de données "VehiculesElectriques" contient 7 collections principales :
 
 ### 1. BornesElectriques (123 749 documents)
-Contient les informations sur les bornes de recharge en France avec les champs suivants:
+Contient les informations sur les bornes de recharge en France avec les champs suivants :
 - `_id`: Identifiant unique ObjectId
 - `type`: Type de donnée (généralement "Feature")
 - `properties`: Objet contenant les détails de la borne
@@ -71,13 +71,13 @@ Contient les informations sur les bornes de recharge en France avec les champs s
   - `telephone_operateur`: Numéro de téléphone de l'opérateur
 
 ### 2. NbVehiculesParRegion (13 documents)
-Contient le nombre total de véhicules électriques rechargeables par région:
+Contient le nombre total de véhicules électriques rechargeables par région :
 - `_id`: Identifiant unique ObjectId
 - `REGION`: Nom de la région
 - `somme_NB_VP_RECHARGEABLES_EL`: Nombre total de véhicules électriques rechargeables dans la région
 
 ### 3. Region (101 documents)
-Contient des informations détaillées sur les régions:
+Contient des informations détaillées sur les régions :
 - `_id`: Identifiant unique ObjectId
 - `NUMÉRO`: Numéro du département
 - `NOM`: Nom du département
@@ -88,7 +88,7 @@ Contient des informations détaillées sur les régions:
 - `DENSITE (habitants/km2)`: Densité de population
 
 ### 4. NbVehiculesParCommune (35 193 documents)
-Contient les données sur les véhicules par commune:
+Contient les données sur les véhicules par commune :
 - `_id`: Identifiant unique ObjectId
 - `CODGEO`: Code géographique de la commune
 - `LIBGEO`: Nom de la commune
@@ -100,7 +100,7 @@ Contient les données sur les véhicules par commune:
 - `NB_VP`: Nombre total de véhicules particuliers
 
 ### 5. DepartementEtRegion (97 documents)
-Contient des informations croisées sur les départements et régions:
+Contient des informations croisées sur les départements et régions :
 - `_id`: Identifiant unique ObjectId
 - `DEPARTEMENT`: Numéro du département
 - `somme_NB_VP_RECHARGEABLES_EL`: Nombre total de véhicules électriques rechargeables dans le département
@@ -112,16 +112,34 @@ Contient des informations croisées sur les départements et régions:
 - `DENSITE (habitants/km2)`: Densité de population
 
 ### 6. BornesCommuneDepartementRegion (5837 documents)
-Contient les données sur les bornes de recharge électrique par commune:
+Contient les données sur les bornes de recharge électrique par commune :
 - `_id`: Identifiant unique ObjectId
 - `commune`: Nom de la commune
 - `nombre_bornes`: Nombre de bornes de recharge dans la commune
 - `nombre_points_charge`: Nombre de points de recharge dans la commune
-- `ratio_bornes_points`: Ratio du nombre de borne sur le nombre de point de charge
+- `ratio_bornes_points`: Ratio du nombre de bornes sur le nombre de point de charge
+- `NB_VP_RECHARGEABLES_EL`: Nombre de véhicules électrique (Nombre entier)
+- `NB_VP_RECHARGEABLES_GAZ`: Nombre de véhicules au gaz (Nombre entier)
+- `NB_VP`: Nombre de véhicules personnel thermique (Nombre entier)
 - `departement`: Nom du département
 - `code_departement`: Code du département (format 2 caractères)
 - `region`: Nom de la région d'appartenance
 - `code_postal`: Code postal de la commune (format 5 caractères)
+
+### 7. PointsdeCharge (31789 documents)
+Contient les données des points de recharge électrique :
+- `_id` : Identifiant unique ObjectId
+- `id_station_itinerance` : Identifiant de la station d'itinérance
+- `consolidated_latitude` : Latitude consolidée de la station
+- `consolidated_longitude` : Longitude consolidée de la station
+- `adresse_station` : Adresse complète de la station
+- `consolidated_commune` : Nom de la commune où se situe la station
+- `code_postal` : Code postal de la commune (format 5 caractères)
+- `nombre_bornes` : Nombre de bornes de recharge à la station (Nombre entier)
+- `departement` : Nom du département de localisation
+- `region` : Nom de la région d'appartenance
+- `ratio_bornes_points` : Ratio du nombre de bornes sur le nombre de points de charge
+
 
 ## Fonctionnalités principales
 
