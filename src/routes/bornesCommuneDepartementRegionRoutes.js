@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const bornesCommuneDepartementRegionController = require('../controllers/bornesCommuneDepartementRegionController');
 
+router.get('/vehiculesEL/region/:region', bornesCommuneDepartementRegionController.getNbVehiculesELByRegion);
+
 // Routes pour les données combinées bornes/communes/départements/régions
 router.get('/', bornesCommuneDepartementRegionController.getAllBornesCommuneDepartementRegion);
 router.get('/commune/:commune', bornesCommuneDepartementRegionController.getByCommune);

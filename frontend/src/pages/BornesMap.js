@@ -1,5 +1,7 @@
-// src/pages/BornesMap.js
 import L from 'leaflet';
+
+const normalizeString = str =>
+    str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export function renderBornesMap(container) {
     container.innerHTML = `
@@ -23,7 +25,11 @@ export function renderBornesMap(container) {
     let departementGeojson = null;
     let departementInfos = {};
 
-    // Charger les contours des régions
+    const domTomRegions = [
+        'martinique', 'guadeloupe', 'guyane', 'mayotte',
+        'la reunion', 'réunion', 'saint-pierre-et-miquelon'
+    ];
+
     fetch('https://france-geojson.gregoiredavid.fr/repo/regions.geojson')
         .then(res => res.json())
         .then(geojson => {
@@ -38,23 +44,27 @@ export function renderBornesMap(container) {
             }).addTo(map);
         });
 
-    // Charger les contours des départements
     fetch('https://france-geojson.gregoiredavid.fr/repo/departements.geojson')
         .then(res => res.json())
         .then(geojson => {
             departementGeojson = geojson;
         });
 
-    // Charger les véhicules par région
     fetch('/api/vehicules/regions')
         .then(res => res.json())
         .then(vehiculesRes => {
             const vehiculesByRegion = {};
             (vehiculesRes.data || []).forEach(item => {
-                vehiculesByRegion[item.REGION] = item.somme_NB_VP_RECHARGEABLES_EL;
+                const regionKey = normalizeString(item.REGION);
+                vehiculesByRegion[regionKey] = item.somme_NB_VP_RECHARGEABLES_EL;
             });
 
-            // Charger les infos des départements
+            let totalVehicules = 0;
+            Object.values(vehiculesByRegion).forEach(count => {
+                totalVehicules += Number(count || 0);
+            });
+            console.log(`🚗 Total de véhicules électriques (métropole uniquement) : ${totalVehicules}`);
+
             fetch('/api/departements')
                 .then(res => res.json())
                 .then(deptRes => {
@@ -66,7 +76,6 @@ export function renderBornesMap(container) {
                         };
                     });
 
-                    // Charger les bornes
                     fetch('/api/points-de-charge')
                         .then(res => res.json())
                         .then(result => {
@@ -111,19 +120,53 @@ export function renderBornesMap(container) {
                                 }
                             });
 
-                            // Marqueurs régions
+                            let totalDomTomVehicules = 0;
+
                             Object.entries(regionsMap).forEach(([region, info]) => {
                                 const avgLat = info.latitudes.reduce((a, b) => a + b, 0) / info.latitudes.length;
                                 const avgLon = info.longitudes.reduce((a, b) => a + b, 0) / info.longitudes.length;
-                                const nbVehicules = vehiculesByRegion[region] || 0;
 
+                                const regionKey = normalizeString(region);
                                 const marker = L.marker([avgLat, avgLon]).addTo(map);
-                                marker.bindPopup(`
-                                  <strong>${region}</strong><br>
-                                  Total de bornes : ${info.totalBornes}<br>
-                                  Total de points de charge : ${info.totalPointsDeCharge}<br>
-                                  Véhicules électriques : ${nbVehicules}
-                                `);
+
+                                if (domTomRegions.includes(regionKey)) {
+                                    fetch(`/api/bornes-communes/vehiculesEL/region/${encodeURIComponent(region)}`)
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            const nbVeh = data.data?.totalVehiculesElectriques || 0;
+                                            totalDomTomVehicules += nbVeh;
+
+                                            marker.bindPopup(`
+                                                <strong>${region}</strong><br>
+                                                Total de bornes : ${info.totalBornes}<br>
+                                                Total de points de charge : ${info.totalPointsDeCharge}<br>
+                                                Véhicules électriques : ${nbVeh}
+                                            `);
+
+                                            console.log(`🌴 [DOM-TOM] ${region} → ${nbVeh} véhicules électriques`);
+                                            console.log(`🔢 Total DOM-TOM (cumulé) : ${totalDomTomVehicules}`);
+                                            console.log(`🔢 Total global (Métropole + DOM-TOM) : ${totalVehicules + totalDomTomVehicules}`);
+                                        })
+
+                                        .catch(err => {
+                                            console.error('Erreur chargement véhicules DOM-TOM', err);
+                                            marker.bindPopup(`
+                                                <strong>${region}</strong><br>
+                                                Total de bornes : ${info.totalBornes}<br>
+                                                Total de points de charge : ${info.totalPointsDeCharge}<br>
+                                                Véhicules électriques : N/A
+                                            `);
+                                        });
+                                } else {
+                                    const nbVehicules = vehiculesByRegion[regionKey] || 0;
+                                    marker.bindPopup(`
+                                        <strong>${region}</strong><br>
+                                        Total de bornes : ${info.totalBornes}<br>
+                                        Total de points de charge : ${info.totalPointsDeCharge}<br>
+                                        Véhicules électriques : ${nbVehicules}
+                                    `);
+                                }
+
                                 regionMarkers.push(marker);
                             });
 
@@ -159,10 +202,10 @@ export function renderBornesMap(container) {
 
                                         const marker = L.marker([deptInfo.lat, deptInfo.lon]).addTo(map);
                                         marker.bindPopup(`
-                                          <strong>${deptName}</strong><br>
-                                          Total de bornes : ${info.totalBornes}<br>
-                                          Total de points de charge : ${info.totalPointsDeCharge}<br>
-                                          Véhicules électriques : ${deptInfo.vehicules}
+                                            <strong>${deptName}</strong><br>
+                                            Total de bornes : ${info.totalBornes}<br>
+                                            Total de points de charge : ${info.totalPointsDeCharge}<br>
+                                            Véhicules électriques : ${deptInfo.vehicules}
                                         `);
                                         departementMarkers.push(marker);
                                     });
@@ -201,7 +244,6 @@ export function renderBornesMap(container) {
                                                 .then(res => res.json())
                                                 .then(detailRes => {
                                                     const bornesInfos = detailRes.data;
-
                                                     const paiementsSet = new Set();
                                                     const typesSet = new Set();
                                                     const puissancesSet = new Set();
@@ -210,48 +252,27 @@ export function renderBornesMap(container) {
                                                         if (info.paiement.acte) paiementsSet.add('Paiement à l’acte');
                                                         if (info.paiement.cb) paiementsSet.add('Carte bancaire');
                                                         if (info.paiement.autre) paiementsSet.add('Autres méthodes');
-
                                                         if (info.types_prise.type2) typesSet.add('Type 2');
                                                         if (info.types_prise.chademo) typesSet.add('CHAdeMO');
                                                         if (info.types_prise.combo_ccs) typesSet.add('Combo CCS');
                                                         if (info.types_prise.ef) typesSet.add('Prise E/F');
-
                                                         if (info.puissance_kw) puissancesSet.add(info.puissance_kw + ' kW');
                                                     });
 
-                                                    const paiementsText = paiementsSet.size > 0
-                                                        ? Array.from(paiementsSet).join(', ')
-                                                        : 'Carte Bancaire';
-
-                                                    const typesText = typesSet.size > 0
-                                                        ? Array.from(typesSet).join(', ')
-                                                        : 'Standard';
-
-                                                    const puissancesText = puissancesSet.size > 0
-                                                        ? Array.from(puissancesSet).join(', ')
-                                                        : 'Non renseigné';
+                                                    const paiementsText = paiementsSet.size > 0 ? Array.from(paiementsSet).join(', ') : 'Carte Bancaire';
+                                                    const typesText = typesSet.size > 0 ? Array.from(typesSet).join(', ') : 'Standard';
+                                                    const puissancesText = puissancesSet.size > 0 ? Array.from(puissancesSet).join(', ') : 'Non renseigné';
 
                                                     const mapsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(borne.consolidated_latitude)},${encodeURIComponent(borne.consolidated_longitude)}`;
 
                                                     marker.setPopupContent(`
-                                                      <strong>${borne.consolidated_commune || 'Commune inconnue'}</strong><br>
-                                                      <a href="${mapsLink}" target="_blank" rel="noopener noreferrer">
-                                                        ${borne.adresse_station || 'Voir l’itinéraire'}
-                                                      </a><br>
-                                                      <strong>Nombre de bornes :</strong> ${borne.nombre_bornes || 'N/A'}<br>
-                                                      <strong>Méthodes de paiement :</strong> ${paiementsText}<br>
-                                                      <strong>Types de prises :</strong> ${typesText}<br>
-                                                      <strong>Puissance :</strong> ${puissancesText}
+                                                        <strong>${borne.consolidated_commune || 'Commune inconnue'}</strong><br>
+                                                        <a href="${mapsLink}" target="_blank" rel="noopener noreferrer">${borne.adresse_station || 'Voir itinéraire'}</a><br>
+                                                        <strong>Nombre de bornes :</strong> ${borne.nombre_bornes || 'N/A'}<br>
+                                                        <strong>Méthodes de paiement :</strong> ${paiementsText}<br>
+                                                        <strong>Types de prises :</strong> ${typesText}<br>
+                                                        <strong>Puissance :</strong> ${puissancesText}
                                                     `);
-                                                })
-                                                .catch(err => {
-                                                    marker.setPopupContent(`
-                                                      <strong>${borne.consolidated_commune || 'Commune inconnue'}</strong><br>
-                                                      ${borne.adresse_station || ''}<br>
-                                                      <strong>Nombre de bornes :</strong> ${borne.nombre_bornes || 'N/A'}<br>
-                                                      <em style="color:red;">Erreur lors du chargement des détails</em>
-                                                    `);
-                                                    console.error(err);
                                                 });
                                         });
 

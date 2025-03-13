@@ -575,3 +575,32 @@ exports.compareRegions = async (req, res) => {
         return responseFormatter.error(res, 'Erreur lors de la comparaison des régions', error);
     }
 };
+
+// ✅ Obtenir le total des véhicules électriques d'une région à partir des données communes (DOM-TOM compatible)
+exports.getNbVehiculesELByRegion = async (req, res) => {
+    try {
+        const region = req.params.region;
+        const normalize = str => str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const regionCleaned = normalize(region);
+
+        const allBornes = await BornesCommuneDepartementRegion.find();
+        const matchingBornes = allBornes.filter(b => normalize(b.region) === regionCleaned);
+
+        /*console.log("🔍 Région recherchée :", region, "| normalisée :", regionCleaned);
+        console.log("↪️ Communes trouvées :", matchingBornes.length);*/
+
+        if (matchingBornes.length === 0) {
+            return responseFormatter.notFound(res, `Aucune donnée pour la région ${region}`);
+        }
+
+        const totalEL = matchingBornes.reduce((sum, commune) => sum + (commune.NB_VP_RECHARGEABLES_EL || 0), 0);
+
+        return responseFormatter.success(res, {
+            region,
+            totalVehiculesElectriques: totalEL
+        });
+
+    } catch (error) {
+        return responseFormatter.error(res, `Erreur lors du calcul des véhicules électriques pour la région ${region}`, error);
+    }
+};
