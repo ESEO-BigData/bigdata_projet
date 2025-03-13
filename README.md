@@ -111,7 +111,7 @@ Contient des informations croisées sur les départements et régions :
 - `POPULATION`: Nombre d'habitants
 - `DENSITE (habitants/km2)`: Densité de population
 
-### 6. BornesCommuneDepartementRegion (5837 documents)
+### 6. BornesCommuneDepartementRegion (35193 documents)
 Contient les données sur les bornes de recharge électrique par commune :
 - `_id`: Identifiant unique ObjectId
 - `commune`: Nom de la commune
