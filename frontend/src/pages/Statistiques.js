@@ -424,22 +424,28 @@ function loadCommunesData() {
       </div>
       
       <div class="data-table-container">
-        <h3>Liste des communes</h3>
-        <table id="communes-table" class="data-table">
-          <thead>
-            <tr>
-              <th>Commune</th>
-              <th>Code postal</th>
-              <th>Véhicules électriques</th>
-              <th>% du parc</th>
-              <th>Total véhicules</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Les données seront injectées ici -->
-          </tbody>
-        </table>
-      </div>
+  <h3>Liste des communes</h3>
+  <table id="communes-table" class="data-table">
+    <thead>
+      <tr>
+        <th>Commune</th>
+        <th>Code postal</th>
+        <th>Véhicules électriques</th>
+        <th>% du parc</th>
+        <th>Total véhicules</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Les données seront injectées ici -->
+    </tbody>
+  </table>
+  <div class="pagination-controls">
+    <button id="prev-page" class="pagination-btn">Précédent</button>
+    <span id="page-info">Page 1 sur 1</span>
+    <button id="next-page" class="pagination-btn">Suivant</button>
+  </div>
+</div>
+
     </div>
   `;
 
@@ -771,12 +777,36 @@ function createCommunesChart(communes, metric) {
     });
 }
 
-// Fonction pour remplir le tableau des communes
+// Variables globales pour la pagination
+let currentPage = 1;
+let communesData = [];
+const rowsPerPage = 10;
+
+// Fonction pour remplir le tableau des communes avec pagination
 function populateCommunesTable(communes) {
+    // Stocker les données pour la pagination
+    communesData = communes;
+    currentPage = 1;
+
+    // Afficher la première page
+    displayCommunesPage(currentPage);
+
+    // Configurer les contrôles de pagination
+    setupPaginationControls(communes.length);
+}
+
+// Fonction pour afficher une page spécifique du tableau
+function displayCommunesPage(page) {
     const tableBody = document.querySelector('#communes-table tbody');
     tableBody.innerHTML = '';
 
-    communes.forEach(commune => {
+    // Calculer les indices de début et de fin pour la page actuelle
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, communesData.length);
+
+    // Afficher les communes pour la page actuelle
+    for (let i = startIndex; i < endIndex; i++) {
+        const commune = communesData[i];
         const pourcentage = ((commune.NB_VP_RECHARGEABLES_EL / commune.NB_VP) * 100).toFixed(2);
 
         const row = document.createElement('tr');
@@ -789,7 +819,46 @@ function populateCommunesTable(communes) {
     `;
 
         tableBody.appendChild(row);
-    });
+    }
+
+    // Mettre à jour l'information de page
+    document.getElementById('page-info').textContent = `Page ${page} sur ${Math.ceil(communesData.length / rowsPerPage)}`;
+}
+
+// Fonction pour configurer les contrôles de pagination
+function setupPaginationControls(totalItems) {
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+
+    // Mettre à jour l'état des boutons
+    updatePaginationButtons(totalPages);
+
+    // Configurer les événements des boutons
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayCommunesPage(currentPage);
+            updatePaginationButtons(totalPages);
+        }
+    };
+
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayCommunesPage(currentPage);
+            updatePaginationButtons(totalPages);
+        }
+    };
+}
+
+// Fonction pour mettre à jour l'état des boutons de pagination
+function updatePaginationButtons(totalPages) {
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === totalPages;
 }
 
 // Fonction pour exporter les données des communes au format CSV
