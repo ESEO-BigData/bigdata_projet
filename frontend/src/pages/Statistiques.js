@@ -416,7 +416,6 @@ function loadCommunesData() {
       <option value="asc">Croissant</option>
     </select>
   </div>
-  <button id="apply-sort" class="btn">Appliquer</button>
 </div>
           <label for="departement-select">Sélectionner un département :</label>
           <select id="departement-select">
@@ -449,8 +448,8 @@ function loadCommunesData() {
       <option value="asc">Croissant</option>
     </select>
   </div>
-  <button id="communes-apply-sort" class="btn">Appliquer</button>
 </div>
+
       </div>
       
       <h2>Communes du département <span id="selected-departement-name"></span></h2>
@@ -646,38 +645,24 @@ function setupDepartementSelector() {
     });
 }
 
-// Ajouter après setupDepartementSelector()
+// Fonction pour configurer les contrôles de tri avec changement automatique
 function setupSortControls() {
     // Contrôles de tri pour les départements
-    document.getElementById('apply-sort').addEventListener('click', () => {
-        const sortBy = document.getElementById('sort-by-select').value;
-        const sortOrder = document.getElementById('sort-order-select').value;
+    document.getElementById('sort-by-select').addEventListener('change', () => {
+        applyDepartementSort();
+    });
 
-        fetch('/api/bornes-communes/statistiques/correlation')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    createDepartementsChart(data.data.departements, sortBy, sortOrder);
-                }
-            })
-            .catch(error => console.error('Erreur lors du chargement des départements:', error));
+    document.getElementById('sort-order-select').addEventListener('change', () => {
+        applyDepartementSort();
     });
 
     // Contrôles de tri pour les communes
-    document.getElementById('communes-apply-sort').addEventListener('click', () => {
-        const sortBy = document.getElementById('communes-sort-by-select').value;
-        const sortOrder = document.getElementById('communes-sort-order-select').value;
-        const departementCode = document.getElementById('selected-departement-code').value;
-        const departementName = document.getElementById('selected-departement-name').textContent;
+    document.getElementById('communes-sort-by-select').addEventListener('change', () => {
+        applyCommunesSort();
+    });
 
-        fetch(`/api/bornes-communes/departement/${departementCode}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
-                }
-            })
-            .catch(error => console.error('Erreur lors du chargement des communes:', error));
+    document.getElementById('communes-sort-order-select').addEventListener('change', () => {
+        applyCommunesSort();
     });
 }
 
@@ -706,6 +691,77 @@ function setupExportButton() {
         link.click();
         document.body.removeChild(link);
     });
+}
+
+// Fonction pour appliquer le tri aux départements
+function applyDepartementSort() {
+    const sortBy = document.getElementById('sort-by-select').value;
+    const sortOrder = document.getElementById('sort-order-select').value;
+
+    // Sauvegarder l'état actuel des légendes si le graphique existe
+    let hiddenDatasets = [];
+    if (window.departementsChart) {
+        hiddenDatasets = window.departementsChart.data.datasets.map(dataset =>
+            !window.departementsChart.isDatasetVisible(
+                window.departementsChart.data.datasets.indexOf(dataset)
+            )
+        );
+    }
+
+    fetch('/api/bornes-communes/statistiques/correlation')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                createDepartementsChart(data.data.departements, sortBy, sortOrder);
+
+                // Restaurer l'état des légendes
+                if (hiddenDatasets.length > 0 && window.departementsChart) {
+                    hiddenDatasets.forEach((isHidden, index) => {
+                        if (isHidden && index < window.departementsChart.data.datasets.length) {
+                            window.departementsChart.setDatasetVisibility(index, false);
+                        }
+                    });
+                    window.departementsChart.update();
+                }
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des départements:', error));
+}
+
+// Fonction pour appliquer le tri aux communes
+function applyCommunesSort() {
+    const sortBy = document.getElementById('communes-sort-by-select').value;
+    const sortOrder = document.getElementById('communes-sort-order-select').value;
+    const departementCode = document.getElementById('selected-departement-code').value;
+
+    // Sauvegarder l'état actuel des légendes si le graphique existe
+    let hiddenDatasets = [];
+    if (window.communesByDepartementChart) {
+        hiddenDatasets = window.communesByDepartementChart.data.datasets.map(dataset =>
+            !window.communesByDepartementChart.isDatasetVisible(
+                window.communesByDepartementChart.data.datasets.indexOf(dataset)
+            )
+        );
+    }
+
+    fetch(`/api/bornes-communes/departement/${departementCode}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
+
+                // Restaurer l'état des légendes
+                if (hiddenDatasets.length > 0 && window.communesByDepartementChart) {
+                    hiddenDatasets.forEach((isHidden, index) => {
+                        if (isHidden && index < window.communesByDepartementChart.data.datasets.length) {
+                            window.communesByDepartementChart.setDatasetVisibility(index, false);
+                        }
+                    });
+                    window.communesByDepartementChart.update();
+                }
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des communes:', error));
 }
 
 // Fonction pour charger les communes d'un département
