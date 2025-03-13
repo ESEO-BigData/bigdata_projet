@@ -8,7 +8,27 @@ const BornesCommuneDepartementRegionSchema = new mongoose.Schema({
     },
     nombre_bornes: {
         type: Number,
-        required: true
+        default: 0
+    },
+    nombre_points_charge: {
+        type: Number,
+        default: 0
+    },
+    ratio_bornes_points: {
+        type: Number,
+        default: 0
+    },
+    NB_VP_RECHARGEABLES_EL: {
+        type: Number,
+        default: 0
+    },
+    NB_VP_RECHARGEABLES_GAZ: {
+        type: Number,
+        default: 0
+    },
+    NB_VP: {
+        type: Number,
+        default: 0
     },
     departement: {
         type: String,
@@ -17,7 +37,7 @@ const BornesCommuneDepartementRegionSchema = new mongoose.Schema({
     code_departement: {
         type: String,
         required: true,
-        match: /^[0-9A-Z]{2}$/
+        match: /^[0-9A-Z]{2}$/  // Format 2 caractères
     },
     region: {
         type: String,
@@ -26,16 +46,17 @@ const BornesCommuneDepartementRegionSchema = new mongoose.Schema({
     code_postal: {
         type: String,
         required: true,
-        match: /^[0-9]{5}$/
+        match: /^[0-9]{5}$/  // Format 5 caractères
     }
 }, {
     collection: 'BornesCommuneDepartementRegion',
     timestamps: false
 });
 
-// Indexation pour améliorer les performances des requêtes
+// Créer des index pour améliorer les performances des requêtes
 BornesCommuneDepartementRegionSchema.index({ commune: 1 });
 BornesCommuneDepartementRegionSchema.index({ code_departement: 1 });
 BornesCommuneDepartementRegionSchema.index({ region: 1 });
+BornesCommuneDepartementRegionSchema.index({ code_postal: 1 });
 
 module.exports = mongoose.model('BornesCommuneDepartementRegion', BornesCommuneDepartementRegionSchema);
