@@ -972,33 +972,31 @@ function loadComparisonData() {
     const comparisonTab = document.getElementById('comparaison-tab');
     comparisonTab.innerHTML = `
     <div class="comparison-container">
-      <h2>Comparaison de territoires</h2>
+      <h2>Comparaison entre territoires</h2>
       
       <div class="comparison-controls">
-        <div class="entity-type-selector">
-          <label for="entity-type">Type de territoire :</label>
-          <select id="entity-type">
-            <option value="region">Régions</option>
-            <option value="departement">Départements</option>
-            <option value="commune">Communes</option>
+        <div class="territory-type-selector">
+          <label for="territory-type">Type de territoire:</label>
+          <select id="territory-type">
+            <option value="regions" selected>Régions</option>
+            <option value="departements" disabled>Départements</option>
+            <option value="communes" disabled>Communes</option>
           </select>
         </div>
         
-        <div class="entity-selector">
-          <label for="entity1">Territoire 1 :</label>
-          <select id="entity1">
+        <div class="territory-selector">
+          <label for="territory1">Territoire 1:</label>
+          <select id="territory1">
             <option value="">Sélectionnez un territoire</option>
           </select>
         </div>
         
-        <div class="entity-selector">
-          <label for="entity2">Territoire 2 :</label>
-          <select id="entity2">
+        <div class="territory-selector">
+          <label for="territory2">Territoire 2:</label>
+          <select id="territory2">
             <option value="">Sélectionnez un territoire</option>
           </select>
         </div>
-        
-        <button id="compare-button" class="btn">Comparer</button>
       </div>
       
       <div class="comparison-results">
@@ -1025,8 +1023,8 @@ function loadComparisonData() {
             <thead>
               <tr>
                 <th>Indicateur</th>
-                <th id="entity1-name">Territoire 1</th>
-                <th id="entity2-name">Territoire 2</th>
+                <th id="territory1-name">Territoire 1</th>
+                <th id="territory2-name">Territoire 2</th>
                 <th>Différence</th>
               </tr>
             </thead>
@@ -1034,23 +1032,225 @@ function loadComparisonData() {
               <!-- Les données seront injectées ici -->
             </tbody>
           </table>
-          <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
+          <div class="export-container">
+            <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
+          </div>
         </div>
       </div>
     </div>
   `;
 
-    // Configurer le changement de type d'entité
-    document.getElementById('entity-type').addEventListener('change', loadEntitiesForComparison);
+    // Charger la liste des territoires en fonction du type sélectionné
+    loadTerritories();
 
-    // Charger la liste des entités initiale (régions par défaut)
-    loadEntitiesForComparison();
+    // Configurer les événements de changement
+    document.getElementById('territory-type').addEventListener('change', () => {
+        loadTerritories();
+    });
 
-    // Configurer le bouton de comparaison
-    document.getElementById('compare-button').addEventListener('click', compareEntities);
+    document.getElementById('territory1').addEventListener('change', () => {
+        compareSelectedTerritories();
+    });
+
+    document.getElementById('territory2').addEventListener('change', () => {
+        compareSelectedTerritories();
+    });
 
     // Configurer le bouton d'export
     document.getElementById('export-comparison').addEventListener('click', exportComparisonData);
+}
+
+// Fonction pour charger les territoires dans les sélecteurs
+function loadTerritories() {
+    const territoryType = document.getElementById('territory-type').value;
+    const territory1Select = document.getElementById('territory1');
+    const territory2Select = document.getElementById('territory2');
+
+    // Vider les sélecteurs
+    territory1Select.innerHTML = '<option value="">Sélectionnez un territoire</option>';
+    territory2Select.innerHTML = '<option value="">Sélectionnez un territoire</option>';
+
+    // Charger les données en fonction du type de territoire
+    let apiUrl = '';
+
+    switch(territoryType) {
+        case 'regions':
+            apiUrl = '/api/bornes-communes/statistiques/global';
+            break;
+        case 'departements':
+            apiUrl = '/api/departements';
+            break;
+        case 'communes':
+            apiUrl = '/api/vehicules/communes';
+            break;
+    }
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let territories = [];
+
+                // Extraire la liste des territoires en fonction du type
+                if (territoryType === 'regions') {
+                    territories = data.data.regions.map(region => ({
+                        id: region.region,
+                        name: region.region
+                    }));
+                } else if (territoryType === 'departements') {
+                    territories = data.data.map(dept => ({
+                        id: dept.DEPARTEMENT,
+                        name: `${dept.DEPARTEMENT} - ${dept.NOM}`
+                    }));
+                } else if (territoryType === 'communes') {
+                    territories = data.data.vehiculesCommune.map(commune => ({
+                        id: commune.CODGEO,
+                        name: commune.LIBGEO
+                    }));
+                }
+
+                // Trier les territoires par nom
+                territories.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Remplir les sélecteurs
+                territories.forEach(territory => {
+                    const option1 = document.createElement('option');
+                    option1.value = territory.id;
+                    option1.textContent = territory.name;
+                    territory1Select.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = territory.id;
+                    option2.textContent = territory.name;
+                    territory2Select.appendChild(option2);
+                });
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des territoires:', error));
+}
+
+// Fonction pour comparer les territoires sélectionnés
+function compareSelectedTerritories() {
+    const territoryType = document.getElementById('territory-type').value;
+    const territory1 = document.getElementById('territory1').value;
+    const territory2 = document.getElementById('territory2').value;
+
+    // Vérifier que les deux territoires sont sélectionnés
+    if (!territory1 || !territory2) {
+        return;
+    }
+
+    // Vérifier que les deux territoires sont différents
+    if (territory1 === territory2) {
+        alert('Veuillez sélectionner deux territoires différents pour la comparaison.');
+        return;
+    }
+
+    // Mettre à jour les noms des territoires dans le tableau
+    document.getElementById('territory1-name').textContent =
+        document.getElementById('territory1').options[document.getElementById('territory1').selectedIndex].text;
+    document.getElementById('territory2-name').textContent =
+        document.getElementById('territory2').options[document.getElementById('territory2').selectedIndex].text;
+
+    // Charger les données pour la comparaison
+    let apiUrl = '';
+
+    if (territoryType === 'regions') {
+        apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1)}/${encodeURIComponent(territory2)}`;
+    } else if (territoryType === 'departements') {
+        // À implémenter plus tard
+        return;
+    } else if (territoryType === 'communes') {
+        // À implémenter plus tard
+        return;
+    }
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Créer les graphiques de comparaison
+                createComparisonCharts(data.data);
+
+                // Remplir le tableau comparatif
+                populateComparisonTable(data.data);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la comparaison des territoires:', error);
+            // Afficher un message d'erreur à l'utilisateur
+            const comparisonResults = document.querySelector('.comparison-results');
+            comparisonResults.innerHTML = `
+        <div class="error-message">
+          <p>Une erreur s'est produite lors de la comparaison des territoires.</p>
+          <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
+        </div>
+      `;
+        });
+}
+
+// Fonction pour créer les graphiques de comparaison
+function createComparisonCharts(data) {
+    // Extraire les données pour les graphiques
+    const labels = [data.region1.region, data.region2.region];
+    const vehiclesData = [data.region1.totalVehiculesElectriques, data.region2.totalVehiculesElectriques];
+    const stationsData = [data.region1.totalBornes, data.region2.totalBornes];
+
+    // Calculer le ratio véhicules par borne
+    const ratio1 = data.region1.totalBornes > 0 ? Number((data.region1.totalVehiculesElectriques / data.region1.totalBornes).toFixed(2)) : 0;
+    const ratio2 = data.region2.totalBornes > 0 ? Number((data.region2.totalVehiculesElectriques / data.region2.totalBornes).toFixed(2)) : 0;
+    const ratioData = [ratio1, ratio2];
+
+    // Créer le graphique des véhicules
+    createBarChart('vehicles-comparison-chart', 'Nombre de véhicules électriques', labels, vehiclesData, 'rgba(54, 162, 235, 0.6)', 'rgba(54, 162, 235, 1)');
+
+    // Créer le graphique des bornes
+    createBarChart('stations-comparison-chart', 'Nombre de bornes de recharge', labels, stationsData, 'rgba(75, 192, 192, 0.6)', 'rgba(75, 192, 192, 1)');
+
+    // Créer le graphique des ratios
+    createBarChart('ratio-comparison-chart', 'Ratio véhicules par borne', labels, ratioData, 'rgba(255, 99, 132, 0.6)', 'rgba(255, 99, 132, 1)');
+}
+
+// Fonction pour créer un graphique en barres
+function createBarChart(canvasId, title, labels, data, backgroundColor, borderColor) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+
+    // Vérifier si le graphique existe avant d'essayer de le détruire
+    if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+        window[canvasId].destroy();
+    }
+
+    // Créer un nouveau graphique
+    window[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: title,
+                data: data,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: title
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 // Fonction pour charger les entités selon le type sélectionné
@@ -1361,115 +1561,82 @@ function createRatioComparisonChart(data1, data2) {
 }
 
 // Fonction pour remplir le tableau comparatif
-function populateComparisonTable(data1, data2) {
+function populateComparisonTable(data) {
     const tableBody = document.querySelector('#comparison-table tbody');
-
-    // Vider le tableau avant de le remplir
     tableBody.innerHTML = '';
 
-    // Calculer les différences
-    const vehiculesDiff = data1.vehicules - data2.vehicules;
-    const bornesDiff = data1.bornes - data2.bornes;
-    const pointsDiff = data1.pointsDeCharge - data2.pointsDeCharge;
-
-    // Calculer la différence de ratio (en gérant les cas où ratio est "N/A")
-    let ratioDiff = 0;
-    if (data1.ratio !== 'N/A' && data2.ratio !== 'N/A') {
-        ratioDiff = parseFloat(data1.ratio) - parseFloat(data2.ratio);
-    } else {
-        ratioDiff = 'N/A';
-    }
-
-    // Ajouter les lignes au tableau
-    const rows = [
-        {
-            indicator: 'Véhicules électriques',
-            value1: data1.vehicules.toLocaleString('fr-FR'),
-            value2: data2.vehicules.toLocaleString('fr-FR'),
-            diff: vehiculesDiff.toLocaleString('fr-FR'),
-            diffClass: vehiculesDiff > 0 ? 'positive' : vehiculesDiff < 0 ? 'negative' : ''
-        },
-        {
-            indicator: 'Bornes de recharge',
-            value1: data1.bornes.toLocaleString('fr-FR'),
-            value2: data2.bornes.toLocaleString('fr-FR'),
-            diff: bornesDiff.toLocaleString('fr-FR'),
-            diffClass: bornesDiff > 0 ? 'positive' : bornesDiff < 0 ? 'negative' : ''
-        },
-        {
-            indicator: 'Points de charge',
-            value1: data1.pointsDeCharge.toLocaleString('fr-FR'),
-            value2: data2.pointsDeCharge.toLocaleString('fr-FR'),
-            diff: pointsDiff.toLocaleString('fr-FR'),
-            diffClass: pointsDiff > 0 ? 'positive' : pointsDiff < 0 ? 'negative' : ''
-        },
-        {
-            indicator: 'Véhicules par borne',
-            value1: data1.ratio,
-            value2: data2.ratio,
-            diff: typeof ratioDiff === 'number' ? ratioDiff.toFixed(1) : ratioDiff,
-            diffClass: ratioDiff > 0 ? 'positive' : ratioDiff < 0 ? 'negative' : ''
-        }
+    // Définir les indicateurs à afficher
+    const indicators = [
+        { name: 'Véhicules électriques', value1: data.region1.totalVehiculesElectriques, value2: data.region2.totalVehiculesElectriques },
+        { name: 'Bornes de recharge', value1: data.region1.totalBornes, value2: data.region2.totalBornes },
+        { name: 'Points de charge', value1: data.region1.totalPointsCharge, value2: data.region2.totalPointsCharge },
+        { name: 'Véhicules par borne', value1: data.region1.ratioVehiculesParBorne, value2: data.region2.ratioVehiculesParBorne },
+        { name: 'Pourcentage de véhicules électriques', value1: data.region1.pourcentageVehiculesElectriques + '%', value2: data.region2.pourcentageVehiculesElectriques + '%' }
     ];
 
-    rows.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td>${row.indicator}</td>
-      <td>${row.value1}</td>
-      <td>${row.value2}</td>
-      <td class="${row.diffClass}">${row.diff}</td>
+    // Ajouter chaque indicateur au tableau
+    indicators.forEach(indicator => {
+        const row = document.createElement('tr');
+
+        // Calculer la différence
+        let difference = '';
+        if (typeof indicator.value1 === 'number' && typeof indicator.value2 === 'number') {
+            difference = (indicator.value1 - indicator.value2).toLocaleString('fr-FR');
+
+            // Ajouter une classe pour colorer la différence
+            if (indicator.value1 > indicator.value2) {
+                difference = `+${difference}`;
+                row.classList.add('positive-difference');
+            } else if (indicator.value1 < indicator.value2) {
+                row.classList.add('negative-difference');
+            }
+        }
+
+        // Formater les valeurs
+        const value1 = typeof indicator.value1 === 'number' ? indicator.value1.toLocaleString('fr-FR') : indicator.value1;
+        const value2 = typeof indicator.value2 === 'number' ? indicator.value2.toLocaleString('fr-FR') : indicator.value2;
+
+        row.innerHTML = `
+      <td>${indicator.name}</td>
+      <td>${value1}</td>
+      <td>${value2}</td>
+      <td>${difference}</td>
     `;
-        tableBody.appendChild(tr);
+
+        tableBody.appendChild(row);
     });
 }
 
-// Fonction pour exporter les données de comparaison
+// Fonction pour exporter les données de comparaison en CSV
 function exportComparisonData() {
-    const region1 = document.getElementById('region1').value;
-    const region2 = document.getElementById('region2').value;
+    const territory1 = document.getElementById('territory1-name').textContent;
+    const territory2 = document.getElementById('territory2-name').textContent;
 
-    if (!region1 || !region2) {
-        alert('Veuillez d\'abord effectuer une comparaison');
-        return;
-    }
+    // Créer le contenu CSV
+    let csvContent = `Indicateur,${territory1},${territory2},Différence\n`;
 
-    Promise.all([
-        fetchRegionData(region1),
-        fetchRegionData(region2)
-    ])
-        .then(([data1, data2]) => {
-            // Créer le contenu CSV
-            let csvContent = 'Indicateur,' + data1.nom + ',' + data2.nom + ',Différence\n';
+    // Ajouter chaque ligne du tableau
+    const rows = document.querySelectorAll('#comparison-table tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = Array.from(cells).map(cell => `"${cell.textContent}"`).join(',');
+        csvContent += `${rowData}\n`;
+    });
 
-            // Calculer les différences
-            const vehiculesDiff = data1.vehicules - data2.vehicules;
-            const bornesDiff = data1.bornes - data2.bornes;
-            const pointsDiff = data1.pointsDeCharge - data2.pointsDeCharge;
-            const ratioDiff = parseFloat(data1.ratio) - parseFloat(data2.ratio);
+    // Créer un objet Blob avec le contenu CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-            // Ajouter les lignes
-            csvContent += `Véhicules électriques,${data1.vehicules},${data2.vehicules},${vehiculesDiff}\n`;
-            csvContent += `Bornes de recharge,${data1.bornes},${data2.bornes},${bornesDiff}\n`;
-            csvContent += `Points de charge,${data1.pointsDeCharge},${data2.pointsDeCharge},${pointsDiff}\n`;
-            csvContent += `Véhicules par borne,${data1.ratio},${data2.ratio},${ratioDiff.toFixed(1)}\n`;
+    // Créer un lien de téléchargement
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
 
-            // Créer un objet Blob avec le contenu CSV
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    link.setAttribute('href', url);
+    link.setAttribute('download', `comparaison-${territory1}-${territory2}.csv`);
+    link.style.visibility = 'hidden';
 
-            // Créer un lien de téléchargement
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', `comparaison-${data1.nom}-${data2.nom}.csv`);
-            link.style.visibility = 'hidden';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        })
-        .catch(error => console.error('Erreur lors de l\'export des données:', error));
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function loadCorrelationData() {
