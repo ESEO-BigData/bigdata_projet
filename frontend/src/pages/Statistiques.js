@@ -1,4 +1,5 @@
 import Chart from 'chart.js/auto';
+import { renderDashboard } from './Statistiques/Dashboard';
 import { renderCommunesData } from './Statistiques/Communes';
 
 export function renderStatistics(container) {
