@@ -479,3 +479,98 @@ function updatePaginationButtons(totalPages) {
     prevButton.disabled = currentPage === 1;
     nextButton.disabled = currentPage === totalPages;
 }
+
+// Fonction pour créer le graphique des départements
+function createDepartementsChart(departements, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
+    const ctx = document.getElementById('departements-chart').getContext('2d');
+
+    // Trier les départements selon le critère choisi
+    departements.sort((a, b) => {
+        let valueA, valueB;
+
+        switch(sortBy) {
+            case 'vehiculesElectriques':
+                valueA = a.totalVehiculesElectriques;
+                valueB = b.totalVehiculesElectriques;
+                break;
+            case 'vehiculesThermiques':
+                valueA = a.totalVehicules - a.totalVehiculesElectriques;
+                valueB = b.totalVehicules - b.totalVehiculesElectriques;
+                break;
+            case 'bornes':
+                valueA = a.totalBornes;
+                valueB = b.totalBornes;
+                break;
+        }
+
+        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
+    });
+
+    // Limiter à 10 départements
+    const topDepartements = departements.slice(0, 10);
+
+    // Détruire le graphique existant s'il y en a un
+    if (window.departementsChart) {
+        window.departementsChart.destroy();
+    }
+
+    // Créer un nouveau graphique
+    window.departementsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: topDepartements.map(dept => `${dept.code} - ${dept.departement}`),
+            datasets: [
+                {
+                    label: 'Véhicules électriques',
+                    data: topDepartements.map(dept => dept.totalVehiculesElectriques),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Véhicules thermiques',
+                    data: topDepartements.map(dept => dept.totalVehicules - dept.totalVehiculesElectriques),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Bornes de recharge',
+                    data: topDepartements.map(dept => dept.totalBornes),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Top 10 des départements'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre'
+                    }
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const departementCode = topDepartements[index].code;
+                    const departementName = topDepartements[index].departement;
+                    loadCommunesByDepartement(departementCode, departementName);
+                }
+            }
+        }
+    });
+}
