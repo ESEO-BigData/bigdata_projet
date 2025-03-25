@@ -980,7 +980,7 @@ function loadComparisonData() {
           <select id="territory-type">
             <option value="regions" selected>Régions</option>
             <option value="departements">Départements</option>
-            <option value="communes" disabled>Communes</option>
+            <option value="communes">Communes</option>
           </select>
         </div>
         
@@ -1062,6 +1062,18 @@ function loadComparisonData() {
 
 // Fonction pour charger les territoires dans les sélecteurs
 function loadTerritories() {
+    // Configurer les sélecteurs en fonction du type de territoire
+    setupTerritorySelectors();
+
+    // Si le type n'est pas communes, charger les options
+    const territoryType = document.getElementById('territory-type').value;
+    if (territoryType !== 'communes') {
+        loadTerritoryOptions();
+    }
+}
+
+// Nouvelle fonction pour charger les options dans les listes déroulantes
+function loadTerritoryOptions() {
     const territoryType = document.getElementById('territory-type').value;
     const territory1Select = document.getElementById('territory1');
     const territory2Select = document.getElementById('territory2');
@@ -1079,9 +1091,6 @@ function loadTerritories() {
             break;
         case 'departements':
             apiUrl = '/api/bornes-communes/statistiques/correlation';
-            break;
-        case 'communes':
-            apiUrl = '/api/vehicules/communes';
             break;
     }
 
@@ -1101,11 +1110,6 @@ function loadTerritories() {
                     territories = data.data.departements.map(dept => ({
                         id: dept.code,
                         name: `${dept.code} - ${dept.departement}`
-                    }));
-                } else if (territoryType === 'communes') {
-                    territories = data.data.vehiculesCommune.map(commune => ({
-                        id: commune.CODGEO,
-                        name: commune.LIBGEO
                     }));
                 }
 
@@ -1129,11 +1133,187 @@ function loadTerritories() {
         .catch(error => console.error('Erreur lors du chargement des territoires:', error));
 }
 
+function setupTerritorySelectors() {
+    const territoryType = document.getElementById('territory-type').value;
+    const comparisonControls = document.querySelector('.comparison-controls');
+
+    // Si le type est communes, afficher des champs de recherche
+    if (territoryType === 'communes') {
+        comparisonControls.innerHTML = `
+      <div class="territory-type-selector">
+        <label for="territory-type">Type de territoire:</label>
+        <select id="territory-type">
+          <option value="regions">Régions</option>
+          <option value="departements">Départements</option>
+          <option value="communes" selected>Communes</option>
+        </select>
+      </div>
+      
+      <div class="territory-search">
+        <label for="territory1-search">Commune 1:</label>
+        <div class="search-container">
+          <input type="text" id="territory1-search" placeholder="Rechercher une commune...">
+          <div id="territory1-results" class="search-results"></div>
+        </div>
+        <input type="hidden" id="territory1" value="">
+      </div>
+      
+      <div class="territory-search">
+        <label for="territory2-search">Commune 2:</label>
+        <div class="search-container">
+          <input type="text" id="territory2-search" placeholder="Rechercher une commune...">
+          <div id="territory2-results" class="search-results"></div>
+        </div>
+        <input type="hidden" id="territory2" value="">
+      </div>
+    `;
+
+        // Configurer les événements de recherche
+        setupCommuneSearch('territory1');
+        setupCommuneSearch('territory2');
+
+        // Reconfigurer l'événement de changement de type
+        document.getElementById('territory-type').addEventListener('change', () => {
+            loadTerritories();
+        });
+    } else {
+        // Pour les régions et départements, afficher des listes déroulantes
+        comparisonControls.innerHTML = `
+      <div class="territory-type-selector">
+        <label for="territory-type">Type de territoire:</label>
+        <select id="territory-type">
+          <option value="regions" ${territoryType === 'regions' ? 'selected' : ''}>Régions</option>
+          <option value="departements" ${territoryType === 'departements' ? 'selected' : ''}>Départements</option>
+          <option value="communes">Communes</option>
+        </select>
+      </div>
+      
+      <div class="territory-selector">
+        <label for="territory1">Territoire 1:</label>
+        <select id="territory1">
+          <option value="">Sélectionnez un territoire</option>
+        </select>
+      </div>
+      
+      <div class="territory-selector">
+        <label for="territory2">Territoire 2:</label>
+        <select id="territory2">
+          <option value="">Sélectionnez un territoire</option>
+        </select>
+      </div>
+    `;
+
+        // Reconfigurer les événements
+        document.getElementById('territory-type').addEventListener('change', () => {
+            loadTerritories();
+        });
+
+        document.getElementById('territory1').addEventListener('change', () => {
+            compareSelectedTerritories();
+        });
+
+        document.getElementById('territory2').addEventListener('change', () => {
+            compareSelectedTerritories();
+        });
+
+        // Charger les territoires dans les listes déroulantes
+        loadTerritoryOptions();
+    }
+}
+
+// Fonction pour configurer la recherche de communes
+function setupCommuneSearch(fieldId) {
+    const searchInput = document.getElementById(`${fieldId}-search`);
+    const resultsContainer = document.getElementById(`${fieldId}-results`);
+    const hiddenInput = document.getElementById(fieldId);
+
+    // Événement de saisie dans le champ de recherche
+    searchInput.addEventListener('input', debounce(() => {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        // Rechercher les communes correspondantes
+        fetch(`/api/bornes-communes/commune/${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Limiter à 10 résultats maximum
+                    const communes = Array.isArray(data.data) ? data.data.slice(0, 10) : [data.data];
+
+                    if (communes.length === 0) {
+                        resultsContainer.innerHTML = '<div class="no-results">Aucune commune trouvée</div>';
+                        return;
+                    }
+
+                    // Afficher les résultats
+                    resultsContainer.innerHTML = '';
+                    communes.forEach(commune => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'result-item';
+                        resultItem.textContent = `${commune.commune} (${commune.code_postal})`;
+                        resultItem.dataset.id = commune.commune;
+                        resultItem.dataset.name = `${commune.commune} (${commune.code_postal})`;
+
+                        resultItem.addEventListener('click', () => {
+                            // Mettre à jour le champ de recherche et le champ caché
+                            searchInput.value = resultItem.dataset.name;
+                            hiddenInput.value = resultItem.dataset.id;
+                            resultsContainer.innerHTML = '';
+
+                            // Déclencher la comparaison
+                            compareSelectedTerritories();
+                        });
+
+                        resultsContainer.appendChild(resultItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la recherche de communes:', error);
+                resultsContainer.innerHTML = '<div class="no-results">Erreur lors de la recherche</div>';
+            });
+    }, 300));
+
+    // Fermer les résultats si on clique ailleurs
+    document.addEventListener('click', (event) => {
+        if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+            resultsContainer.innerHTML = '';
+        }
+    });
+}
+
+// Fonction utilitaire pour débouncer les événements
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
 // Fonction pour comparer les territoires sélectionnés
 function compareSelectedTerritories() {
     const territoryType = document.getElementById('territory-type').value;
-    const territory1 = document.getElementById('territory1').value;
-    const territory2 = document.getElementById('territory2').value;
+    let territory1, territory2, territory1Name, territory2Name;
+
+    if (territoryType === 'communes') {
+        territory1 = document.getElementById('territory1').value;
+        territory2 = document.getElementById('territory2').value;
+        territory1Name = document.getElementById('territory1-search').value;
+        territory2Name = document.getElementById('territory2-search').value;
+    } else {
+        territory1 = document.getElementById('territory1').value;
+        territory2 = document.getElementById('territory2').value;
+        territory1Name = territory1 ? document.getElementById('territory1').options[document.getElementById('territory1').selectedIndex].text : '';
+        territory2Name = territory2 ? document.getElementById('territory2').options[document.getElementById('territory2').selectedIndex].text : '';
+    }
 
     // Vérifier que les deux territoires sont sélectionnés
     if (!territory1 || !territory2) {
@@ -1147,25 +1327,19 @@ function compareSelectedTerritories() {
     }
 
     // Mettre à jour les noms des territoires dans le tableau
-    document.getElementById('territory1-name').textContent =
-        document.getElementById('territory1').options[document.getElementById('territory1').selectedIndex].text;
-    document.getElementById('territory2-name').textContent =
-        document.getElementById('territory2').options[document.getElementById('territory2').selectedIndex].text;
+    document.getElementById('territory1-name').textContent = territory1Name;
+    document.getElementById('territory2-name').textContent = territory2Name;
 
     // Charger les données pour la comparaison
-    let apiUrl = '';
-
     if (territoryType === 'regions') {
-        apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1)}/${encodeURIComponent(territory2)}`;
+        // Code existant pour les régions
+        const apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1)}/${encodeURIComponent(territory2)}`;
 
         fetch(apiUrl)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Créer les graphiques de comparaison
                     createComparisonCharts(data.data);
-
-                    // Remplir le tableau comparatif
                     populateComparisonTable(data.data);
                 }
             })
@@ -1174,14 +1348,13 @@ function compareSelectedTerritories() {
                 showComparisonError();
             });
     } else if (territoryType === 'departements') {
-        // Pour les départements, nous devons récupérer les données de chaque département séparément
+        // Code existant pour les départements
         Promise.all([
             fetch(`/api/bornes-communes/departement/${territory1}`).then(res => res.json()),
             fetch(`/api/bornes-communes/departement/${territory2}`).then(res => res.json())
         ])
             .then(([data1, data2]) => {
                 if (data1.success && data2.success) {
-                    // Préparer les données pour la comparaison
                     const comparisonData = {
                         departement1: {
                             departement: data1.data.departement,
@@ -1203,10 +1376,7 @@ function compareSelectedTerritories() {
                         }
                     };
 
-                    // Créer les graphiques de comparaison pour les départements
                     createDepartementComparisonCharts(comparisonData);
-
-                    // Remplir le tableau comparatif pour les départements
                     populateDepartementComparisonTable(comparisonData);
                 }
             })
@@ -1215,8 +1385,47 @@ function compareSelectedTerritories() {
                 showComparisonError();
             });
     } else if (territoryType === 'communes') {
-        // À implémenter plus tard
-        return;
+        // Nouveau code pour les communes
+        Promise.all([
+            fetch(`/api/bornes-communes/commune/${encodeURIComponent(territory1)}`).then(res => res.json()),
+            fetch(`/api/bornes-communes/commune/${encodeURIComponent(territory2)}`).then(res => res.json())
+        ])
+            .then(([data1, data2]) => {
+                if (data1.success && data2.success) {
+                    const commune1 = data1.data;
+                    const commune2 = data2.data;
+
+                    const comparisonData = {
+                        commune1: {
+                            commune: commune1.commune,
+                            code_postal: commune1.code_postal,
+                            totalVehiculesElectriques: commune1.NB_VP_RECHARGEABLES_EL,
+                            totalVehicules: commune1.NB_VP,
+                            totalBornes: commune1.nombre_bornes,
+                            totalPointsCharge: commune1.nombre_points_charge,
+                            pourcentageVehiculesElectriques: ((commune1.NB_VP_RECHARGEABLES_EL / commune1.NB_VP) * 100).toFixed(2),
+                            ratioVehiculesParBorne: commune1.nombre_bornes > 0 ? (commune1.NB_VP_RECHARGEABLES_EL / commune1.nombre_bornes).toFixed(2) : 'N/A'
+                        },
+                        commune2: {
+                            commune: commune2.commune,
+                            code_postal: commune2.code_postal,
+                            totalVehiculesElectriques: commune2.NB_VP_RECHARGEABLES_EL,
+                            totalVehicules: commune2.NB_VP,
+                            totalBornes: commune2.nombre_bornes,
+                            totalPointsCharge: commune2.nombre_points_charge,
+                            pourcentageVehiculesElectriques: ((commune2.NB_VP_RECHARGEABLES_EL / commune2.NB_VP) * 100).toFixed(2),
+                            ratioVehiculesParBorne: commune2.nombre_bornes > 0 ? (commune2.NB_VP_RECHARGEABLES_EL / commune2.nombre_bornes).toFixed(2) : 'N/A'
+                        }
+                    };
+
+                    createCommuneComparisonCharts(comparisonData);
+                    populateCommuneComparisonTable(comparisonData);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la comparaison des communes:', error);
+                showComparisonError();
+            });
     }
 }
 
@@ -1321,6 +1530,82 @@ function createDepartementComparisonCharts(data) {
 
     // Créer le graphique des ratios
     createBarChart('ratio-comparison-chart', 'Ratio véhicules par borne', labels, ratioData, 'rgba(255, 99, 132, 0.6)', 'rgba(255, 99, 132, 1)');
+}
+
+// Fonction pour créer les graphiques de comparaison pour les communes
+function createCommuneComparisonCharts(data) {
+    // Extraire les données pour les graphiques
+    const labels = [
+        `${data.commune1.commune} (${data.commune1.code_postal})`,
+        `${data.commune2.commune} (${data.commune2.code_postal})`
+    ];
+    const vehiclesData = [data.commune1.totalVehiculesElectriques, data.commune2.totalVehiculesElectriques];
+    const stationsData = [data.commune1.totalBornes, data.commune2.totalBornes];
+
+    // Calculer le ratio véhicules par borne
+    let ratio1 = data.commune1.ratioVehiculesParBorne;
+    if (ratio1 === 'N/A') ratio1 = 0;
+    let ratio2 = data.commune2.ratioVehiculesParBorne;
+    if (ratio2 === 'N/A') ratio2 = 0;
+
+    const ratioData = [parseFloat(ratio1), parseFloat(ratio2)];
+
+    // Créer le graphique des véhicules
+    createBarChart('vehicles-comparison-chart', 'Nombre de véhicules électriques', labels, vehiclesData, 'rgba(54, 162, 235, 0.6)', 'rgba(54, 162, 235, 1)');
+
+    // Créer le graphique des bornes
+    createBarChart('stations-comparison-chart', 'Nombre de bornes de recharge', labels, stationsData, 'rgba(75, 192, 192, 0.6)', 'rgba(75, 192, 192, 1)');
+
+    // Créer le graphique des ratios
+    createBarChart('ratio-comparison-chart', 'Ratio véhicules par borne', labels, ratioData, 'rgba(255, 99, 132, 0.6)', 'rgba(255, 99, 132, 1)');
+}
+
+// Fonction pour remplir le tableau comparatif pour les communes
+function populateCommuneComparisonTable(data) {
+    const tableBody = document.querySelector('#comparison-table tbody');
+    tableBody.innerHTML = '';
+
+    // Définir les indicateurs à afficher
+    const indicators = [
+        { name: 'Véhicules électriques', value1: data.commune1.totalVehiculesElectriques, value2: data.commune2.totalVehiculesElectriques },
+        { name: 'Bornes de recharge', value1: data.commune1.totalBornes, value2: data.commune2.totalBornes },
+        { name: 'Points de charge', value1: data.commune1.totalPointsCharge, value2: data.commune2.totalPointsCharge },
+        { name: 'Véhicules par borne', value1: data.commune1.ratioVehiculesParBorne, value2: data.commune2.ratioVehiculesParBorne },
+        { name: 'Pourcentage de véhicules électriques', value1: data.commune1.pourcentageVehiculesElectriques + '%', value2: data.commune2.pourcentageVehiculesElectriques + '%' },
+        { name: 'Total véhicules', value1: data.commune1.totalVehicules, value2: data.commune2.totalVehicules }
+    ];
+
+    // Ajouter chaque indicateur au tableau
+    indicators.forEach(indicator => {
+        const row = document.createElement('tr');
+
+        // Calculer la différence
+        let difference = '';
+        if (typeof indicator.value1 === 'number' && typeof indicator.value2 === 'number') {
+            difference = (indicator.value1 - indicator.value2).toLocaleString('fr-FR');
+
+            // Ajouter une classe pour colorer la différence
+            if (indicator.value1 > indicator.value2) {
+                difference = `+${difference}`;
+                row.classList.add('positive-difference');
+            } else if (indicator.value1 < indicator.value2) {
+                row.classList.add('negative-difference');
+            }
+        }
+
+        // Formater les valeurs
+        const value1 = typeof indicator.value1 === 'number' ? indicator.value1.toLocaleString('fr-FR') : indicator.value1;
+        const value2 = typeof indicator.value2 === 'number' ? indicator.value2.toLocaleString('fr-FR') : indicator.value2;
+
+        row.innerHTML = `
+      <td>${indicator.name}</td>
+      <td>${value1}</td>
+      <td>${value2}</td>
+      <td>${difference}</td>
+    `;
+
+        tableBody.appendChild(row);
+    });
 }
 
 // Fonction pour charger les entités selon le type sélectionné
