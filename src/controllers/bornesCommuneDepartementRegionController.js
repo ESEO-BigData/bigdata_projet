@@ -419,7 +419,7 @@ exports.searchCommunes = async (req, res) => {
         const communes = await BornesCommuneDepartementRegion.find({
             commune: { $regex: `^${query}`, $options: 'i' }
         })
-            .limit(5)
+            .limit(8) //Modifier pour avoir plus de résultat
             .select('commune code_postal');
 
         return responseFormatter.success(res, communes);
