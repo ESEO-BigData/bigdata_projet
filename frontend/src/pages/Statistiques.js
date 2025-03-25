@@ -1222,13 +1222,11 @@ function setupTerritorySelectors() {
 }
 
 // Fonction pour configurer la recherche de communes
-// Fonction pour configurer la recherche de communes
 function setupCommuneSearch(fieldId) {
     const searchInput = document.getElementById(`${fieldId}-search`);
     const resultsContainer = document.getElementById(`${fieldId}-results`);
     const hiddenInput = document.getElementById(fieldId);
 
-    // Événement de saisie dans le champ de recherche
     searchInput.addEventListener('input', debounce(() => {
         const query = searchInput.value.trim();
         if (query.length < 2) {
@@ -1236,42 +1234,17 @@ function setupCommuneSearch(fieldId) {
             return;
         }
 
-        // Rechercher les communes correspondantes
-        fetch(`/api/bornes-communes/commune/${encodeURIComponent(query)}`)
+        fetch(`/api/bornes-communes/search/${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    let communes = [];
-
-                    // Si c'est un tableau, utiliser directement, sinon créer un tableau avec l'élément unique
-                    if (Array.isArray(data.data)) {
-                        communes = data.data;
-                    } else if (data.data) {
-                        communes = [data.data];
-                    }
-
-                    // Trier les résultats pour prioriser ceux qui commencent par la requête
-                    communes.sort((a, b) => {
-                        const aStartsWith = a.commune.toLowerCase().startsWith(query.toLowerCase()) ? 0 : 1;
-                        const bStartsWith = b.commune.toLowerCase().startsWith(query.toLowerCase()) ? 0 : 1;
-
-                        // D'abord trier par "commence par", puis par ordre alphabétique
-                        if (aStartsWith !== bStartsWith) {
-                            return aStartsWith - bStartsWith;
-                        }
-
-                        return a.commune.localeCompare(b.commune);
-                    });
-
-                    // Limiter à 5 résultats maximum
-                    communes = communes.slice(0, 5);
+                    const communes = data.data;
 
                     if (communes.length === 0) {
                         resultsContainer.innerHTML = '<div class="no-results">Aucune commune trouvée</div>';
                         return;
                     }
 
-                    // Afficher les résultats
                     resultsContainer.innerHTML = '';
                     communes.forEach(commune => {
                         const resultItem = document.createElement('div');
@@ -1281,12 +1254,9 @@ function setupCommuneSearch(fieldId) {
                         resultItem.dataset.name = `${commune.commune} (${commune.code_postal})`;
 
                         resultItem.addEventListener('click', () => {
-                            // Mettre à jour le champ de recherche et le champ caché
                             searchInput.value = resultItem.dataset.name;
                             hiddenInput.value = resultItem.dataset.id;
                             resultsContainer.innerHTML = '';
-
-                            // Déclencher la comparaison
                             compareSelectedTerritories();
                         });
 
@@ -1307,7 +1277,6 @@ function setupCommuneSearch(fieldId) {
         }
     });
 }
-
 
 // Fonction utilitaire pour débouncer les événements
 function debounce(func, wait) {

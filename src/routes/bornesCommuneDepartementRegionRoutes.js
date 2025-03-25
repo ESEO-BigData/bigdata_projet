@@ -21,6 +21,7 @@ router.get('/top/pourcentage', bornesCommuneDepartementRegionController.getTopPo
 router.get('/statistiques/global', bornesCommuneDepartementRegionController.getGlobalStats);
 router.get('/statistiques/correlation', bornesCommuneDepartementRegionController.getCorrelationStats);
 router.get('/communes-sans-bornes', bornesCommuneDepartementRegionController.getCommunesSansBornes);
+router.get('/search/:query', bornesCommuneDepartementRegionController.searchCommunes);
 
 // Route pour comparer deux régions
 router.get('/comparer/:region1/:region2', bornesCommuneDepartementRegionController.compareRegions);
