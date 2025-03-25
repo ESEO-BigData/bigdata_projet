@@ -203,3 +203,279 @@ function setupExportButton() {
         document.body.removeChild(link);
     });
 }
+
+
+
+//Rajout
+// Fonction pour appliquer le tri aux départements
+function applyDepartementSort() {
+    const sortBy = document.getElementById('sort-by-select').value;
+    const sortOrder = document.getElementById('sort-order-select').value;
+
+    // Sauvegarder l'état actuel des légendes si le graphique existe
+    let hiddenDatasets = [];
+    if (window.departementsChart) {
+        hiddenDatasets = window.departementsChart.data.datasets.map(dataset =>
+            !window.departementsChart.isDatasetVisible(
+                window.departementsChart.data.datasets.indexOf(dataset)
+            )
+        );
+    }
+
+    fetch('/api/bornes-communes/statistiques/correlation')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                createDepartementsChart(data.data.departements, sortBy, sortOrder);
+
+                // Restaurer l'état des légendes
+                if (hiddenDatasets.length > 0 && window.departementsChart) {
+                    hiddenDatasets.forEach((isHidden, index) => {
+                        if (isHidden && index < window.departementsChart.data.datasets.length) {
+                            window.departementsChart.setDatasetVisibility(index, false);
+                        }
+                    });
+                    window.departementsChart.update();
+                }
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des départements:', error));
+}
+
+// Fonction pour appliquer le tri aux communes
+function applyCommunesSort() {
+    const sortBy = document.getElementById('communes-sort-by-select').value;
+    const sortOrder = document.getElementById('communes-sort-order-select').value;
+    const departementCode = document.getElementById('selected-departement-code').value;
+
+    // Sauvegarder l'état actuel des légendes si le graphique existe
+    let hiddenDatasets = [];
+    if (window.communesByDepartementChart) {
+        hiddenDatasets = window.communesByDepartementChart.data.datasets.map(dataset =>
+            !window.communesByDepartementChart.isDatasetVisible(
+                window.communesByDepartementChart.data.datasets.indexOf(dataset)
+            )
+        );
+    }
+
+    fetch(`/api/bornes-communes/departement/${departementCode}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
+
+                // Restaurer l'état des légendes
+                if (hiddenDatasets.length > 0 && window.communesByDepartementChart) {
+                    hiddenDatasets.forEach((isHidden, index) => {
+                        if (isHidden && index < window.communesByDepartementChart.data.datasets.length) {
+                            window.communesByDepartementChart.setDatasetVisibility(index, false);
+                        }
+                    });
+                    window.communesByDepartementChart.update();
+                }
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des communes:', error));
+}
+
+// Fonction pour charger les communes d'un département
+function loadCommunesByDepartement(departementCode, departementName) {
+    fetch(`/api/bornes-communes/departement/${departementCode}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Afficher le conteneur des communes et masquer celui des départements
+                document.querySelector('.departements-container').style.display = 'none';
+                document.querySelector('.communes-container').style.display = 'block';
+
+                // Stocker le code du département pour les tris futurs
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.id = 'selected-departement-code';
+                hiddenInput.value = departementCode;
+                document.querySelector('.communes-container').appendChild(hiddenInput);
+
+                // Mettre à jour le nom du département sélectionné
+                document.getElementById('selected-departement-name').textContent = departementName;
+
+                // Obtenir les valeurs de tri actuelles
+                const sortBy = document.getElementById('communes-sort-by-select').value;
+                const sortOrder = document.getElementById('communes-sort-order-select').value;
+
+                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
+                populateCommunesTable(data.data.communes);
+            }
+        })
+        .catch(error => console.error('Erreur lors du chargement des communes:', error));
+}
+
+// Fonction pour créer le graphique des communes par département
+function createCommunesByDepartementChart(communes, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
+    const ctx = document.getElementById('communes-by-departement-chart').getContext('2d');
+
+    // Trier les communes selon le critère choisi
+    communes.sort((a, b) => {
+        let valueA, valueB;
+
+        switch(sortBy) {
+            case 'vehiculesElectriques':
+                valueA = a.NB_VP_RECHARGEABLES_EL;
+                valueB = b.NB_VP_RECHARGEABLES_EL;
+                break;
+            case 'vehiculesThermiques':
+                valueA = a.NB_VP - a.NB_VP_RECHARGEABLES_EL;
+                valueB = b.NB_VP - b.NB_VP_RECHARGEABLES_EL;
+                break;
+            case 'bornes':
+                valueA = a.nombre_bornes;
+                valueB = b.nombre_bornes;
+                break;
+        }
+
+        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
+    });
+
+    // Limiter à 20 communes pour la lisibilité du graphique
+    const topCommunes = communes.slice(0, 20);
+
+    // Détruire le graphique existant s'il y en a un
+    if (window.communesByDepartementChart) {
+        window.communesByDepartementChart.destroy();
+    }
+
+    // Créer un nouveau graphique
+    window.communesByDepartementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: topCommunes.map(commune => commune.commune),
+            datasets: [
+                {
+                    label: 'Véhicules électriques',
+                    data: topCommunes.map(commune => commune.NB_VP_RECHARGEABLES_EL),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Véhicules thermiques',
+                    data: topCommunes.map(commune => commune.NB_VP - commune.NB_VP_RECHARGEABLES_EL),
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Bornes de recharge',
+                    data: topCommunes.map(commune => commune.nombre_bornes),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: `Top 20 des communes du département`
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Nombre'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Variables globales pour la pagination
+let currentPage = 1;
+let communesData = [];
+const rowsPerPage = 10;
+
+// Fonction pour remplir le tableau des communes avec pagination
+function populateCommunesTable(communes) {
+    // Stocker les données pour la pagination
+    communesData = communes;
+    currentPage = 1;
+
+    // Afficher la première page
+    displayCommunesPage(currentPage);
+
+    // Configurer les contrôles de pagination
+    setupPaginationControls(communes.length);
+}
+
+// Fonction pour afficher une page spécifique du tableau
+function displayCommunesPage(page) {
+    const tableBody = document.querySelector('#communes-table tbody');
+    tableBody.innerHTML = '';
+
+    // Calculer les indices de début et de fin pour la page actuelle
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, communesData.length);
+
+    // Afficher les communes pour la page actuelle
+    for (let i = startIndex; i < endIndex; i++) {
+        const commune = communesData[i];
+        const pourcentage = ((commune.NB_VP_RECHARGEABLES_EL / commune.NB_VP) * 100).toFixed(2);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+      <td>${commune.commune}</td>
+      <td>${commune.code_postal}</td>
+      <td>${commune.NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
+      <td>${pourcentage}%</td>
+      <td>${commune.NB_VP.toLocaleString('fr-FR')}</td>
+    `;
+
+        tableBody.appendChild(row);
+    }
+
+    // Mettre à jour l'information de page
+    document.getElementById('page-info').textContent = `Page ${page} sur ${Math.ceil(communesData.length / rowsPerPage)}`;
+}
+
+// Fonction pour configurer les contrôles de pagination
+function setupPaginationControls(totalItems) {
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+
+    // Mettre à jour l'état des boutons
+    updatePaginationButtons(totalPages);
+
+    // Configurer les événements des boutons
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayCommunesPage(currentPage);
+            updatePaginationButtons(totalPages);
+        }
+    };
+
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayCommunesPage(currentPage);
+            updatePaginationButtons(totalPages);
+        }
+    };
+}
+
+// Fonction pour mettre à jour l'état des boutons de pagination
+function updatePaginationButtons(totalPages) {
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === totalPages;
+}
