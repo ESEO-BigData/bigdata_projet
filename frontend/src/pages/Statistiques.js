@@ -979,7 +979,7 @@ function loadComparisonData() {
           <label for="territory-type">Type de territoire:</label>
           <select id="territory-type">
             <option value="regions" selected>Régions</option>
-            <option value="departements" disabled>Départements</option>
+            <option value="departements">Départements</option>
             <option value="communes" disabled>Communes</option>
           </select>
         </div>
@@ -1078,7 +1078,7 @@ function loadTerritories() {
             apiUrl = '/api/bornes-communes/statistiques/global';
             break;
         case 'departements':
-            apiUrl = '/api/departements';
+            apiUrl = '/api/bornes-communes/statistiques/correlation';
             break;
         case 'communes':
             apiUrl = '/api/vehicules/communes';
@@ -1098,9 +1098,9 @@ function loadTerritories() {
                         name: region.region
                     }));
                 } else if (territoryType === 'departements') {
-                    territories = data.data.map(dept => ({
-                        id: dept.DEPARTEMENT,
-                        name: `${dept.DEPARTEMENT} - ${dept.NOM}`
+                    territories = data.data.departements.map(dept => ({
+                        id: dept.code,
+                        name: `${dept.code} - ${dept.departement}`
                     }));
                 } else if (territoryType === 'communes') {
                     territories = data.data.vehiculesCommune.map(commune => ({
@@ -1157,36 +1157,67 @@ function compareSelectedTerritories() {
 
     if (territoryType === 'regions') {
         apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1)}/${encodeURIComponent(territory2)}`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Créer les graphiques de comparaison
+                    createComparisonCharts(data.data);
+
+                    // Remplir le tableau comparatif
+                    populateComparisonTable(data.data);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la comparaison des territoires:', error);
+                showComparisonError();
+            });
     } else if (territoryType === 'departements') {
-        // À implémenter plus tard
-        return;
+        // Pour les départements, nous devons récupérer les données de chaque département séparément
+        Promise.all([
+            fetch(`/api/bornes-communes/departement/${territory1}`).then(res => res.json()),
+            fetch(`/api/bornes-communes/departement/${territory2}`).then(res => res.json())
+        ])
+            .then(([data1, data2]) => {
+                if (data1.success && data2.success) {
+                    // Préparer les données pour la comparaison
+                    const comparisonData = {
+                        departement1: {
+                            departement: data1.data.departement,
+                            code_departement: data1.data.code_departement,
+                            totalVehiculesElectriques: data1.data.statistiques.total_vehicules_electriques,
+                            totalBornes: data1.data.statistiques.total_bornes,
+                            totalPointsCharge: data1.data.statistiques.total_points_charge,
+                            pourcentageVehiculesElectriques: data1.data.statistiques.pourcentage_electriques,
+                            ratioVehiculesParBorne: data1.data.statistiques.ratio_vehicules_par_borne
+                        },
+                        departement2: {
+                            departement: data2.data.departement,
+                            code_departement: data2.data.code_departement,
+                            totalVehiculesElectriques: data2.data.statistiques.total_vehicules_electriques,
+                            totalBornes: data2.data.statistiques.total_bornes,
+                            totalPointsCharge: data2.data.statistiques.total_points_charge,
+                            pourcentageVehiculesElectriques: data2.data.statistiques.pourcentage_electriques,
+                            ratioVehiculesParBorne: data2.data.statistiques.ratio_vehicules_par_borne
+                        }
+                    };
+
+                    // Créer les graphiques de comparaison pour les départements
+                    createDepartementComparisonCharts(comparisonData);
+
+                    // Remplir le tableau comparatif pour les départements
+                    populateDepartementComparisonTable(comparisonData);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la comparaison des départements:', error);
+                showComparisonError();
+            });
     } else if (territoryType === 'communes') {
         // À implémenter plus tard
         return;
     }
-
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Créer les graphiques de comparaison
-                createComparisonCharts(data.data);
-
-                // Remplir le tableau comparatif
-                populateComparisonTable(data.data);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur lors de la comparaison des territoires:', error);
-            // Afficher un message d'erreur à l'utilisateur
-            const comparisonResults = document.querySelector('.comparison-results');
-            comparisonResults.innerHTML = `
-        <div class="error-message">
-          <p>Une erreur s'est produite lors de la comparaison des territoires.</p>
-          <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
-        </div>
-      `;
-        });
 }
 
 // Fonction pour créer les graphiques de comparaison
@@ -1209,6 +1240,17 @@ function createComparisonCharts(data) {
 
     // Créer le graphique des ratios
     createBarChart('ratio-comparison-chart', 'Ratio véhicules par borne', labels, ratioData, 'rgba(255, 99, 132, 0.6)', 'rgba(255, 99, 132, 1)');
+}
+
+// Fonction pour afficher un message d'erreur
+function showComparisonError() {
+    const comparisonResults = document.querySelector('.comparison-results');
+    comparisonResults.innerHTML = `
+    <div class="error-message">
+      <p>Une erreur s'est produite lors de la comparaison des territoires.</p>
+      <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
+    </div>
+  `;
 }
 
 // Fonction pour créer un graphique en barres
@@ -1251,6 +1293,34 @@ function createBarChart(canvasId, title, labels, data, backgroundColor, borderCo
             }
         }
     });
+}
+
+// Fonction pour créer les graphiques de comparaison pour les départements
+function createDepartementComparisonCharts(data) {
+    // Extraire les données pour les graphiques
+    const labels = [
+        `${data.departement1.code_departement} - ${data.departement1.departement}`,
+        `${data.departement2.code_departement} - ${data.departement2.departement}`
+    ];
+    const vehiclesData = [data.departement1.totalVehiculesElectriques, data.departement2.totalVehiculesElectriques];
+    const stationsData = [data.departement1.totalBornes, data.departement2.totalBornes];
+
+    // Calculer le ratio véhicules par borne (utiliser les valeurs déjà calculées ou 0 si N/A)
+    let ratio1 = data.departement1.ratioVehiculesParBorne;
+    if (ratio1 === 'N/A') ratio1 = 0;
+    let ratio2 = data.departement2.ratioVehiculesParBorne;
+    if (ratio2 === 'N/A') ratio2 = 0;
+
+    const ratioData = [parseFloat(ratio1), parseFloat(ratio2)];
+
+    // Créer le graphique des véhicules
+    createBarChart('vehicles-comparison-chart', 'Nombre de véhicules électriques', labels, vehiclesData, 'rgba(54, 162, 235, 0.6)', 'rgba(54, 162, 235, 1)');
+
+    // Créer le graphique des bornes
+    createBarChart('stations-comparison-chart', 'Nombre de bornes de recharge', labels, stationsData, 'rgba(75, 192, 192, 0.6)', 'rgba(75, 192, 192, 1)');
+
+    // Créer le graphique des ratios
+    createBarChart('ratio-comparison-chart', 'Ratio véhicules par borne', labels, ratioData, 'rgba(255, 99, 132, 0.6)', 'rgba(255, 99, 132, 1)');
 }
 
 // Fonction pour charger les entités selon le type sélectionné
@@ -1376,6 +1446,53 @@ function compareEntities() {
             populateComparisonTable(data1, data2);
         })
         .catch(error => console.error('Erreur lors de la comparaison des territoires:', error));
+}
+
+// Fonction pour remplir le tableau comparatif pour les départements
+function populateDepartementComparisonTable(data) {
+    const tableBody = document.querySelector('#comparison-table tbody');
+    tableBody.innerHTML = '';
+
+    // Définir les indicateurs à afficher
+    const indicators = [
+        { name: 'Véhicules électriques', value1: data.departement1.totalVehiculesElectriques, value2: data.departement2.totalVehiculesElectriques },
+        { name: 'Bornes de recharge', value1: data.departement1.totalBornes, value2: data.departement2.totalBornes },
+        { name: 'Points de charge', value1: data.departement1.totalPointsCharge, value2: data.departement2.totalPointsCharge },
+        { name: 'Véhicules par borne', value1: data.departement1.ratioVehiculesParBorne, value2: data.departement2.ratioVehiculesParBorne },
+        { name: 'Pourcentage de véhicules électriques', value1: data.departement1.pourcentageVehiculesElectriques + '%', value2: data.departement2.pourcentageVehiculesElectriques + '%' }
+    ];
+
+    // Ajouter chaque indicateur au tableau
+    indicators.forEach(indicator => {
+        const row = document.createElement('tr');
+
+        // Calculer la différence
+        let difference = '';
+        if (typeof indicator.value1 === 'number' && typeof indicator.value2 === 'number') {
+            difference = (indicator.value1 - indicator.value2).toLocaleString('fr-FR');
+
+            // Ajouter une classe pour colorer la différence
+            if (indicator.value1 > indicator.value2) {
+                difference = `+${difference}`;
+                row.classList.add('positive-difference');
+            } else if (indicator.value1 < indicator.value2) {
+                row.classList.add('negative-difference');
+            }
+        }
+
+        // Formater les valeurs
+        const value1 = typeof indicator.value1 === 'number' ? indicator.value1.toLocaleString('fr-FR') : indicator.value1;
+        const value2 = typeof indicator.value2 === 'number' ? indicator.value2.toLocaleString('fr-FR') : indicator.value2;
+
+        row.innerHTML = `
+      <td>${indicator.name}</td>
+      <td>${value1}</td>
+      <td>${value2}</td>
+      <td>${difference}</td>
+    `;
+
+        tableBody.appendChild(row);
+    });
 }
 
 // Fonction pour récupérer les données d'une entité
