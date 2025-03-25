@@ -302,8 +302,8 @@ function renderStatsHeatMap(container) {
         <option value="points">Points de charge</option>
       </select>
       <div class="heatmap-wrapper">
-        <div id="heatmap-container" class="map-container"></div>
         <div id="heatmap-legend" class="heatmap-legend-box"></div>
+        <div id="heatmap-container" class="map-container"></div>
       </div>
     `;
 
