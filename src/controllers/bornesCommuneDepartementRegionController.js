@@ -412,6 +412,22 @@ exports.getCorrelationStats = async (req, res) => {
         return responseFormatter.error(res, 'Erreur lors du calcul des statistiques de corrélation', error);
     }
 };
+
+exports.searchCommunes = async (req, res) => {
+    try {
+        const query = req.params.query;
+        const communes = await BornesCommuneDepartementRegion.find({
+            commune: { $regex: `^${query}`, $options: 'i' }
+        })
+            .limit(5)
+            .select('commune code_postal');
+
+        return responseFormatter.success(res, communes);
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la recherche des communes', error);
+    }
+};
+
 // Obtenir des statistiques de corrélation
 exports.getCorrelationStats = async (req, res) => {
     try {
