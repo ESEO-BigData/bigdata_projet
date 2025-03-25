@@ -1,114 +1,61 @@
 import Chart from 'chart.js/auto';
+import { renderCommunesData } from './Statistiques/Communes';
 
 export function renderStatistics(container) {
-    // Structure de base avec navigation par onglets
     container.innerHTML = `
-    <section class="statistics-section">
-      <h1>Tableau de bord des véhicules électriques</h1>
-      
-      <!-- KPI Dashboard -->
-      <div class="kpi-dashboard">
-        <div class="kpi-card" id="kpi-total-vehicules">
-          <h3>Total véhicules électriques</h3>
-          <div class="kpi-value">Chargement...</div>
-          <div class="kpi-trend"></div>
-        </div>
-        
-        <div class="kpi-card" id="kpi-total-bornes">
-          <h3>Bornes de recharge</h3>
-          <div class="kpi-value">Chargement...</div>
-          <div class="kpi-trend"></div>
-        </div>
-        
-        <div class="kpi-card" id="kpi-ratio">
-          <h3>Véhicules par borne</h3>
-          <div class="kpi-value">Chargement...</div>
-          <div class="kpi-trend"></div>
-        </div>
-        
-        <div class="kpi-card" id="kpi-top-region">
-          <h3>Région leader</h3>
-          <div class="kpi-value">Chargement...</div>
-          <div class="kpi-trend"></div>
-        </div>
-      </div>
-      
-      <!-- Navigation par onglets -->
-      <div class="tabs-navigation">
-        <button class="tab-button active" data-tab="regions">Régions</button>
-        <button class="tab-button" data-tab="communes">Communes</button>
-        <button class="tab-button" data-tab="comparaison">Comparaisons</button>
-        <button class="tab-button" data-tab="correlation">Corrélations</button>
-      </div>
-      
-      <!-- Contenu des onglets -->
-      <div class="tab-content">
-        <!-- Onglet Régions -->
-        <div class="tab-pane active" id="regions-tab">
-          <div class="chart-controls">
-            <div class="chart-type-selector">
-              <label for="region-chart-type">Type de graphique:</label>
-              <select id="region-chart-type">
-                <option value="bar">Barres</option>
-                <option value="pie">Camembert</option>
-                <option value="doughnut">Anneau</option>
-              </select>
-            </div>
-            <button id="export-regions-data" class="export-btn">Exporter les données</button>
-          </div>
-          
-          <div class="chart-container">
-            <h2>Véhicules électriques par région</h2>
-            <canvas id="regions-chart"></canvas>
-          </div>
-          
-          <div class="data-table-container">
-            <h3>Tableau des données</h3>
-            <table id="regions-table" class="data-table">
-              <thead>
-                <tr>
-                  <th>Région</th>
-                  <th>Nombre de véhicules</th>
-                  <th>% du total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Les données seront injectées ici -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <!-- Autres onglets seront ajoutés dans les prochaines étapes -->
-        <div class="tab-pane" id="communes-tab">
-          <h2>Chargement des données communes...</h2>
-        </div>
-        
-        <div class="tab-pane" id="comparaison-tab">
-          <h2>Chargement des données de comparaison...</h2>
-        </div>
-        
-        <div class="tab-pane" id="correlation-tab">
-          <h2>Chargement des données de corrélation...</h2>
-        </div>
-      </div>
-    </section>
+    <h1>Statistiques</h1>
+    <div class="stats-navigation">
+      <ul>
+        <li><a href="#" id="nav-dashboard" class="active">Tableau de bord</a></li>
+        <li><a href="#" id="nav-regions">Véhicules par région</a></li>
+        <li><a href="#" id="nav-communes">Communes et départements</a></li>
+        <li><a href="#" id="nav-correlation">Corrélation</a></li>
+      </ul>
+    </div>
+    <div id="stats-content"></div>
   `;
 
-    // Initialiser la navigation par onglets
-    initTabNavigation();
+    const contentDiv = document.getElementById('stats-content');
+    const navDashboard = document.getElementById('nav-dashboard');
+    const navRegions = document.getElementById('nav-regions');
+    const navCommunes = document.getElementById('nav-communes');
+    const navCorrelation = document.getElementById('nav-correlation');
 
-    // Charger les KPIs
-    loadKPIs();
+    // Fonction pour mettre à jour l'onglet actif
+    function updateActiveTab(activeTab) {
+        [navDashboard, navRegions, navCommunes, navCorrelation].forEach(tab => {
+            tab.classList.remove('active');
+        });
+        activeTab.classList.add('active');
+    }
 
-    // Charger les données des régions
-    loadRegionsData();
+    // Gestionnaires d'événements pour les onglets
+    navDashboard.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateActiveTab(navDashboard);
+        renderDashboard(contentDiv);
+    });
 
-    // Configurer les contrôles de graphique
-    setupChartControls();
+    navRegions.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateActiveTab(navRegions);
+        renderRegionsData(contentDiv);
+    });
 
-    // Configurer les boutons d'export
-    setupExportButtons();
+    navCommunes.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateActiveTab(navCommunes);
+        renderCommunesData(contentDiv);
+    });
+
+    navCorrelation.addEventListener('click', (e) => {
+        e.preventDefault();
+        updateActiveTab(navCorrelation);
+        renderCorrelationData(contentDiv);
+    });
+
+    // Afficher le tableau de bord par défaut
+    renderDashboard(contentDiv);
 }
 
 // Fonction pour initialiser la navigation par onglets
@@ -391,6 +338,7 @@ function exportToCSV(data, filename) {
 }
 
 // Fonction pour charger les données des communes
+/*
 function loadCommunesData() {
     // Initialiser le contenu de l'onglet Communes
     const communesTab = document.getElementById('communes-tab');
@@ -503,8 +451,10 @@ function loadCommunesData() {
         document.querySelector('.communes-container').style.display = 'none';
     });
 }
+*/
 
 // Fonction pour charger le top 10 des départements
+/*
 function loadTopDepartements() {
     fetch('/api/bornes-communes/statistiques/correlation')
         .then(response => response.json())
@@ -521,6 +471,7 @@ function loadTopDepartements() {
         })
         .catch(error => console.error('Erreur lors du chargement des départements:', error));
 }
+*/
 
 // Fonction pour créer le graphique des départements
 function createDepartementsChart(departements, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
@@ -633,6 +584,7 @@ function populateDepartementSelector(departements) {
 }
 
 // Fonction pour configurer le sélecteur de département
+/*
 function setupDepartementSelector() {
     const select = document.getElementById('departement-select');
 
@@ -644,8 +596,10 @@ function setupDepartementSelector() {
         }
     });
 }
+*/
 
 // Fonction pour configurer les contrôles de tri avec changement automatique
+/*
 function setupSortControls() {
     // Contrôles de tri pour les départements
     document.getElementById('sort-by-select').addEventListener('change', () => {
@@ -665,7 +619,8 @@ function setupSortControls() {
         applyCommunesSort();
     });
 }
-
+*/
+/*
 function setupExportButton() {
     document.getElementById('export-communes-csv').addEventListener('click', () => {
         // Créer le contenu CSV
@@ -692,6 +647,7 @@ function setupExportButton() {
         document.body.removeChild(link);
     });
 }
+*/
 
 // Fonction pour appliquer le tri aux départements
 function applyDepartementSort() {
