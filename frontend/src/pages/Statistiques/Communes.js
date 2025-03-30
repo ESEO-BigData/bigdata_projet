@@ -204,7 +204,20 @@ function setupExportButton() {
     });
 }
 
+// Fonction pour remplir le sélecteur de départements
+function populateDepartementSelector(departements) {
+    const select = document.getElementById('departement-select');
 
+    // Trier les départements par code
+    departements.sort((a, b) => a.code.localeCompare(b.code));
+
+    departements.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.code;
+        option.textContent = `${dept.code} - ${dept.departement}`;
+        select.appendChild(option);
+    });
+}
 
 //Rajout
 // Fonction pour appliquer le tri aux départements
