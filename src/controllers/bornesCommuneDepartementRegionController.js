@@ -453,9 +453,10 @@ exports.getCorrelationStats = async (req, res) => {
                     totalVehiculesElectriques: 1,
                     totalVehicules: 1,
                     pourcentageVehiculesElectriques: {
-                        $multiply: [
-                            { $divide: ["$totalVehiculesElectriques", "$totalVehicules"] },
-                            100
+                        $cond: [
+                            { $eq: ["$totalVehicules", 0] },
+                            0,
+                            { $multiply: [{ $divide: ["$totalVehiculesElectriques", "$totalVehicules"] }, 100] }
                         ]
                     },
                     bornesPour1000Vehicules: {
