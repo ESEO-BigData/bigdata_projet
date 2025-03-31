@@ -1,928 +1,97 @@
 import Chart from 'chart.js/auto';
-import { renderDashboard } from './Statistiques/Dashboard';
-import { renderCommunesData } from './Statistiques/Communes';
-import { renderComparaisonData } from './Statistiques/Comparaison';
 
-export function renderStatistics(container) {
+// Fonction pour comparer les territoires sélectionnés
+
+export function renderComparaisonData(container) {
     container.innerHTML = `
-    <h1>Statistiques</h1>
-    <div class="stats-navigation">
-      <ul>
-        <li><a href="#" id="nav-dashboard" class="active">Tableau de bord</a></li>
-        <li><a href="#" id="nav-communes">Communes et départements</a></li>
-        <li><a href="#" id="nav-comparaison">Comparaison</a></li>
-        <li><a href="#" id="nav-correlation">Corrélation</a></li>
-      </ul>
-    </div>
-    <div id="stats-content"></div>
-  `;
-
-    const contentDiv = document.getElementById('stats-content');
-    const navDashboard = document.getElementById('nav-dashboard');
-    const navCommunes = document.getElementById('nav-communes');
-    const navComparaison = document.getElementById('nav-comparaison');
-    const navCorrelation = document.getElementById('nav-correlation');
-
-    // Fonction pour mettre à jour l'onglet actif
-    function updateActiveTab(activeTab) {
-        [navDashboard, navCommunes, navComparaison, navCorrelation].forEach(tab => {
-            tab.classList.remove('active');
-        });
-        activeTab.classList.add('active');
-    }
-
-    // Gestionnaires d'événements pour les onglets
-    navDashboard.addEventListener('click', (e) => {
-        e.preventDefault();
-        updateActiveTab(navDashboard);
-        renderDashboard(contentDiv);
-    });
-
-    navCommunes.addEventListener('click', (e) => {
-        e.preventDefault();
-        updateActiveTab(navCommunes);
-        renderCommunesData(contentDiv);
-    });
-
-    navComparaison.addEventListener('click', (e) => {
-        e.preventDefault();
-        updateActiveTab(navComparaison);
-        renderComparaisonData(contentDiv);
-    });
-
-    navCorrelation.addEventListener('click', (e) => {
-        e.preventDefault();
-        updateActiveTab(navCorrelation);
-        renderCorrelationData(contentDiv);
-    });
-
-    // Afficher le tableau de bord par défaut
-    renderDashboard(contentDiv);
-}
-
-// Fonction pour initialiser la navigation par onglets
-function initTabNavigation() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanes = document.querySelectorAll('.tab-pane');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Retirer la classe active de tous les boutons et onglets
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabPanes.forEach(pane => pane.classList.remove('active'));
-
-            // Ajouter la classe active au bouton cliqué
-            button.classList.add('active');
-
-            // Activer l'onglet correspondant
-            const tabId = button.dataset.tab;
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-
-            // Charger les données de l'onglet si nécessaire
-            switch(tabId) {
-                case 'regions':
-                    loadRegionsData();
-                    break;
-                case 'communes':
-                    loadCommunesData();
-                    break;
-                case 'comparaison':
-                    loadComparisonData();
-                    break;
-                case 'correlation':
-                    loadCorrelationData();
-                    break;
-            }
-        });
-    });
-}
-
-// Fonction pour charger les KPIs
-function loadKPIs() {
-    // Charger le nombre total de véhicules électriques
-    fetch('/api/vehicules/communes/statistiques')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const kpiCard = document.getElementById('kpi-total-vehicules');
-                const kpiValue = kpiCard.querySelector('.kpi-value');
-                kpiValue.textContent = data.data.totalVehiculesElectriques.toLocaleString('fr-FR');
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des statistiques:', error));
-
-    // Charger le nombre total de bornes
-    fetch('/api/bornes/statistiques')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const kpiCard = document.getElementById('kpi-total-bornes');
-                const kpiValue = kpiCard.querySelector('.kpi-value');
-                kpiValue.textContent = data.data.general.totalBornes.toLocaleString('fr-FR');
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des statistiques des bornes:', error));
-
-    // Charger la région avec le plus de véhicules
-    fetch('/api/vehicules/regions/statistiques')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const kpiCard = document.getElementById('kpi-top-region');
-                const kpiValue = kpiCard.querySelector('.kpi-value');
-                kpiValue.textContent = data.data.regionMax.REGION;
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des statistiques des régions:', error));
-
-    // Calculer le ratio véhicules par borne (après avoir chargé les deux valeurs)
-    Promise.all([
-        fetch('/api/vehicules/communes/statistiques').then(res => res.json()),
-        fetch('/api/bornes/statistiques').then(res => res.json())
-    ])
-        .then(([vehiculesData, bornesData]) => {
-            if (vehiculesData.success && bornesData.success) {
-                const totalVehicules = vehiculesData.data.totalVehiculesElectriques;
-                const totalBornes = bornesData.data.general.totalBornes;
-                const ratio = (totalVehicules / totalBornes).toFixed(1);
-
-                const kpiCard = document.getElementById('kpi-ratio');
-                const kpiValue = kpiCard.querySelector('.kpi-value');
-                kpiValue.textContent = ratio;
-            }
-        })
-        .catch(error => console.error('Erreur lors du calcul du ratio:', error));
-}
-
-// Fonction pour charger les données des régions
-function loadRegionsData() {
-    fetch('/api/vehicules/regions')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Créer ou mettre à jour le graphique
-                createOrUpdateRegionsChart(data.data);
-
-                // Remplir le tableau de données
-                populateRegionsTable(data.data);
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des données des régions:', error));
-}
-
-// Fonction pour créer ou mettre à jour le graphique des régions
-function createOrUpdateRegionsChart(regions) {
-    const ctx = document.getElementById('regions-chart').getContext('2d');
-    const chartType = document.getElementById('region-chart-type').value;
-
-    // Trier les régions par nombre de véhicules (décroissant)
-    regions.sort((a, b) => b.somme_NB_VP_RECHARGEABLES_EL - a.somme_NB_VP_RECHARGEABLES_EL);
-
-    // Calculer le total pour les pourcentages
-    const total = regions.reduce((sum, region) => sum + region.somme_NB_VP_RECHARGEABLES_EL, 0);
-
-    // Détruire le graphique existant s'il y en a un
-    if (window.regionsChart) {
-        window.regionsChart.destroy();
-    }
-
-    // Créer un nouveau graphique
-    window.regionsChart = new Chart(ctx, {
-        type: chartType,
-        data: {
-            labels: regions.map(region => region.REGION),
-            datasets: [{
-                label: 'Nombre de véhicules électriques',
-                data: regions.map(region => region.somme_NB_VP_RECHARGEABLES_EL),
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)',
-                    'rgba(199, 199, 199, 0.6)',
-                    'rgba(83, 102, 255, 0.6)',
-                    'rgba(40, 159, 64, 0.6)',
-                    'rgba(210, 199, 199, 0.6)',
-                    'rgba(78, 52, 199, 0.6)',
-                    'rgba(209, 102, 226, 0.6)',
-                    'rgba(22, 159, 182, 0.6)'
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(199, 199, 199, 1)',
-                    'rgba(83, 102, 255, 1)',
-                    'rgba(40, 159, 64, 1)',
-                    'rgba(210, 199, 199, 1)',
-                    'rgba(78, 52, 199, 1)',
-                    'rgba(209, 102, 226, 1)',
-                    'rgba(22, 159, 182, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: chartType === 'bar' ? 'top' : 'right',
-                    display: chartType !== 'bar'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw;
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${value.toLocaleString('fr-FR')} (${percentage}%)`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    display: chartType === 'bar',
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
-
-// Fonction pour remplir le tableau des régions
-function populateRegionsTable(regions) {
-    const tableBody = document.querySelector('#regions-table tbody');
-    tableBody.innerHTML = '';
-
-    // Calculer le total pour les pourcentages
-    const total = regions.reduce((sum, region) => sum + region.somme_NB_VP_RECHARGEABLES_EL, 0);
-
-    // Trier les régions par nombre de véhicules (décroissant)
-    regions.sort((a, b) => b.somme_NB_VP_RECHARGEABLES_EL - a.somme_NB_VP_RECHARGEABLES_EL);
-
-    // Ajouter chaque région au tableau
-    regions.forEach(region => {
-        const percentage = ((region.somme_NB_VP_RECHARGEABLES_EL / total) * 100).toFixed(1);
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-      <td>${region.REGION}</td>
-      <td>${region.somme_NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
-      <td>${percentage}%</td>
-    `;
-
-        tableBody.appendChild(row);
-    });
-}
-
-// Fonction pour configurer les contrôles de graphique
-function setupChartControls() {
-    const chartTypeSelector = document.getElementById('region-chart-type');
-
-    chartTypeSelector.addEventListener('change', () => {
-        // Recharger le graphique avec le nouveau type
-        fetch('/api/vehicules/regions')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    createOrUpdateRegionsChart(data.data);
-                }
-            })
-            .catch(error => console.error('Erreur lors du chargement des données des régions:', error));
-    });
-}
-
-// Fonction pour configurer les boutons d'export
-function setupExportButtons() {
-    const exportRegionsBtn = document.getElementById('export-regions-data');
-
-    exportRegionsBtn.addEventListener('click', () => {
-        fetch('/api/vehicules/regions')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    exportToCSV(data.data, 'vehicules-electriques-par-region');
-                }
-            })
-            .catch(error => console.error('Erreur lors de l\'export des données:', error));
-    });
-}
-
-// Fonction pour exporter des données au format CSV
-function exportToCSV(data, filename) {
-    // Créer les en-têtes CSV
-    let csvContent = 'Region,Nombre de vehicules electriques\n';
-
-    // Ajouter chaque ligne de données
-    data.forEach(item => {
-        csvContent += `${item.REGION},${item.somme_NB_VP_RECHARGEABLES_EL}\n`;
-    });
-
-    // Créer un objet Blob avec le contenu CSV
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-    // Créer un lien de téléchargement
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}.csv`);
-    link.style.visibility = 'hidden';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Fonction pour charger les données des communes
-/*
-function loadCommunesData() {
-    // Initialiser le contenu de l'onglet Communes
-    const communesTab = document.getElementById('communes-tab');
-    communesTab.innerHTML = `
-    <div class="departements-container">
-      <h2>Top 10 des départements par nombre de véhicules électriques</h2>
+    <div class="comparison-container">
+      <h2>Comparaison entre territoires</h2>
       
-      <div class="filter-container">
-        <div class="departement-selector">
-        <div class="sort-controls">
-  <div class="sort-by">
-    <label for="sort-by-select">Trier par :</label>
-    <select id="sort-by-select">
-      <option value="vehiculesElectriques">Véhicules électriques</option>
-      <option value="vehiculesThermiques">Véhicules thermiques</option>
-      <option value="bornes">Bornes de recharge</option>
-    </select>
-  </div>
-  <div class="sort-order">
-    <label for="sort-order-select">Ordre :</label>
-    <select id="sort-order-select">
-      <option value="desc">Décroissant</option>
-      <option value="asc">Croissant</option>
-    </select>
-  </div>
-</div>
-          <label for="departement-select">Sélectionner un département :</label>
-          <select id="departement-select">
-            <option value="">Choisir un département</option>
+      <div class="comparison-controls">
+        <div class="territory-type-selector">
+          <label for="territory-type">Type de territoire:</label>
+          <select id="territory-type">
+            <option value="regions" selected>Régions</option>
+            <option value="departements">Départements</option>
+            <option value="communes">Communes</option>
+          </select>
+        </div>
+        
+        <div class="territory-selector">
+          <label for="territory1">Territoire 1:</label>
+          <select id="territory1">
+            <option value="">Sélectionnez un territoire</option>
+          </select>
+        </div>
+        
+        <div class="territory-selector">
+          <label for="territory2">Territoire 2:</label>
+          <select id="territory2">
+            <option value="">Sélectionnez un territoire</option>
           </select>
         </div>
       </div>
       
-      <div class="chart-container">
-        <canvas id="departements-chart"></canvas>
+      <div class="comparison-results">
+        <div class="comparison-charts">
+          <div class="chart-container">
+            <h3>Nombre de véhicules électriques</h3>
+            <canvas id="vehicles-comparison-chart"></canvas>
+          </div>
+          
+          <div class="chart-container">
+            <h3>Nombre de bornes de recharge</h3>
+            <canvas id="stations-comparison-chart"></canvas>
+          </div>
+          
+          <div class="chart-container">
+            <h3>Ratio véhicules par borne</h3>
+            <canvas id="ratio-comparison-chart"></canvas>
+          </div>
+        </div>
+        
+        <div class="comparison-table-container">
+          <h3>Tableau comparatif</h3>
+          <table id="comparison-table" class="data-table">
+            <thead>
+              <tr>
+                <th>Indicateur</th>
+                <th id="territory1-name">Territoire 1</th>
+                <th id="territory2-name">Territoire 2</th>
+                <th>Différence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Les données seront injectées ici -->
+            </tbody>
+          </table>
+          <div class="export-container">
+            <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <div class="communes-container" style="display: none;">
-      <div class="back-button-container">
-        <button id="back-to-departements" class="btn">← Retour aux départements</button>
-        <div class="sort-controls">
-  <div class="sort-by">
-    <label for="communes-sort-by-select">Trier par :</label>
-    <select id="communes-sort-by-select">
-      <option value="vehiculesElectriques">Véhicules électriques</option>
-      <option value="vehiculesThermiques">Véhicules thermiques</option>
-      <option value="bornes">Bornes de recharge</option>
-    </select>
-  </div>
-  <div class="sort-order">
-    <label for="communes-sort-order-select">Ordre :</label>
-    <select id="communes-sort-order-select">
-      <option value="desc">Décroissant</option>
-      <option value="asc">Croissant</option>
-    </select>
-  </div>
-</div>
-
-      </div>
-      
-      <h2>Communes du département <span id="selected-departement-name"></span></h2>
-      
-      <div class="chart-container">
-        <canvas id="communes-by-departement-chart"></canvas>
-      </div>
-      
-      <div class="data-table-container">
-  <h3>Liste des communes</h3>
-  <table id="communes-table" class="data-table">
-    <thead>
-      <tr>
-        <th>Commune</th>
-        <th>Code postal</th>
-        <th>Véhicules électriques</th>
-        <th>% du parc</th>
-        <th>Total véhicules</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Les données seront injectées ici -->
-    </tbody>
-  </table>
-  <div class="pagination-controls">
-    <button id="prev-page" class="pagination-btn">Précédent</button>
-    <span id="page-info">Page 1 sur 1</span>
-    <button id="next-page" class="pagination-btn">Suivant</button>
-  </div>
-    <div class="export-container">
-    <button id="export-communes-csv" class="export-btn">Exporter en CSV</button>
-  </div>
-</div>
     </div>
   `;
+// Charger la liste des territoires en fonction du type sélectionné
+    loadTerritories();
 
-    // Charger les données des départements
-    loadTopDepartements();
+    // Configurer les événements de changement
+    document.getElementById('territory-type').addEventListener('change', () => {
+        loadTerritories();
+    });
 
-    // Configurer le sélecteur de département
-    setupDepartementSelector();
+    document.getElementById('territory1').addEventListener('change', () => {
+        compareSelectedTerritories();
+    });
 
-    // Configurer les contrôles de tri
-    setupSortControls();
+    document.getElementById('territory2').addEventListener('change', () => {
+        compareSelectedTerritories();
+    });
 
     // Configurer le bouton d'export
-    setupExportButton();
-    // Configurer le bouton de retour
-    document.getElementById('back-to-departements').addEventListener('click', () => {
-        document.querySelector('.departements-container').style.display = 'block';
-        document.querySelector('.communes-container').style.display = 'none';
-    });
-}
-*/
-
-// Fonction pour charger le top 10 des départements
-/*
-function loadTopDepartements() {
-    fetch('/api/bornes-communes/statistiques/correlation')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Trier les départements par nombre de véhicules électriques
-                const departements = data.data.departements
-                    .sort((a, b) => b.totalVehiculesElectriques - a.totalVehiculesElectriques)
-                    .slice(0, 10);
-
-                createDepartementsChart(departements);
-                populateDepartementSelector(data.data.departements);
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des départements:', error));
-}
-*/
-
-// Fonction pour créer le graphique des départements
-function createDepartementsChart(departements, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
-    const ctx = document.getElementById('departements-chart').getContext('2d');
-
-    // Trier les départements selon le critère choisi
-    departements.sort((a, b) => {
-        let valueA, valueB;
-
-        switch(sortBy) {
-            case 'vehiculesElectriques':
-                valueA = a.totalVehiculesElectriques;
-                valueB = b.totalVehiculesElectriques;
-                break;
-            case 'vehiculesThermiques':
-                valueA = a.totalVehicules - a.totalVehiculesElectriques;
-                valueB = b.totalVehicules - b.totalVehiculesElectriques;
-                break;
-            case 'bornes':
-                valueA = a.totalBornes;
-                valueB = b.totalBornes;
-                break;
-        }
-
-        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
-    });
-
-    // Limiter à 10 départements
-    const topDepartements = departements.slice(0, 10);
-
-    // Détruire le graphique existant s'il y en a un
-    if (window.departementsChart) {
-        window.departementsChart.destroy();
-    }
-
-    // Créer un nouveau graphique
-    window.departementsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: topDepartements.map(dept => `${dept.code} - ${dept.departement}`),
-            datasets: [
-                {
-                    label: 'Véhicules électriques',
-                    data: topDepartements.map(dept => dept.totalVehiculesElectriques),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Véhicules thermiques',
-                    data: topDepartements.map(dept => dept.totalVehicules - dept.totalVehiculesElectriques),
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Bornes de recharge',
-                    data: topDepartements.map(dept => dept.totalBornes),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Top 10 des départements'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Nombre'
-                    }
-                }
-            },
-            onClick: (event, elements) => {
-                if (elements.length > 0) {
-                    const index = elements[0].index;
-                    const departementCode = topDepartements[index].code;
-                    const departementName = topDepartements[index].departement;
-                    loadCommunesByDepartement(departementCode, departementName);
-                }
-            }
-        }
-    });
+    document.getElementById('export-comparison').addEventListener('click', exportComparisonData);
 }
 
-// Fonction pour remplir le sélecteur de départements
-function populateDepartementSelector(departements) {
-    const select = document.getElementById('departement-select');
-
-    // Trier les départements par code
-    departements.sort((a, b) => a.code.localeCompare(b.code));
-
-    departements.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept.code;
-        option.textContent = `${dept.code} - ${dept.departement}`;
-        select.appendChild(option);
-    });
-}
-
-// Fonction pour configurer le sélecteur de département
-/*
-function setupDepartementSelector() {
-    const select = document.getElementById('departement-select');
-
-    select.addEventListener('change', () => {
-        const departementCode = select.value;
-        if (departementCode) {
-            const departementName = select.options[select.selectedIndex].text.split(' - ')[1];
-            loadCommunesByDepartement(departementCode, departementName);
-        }
-    });
-}
-*/
-
-// Fonction pour configurer les contrôles de tri avec changement automatique
-/*
-function setupSortControls() {
-    // Contrôles de tri pour les départements
-    document.getElementById('sort-by-select').addEventListener('change', () => {
-        applyDepartementSort();
-    });
-
-    document.getElementById('sort-order-select').addEventListener('change', () => {
-        applyDepartementSort();
-    });
-
-    // Contrôles de tri pour les communes
-    document.getElementById('communes-sort-by-select').addEventListener('change', () => {
-        applyCommunesSort();
-    });
-
-    document.getElementById('communes-sort-order-select').addEventListener('change', () => {
-        applyCommunesSort();
-    });
-}
-*/
-/*
-function setupExportButton() {
-    document.getElementById('export-communes-csv').addEventListener('click', () => {
-        // Créer le contenu CSV
-        let csvContent = 'Commune,Code postal,Véhicules électriques,Pourcentage,Total véhicules,Bornes de recharge\n';
-
-        communesData.forEach(commune => {
-            const pourcentage = ((commune.NB_VP_RECHARGEABLES_EL / commune.NB_VP) * 100).toFixed(2);
-            csvContent += `"${commune.commune}","${commune.code_postal}",${commune.NB_VP_RECHARGEABLES_EL},${pourcentage},${commune.NB_VP},${commune.nombre_bornes}\n`;
-        });
-
-        // Créer un objet Blob avec le contenu CSV
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-        // Créer un lien de téléchargement
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', `communes-${document.getElementById('selected-departement-name').textContent}.csv`);
-        link.style.visibility = 'hidden';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-}
-*/
-
-// Fonction pour appliquer le tri aux départements
-function applyDepartementSort() {
-    const sortBy = document.getElementById('sort-by-select').value;
-    const sortOrder = document.getElementById('sort-order-select').value;
-
-    // Sauvegarder l'état actuel des légendes si le graphique existe
-    let hiddenDatasets = [];
-    if (window.departementsChart) {
-        hiddenDatasets = window.departementsChart.data.datasets.map(dataset =>
-            !window.departementsChart.isDatasetVisible(
-                window.departementsChart.data.datasets.indexOf(dataset)
-            )
-        );
-    }
-
-    fetch('/api/bornes-communes/statistiques/correlation')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                createDepartementsChart(data.data.departements, sortBy, sortOrder);
-
-                // Restaurer l'état des légendes
-                if (hiddenDatasets.length > 0 && window.departementsChart) {
-                    hiddenDatasets.forEach((isHidden, index) => {
-                        if (isHidden && index < window.departementsChart.data.datasets.length) {
-                            window.departementsChart.setDatasetVisibility(index, false);
-                        }
-                    });
-                    window.departementsChart.update();
-                }
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des départements:', error));
-}
-
-// Fonction pour appliquer le tri aux communes
-function applyCommunesSort() {
-    const sortBy = document.getElementById('communes-sort-by-select').value;
-    const sortOrder = document.getElementById('communes-sort-order-select').value;
-    const departementCode = document.getElementById('selected-departement-code').value;
-
-    // Sauvegarder l'état actuel des légendes si le graphique existe
-    let hiddenDatasets = [];
-    if (window.communesByDepartementChart) {
-        hiddenDatasets = window.communesByDepartementChart.data.datasets.map(dataset =>
-            !window.communesByDepartementChart.isDatasetVisible(
-                window.communesByDepartementChart.data.datasets.indexOf(dataset)
-            )
-        );
-    }
-
-    fetch(`/api/bornes-communes/departement/${departementCode}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
-
-                // Restaurer l'état des légendes
-                if (hiddenDatasets.length > 0 && window.communesByDepartementChart) {
-                    hiddenDatasets.forEach((isHidden, index) => {
-                        if (isHidden && index < window.communesByDepartementChart.data.datasets.length) {
-                            window.communesByDepartementChart.setDatasetVisibility(index, false);
-                        }
-                    });
-                    window.communesByDepartementChart.update();
-                }
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des communes:', error));
-}
-
-// Fonction pour charger les communes d'un département
-function loadCommunesByDepartement(departementCode, departementName) {
-    fetch(`/api/bornes-communes/departement/${departementCode}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Afficher le conteneur des communes et masquer celui des départements
-                document.querySelector('.departements-container').style.display = 'none';
-                document.querySelector('.communes-container').style.display = 'block';
-
-                // Stocker le code du département pour les tris futurs
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.id = 'selected-departement-code';
-                hiddenInput.value = departementCode;
-                document.querySelector('.communes-container').appendChild(hiddenInput);
-
-                // Mettre à jour le nom du département sélectionné
-                document.getElementById('selected-departement-name').textContent = departementName;
-
-                // Obtenir les valeurs de tri actuelles
-                const sortBy = document.getElementById('communes-sort-by-select').value;
-                const sortOrder = document.getElementById('communes-sort-order-select').value;
-
-                createCommunesByDepartementChart(data.data.communes, sortBy, sortOrder);
-                populateCommunesTable(data.data.communes);
-            }
-        })
-        .catch(error => console.error('Erreur lors du chargement des communes:', error));
-}
-
-// Fonction pour créer le graphique des communes par département
-function createCommunesByDepartementChart(communes, sortBy = 'vehiculesElectriques', sortOrder = 'desc') {
-    const ctx = document.getElementById('communes-by-departement-chart').getContext('2d');
-
-    // Trier les communes selon le critère choisi
-    communes.sort((a, b) => {
-        let valueA, valueB;
-
-        switch(sortBy) {
-            case 'vehiculesElectriques':
-                valueA = a.NB_VP_RECHARGEABLES_EL;
-                valueB = b.NB_VP_RECHARGEABLES_EL;
-                break;
-            case 'vehiculesThermiques':
-                valueA = a.NB_VP - a.NB_VP_RECHARGEABLES_EL;
-                valueB = b.NB_VP - b.NB_VP_RECHARGEABLES_EL;
-                break;
-            case 'bornes':
-                valueA = a.nombre_bornes;
-                valueB = b.nombre_bornes;
-                break;
-        }
-
-        return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
-    });
-
-    // Limiter à 20 communes pour la lisibilité du graphique
-    const topCommunes = communes.slice(0, 20);
-
-    // Détruire le graphique existant s'il y en a un
-    if (window.communesByDepartementChart) {
-        window.communesByDepartementChart.destroy();
-    }
-
-    // Créer un nouveau graphique
-    window.communesByDepartementChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: topCommunes.map(commune => commune.commune),
-            datasets: [
-                {
-                    label: 'Véhicules électriques',
-                    data: topCommunes.map(commune => commune.NB_VP_RECHARGEABLES_EL),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Véhicules thermiques',
-                    data: topCommunes.map(commune => commune.NB_VP - commune.NB_VP_RECHARGEABLES_EL),
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Bornes de recharge',
-                    data: topCommunes.map(commune => commune.nombre_bornes),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: `Top 20 des communes du département`
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Nombre'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Variables globales pour la pagination
-let currentPage = 1;
-let communesData = [];
-const rowsPerPage = 10;
-
-// Fonction pour remplir le tableau des communes avec pagination
-function populateCommunesTable(communes) {
-    // Stocker les données pour la pagination
-    communesData = communes;
-    currentPage = 1;
-
-    // Afficher la première page
-    displayCommunesPage(currentPage);
-
-    // Configurer les contrôles de pagination
-    setupPaginationControls(communes.length);
-}
-
-// Fonction pour afficher une page spécifique du tableau
-function displayCommunesPage(page) {
-    const tableBody = document.querySelector('#communes-table tbody');
-    tableBody.innerHTML = '';
-
-    // Calculer les indices de début et de fin pour la page actuelle
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, communesData.length);
-
-    // Afficher les communes pour la page actuelle
-    for (let i = startIndex; i < endIndex; i++) {
-        const commune = communesData[i];
-        const pourcentage = ((commune.NB_VP_RECHARGEABLES_EL / commune.NB_VP) * 100).toFixed(2);
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-      <td>${commune.commune}</td>
-      <td>${commune.code_postal}</td>
-      <td>${commune.NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
-      <td>${pourcentage}%</td>
-      <td>${commune.NB_VP.toLocaleString('fr-FR')}</td>
-    `;
-
-        tableBody.appendChild(row);
-    }
-
-    // Mettre à jour l'information de page
-    document.getElementById('page-info').textContent = `Page ${page} sur ${Math.ceil(communesData.length / rowsPerPage)}`;
-}
-
-// Fonction pour configurer les contrôles de pagination
-function setupPaginationControls(totalItems) {
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
-
-    // Mettre à jour l'état des boutons
-    updatePaginationButtons(totalPages);
-
-    // Configurer les événements des boutons
-    prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            displayCommunesPage(currentPage);
-            updatePaginationButtons(totalPages);
-        }
-    };
-
-    nextButton.onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            displayCommunesPage(currentPage);
-            updatePaginationButtons(totalPages);
-        }
-    };
-}
-
-// Fonction pour mettre à jour l'état des boutons de pagination
-function updatePaginationButtons(totalPages) {
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
-
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage === totalPages;
-}
 
 // Fonction pour charger les données de comparaison
 function loadComparisonData() {
@@ -1249,7 +418,6 @@ function debounce(func, wait) {
     };
 }
 
-// Fonction pour comparer les territoires sélectionnés
 function compareSelectedTerritories() {
     const territoryType = document.getElementById('territory-type').value;
     let territory1, territory2, territory1Name, territory2Name;
@@ -1990,9 +1158,4 @@ function exportComparisonData() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
-
-function loadCorrelationData() {
-    console.log('Chargement des données de corrélation...');
-    // À implémenter dans la prochaine étape
 }
