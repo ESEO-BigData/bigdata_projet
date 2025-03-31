@@ -1,7 +1,7 @@
-import Chart from 'chart.js/auto';
 import { renderDashboard } from './Statistiques/Dashboard';
 import { renderCommunesData } from './Statistiques/Communes';
 import { renderComparaisonData } from './Statistiques/Comparaison';
+import { renderCorrelationData } from './Statistiques/Correlation';
 
 export function renderStatistics(container) {
     container.innerHTML = `
