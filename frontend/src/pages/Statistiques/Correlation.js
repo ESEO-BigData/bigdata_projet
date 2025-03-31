@@ -59,8 +59,6 @@ export function renderCorrelationData(container) {
             <option value="regions">Régions</option>
           </select>
         </div>
-        
-        <button id="update-correlation" class="btn">Mettre à jour</button>
       </div>
       
       <div class="chart-container correlation-chart-container">
@@ -126,11 +124,21 @@ export function renderCorrelationData(container) {
 
 // Initialiser les contrôles de corrélation
 function initCorrelationControls() {
-    const updateButton = document.getElementById('update-correlation');
     const exportButton = document.getElementById('export-correlation-data');
+    const xVariableSelect = document.getElementById('correlation-x');
+    const yVariableSelect = document.getElementById('correlation-y');
+    const filterTypeSelect = document.getElementById('correlation-filter');
 
-    // Événement pour mettre à jour la corrélation
-    updateButton.addEventListener('click', () => {
+    // Ajouter des écouteurs d'événements pour les changements de sélection
+    xVariableSelect.addEventListener('change', () => {
+        loadCorrelationData();
+    });
+
+    yVariableSelect.addEventListener('change', () => {
+        loadCorrelationData();
+    });
+
+    filterTypeSelect.addEventListener('change', () => {
         loadCorrelationData();
     });
 
@@ -139,6 +147,7 @@ function initCorrelationControls() {
         exportCorrelationData();
     });
 }
+
 
 // Charger les données de corrélation
 function loadCorrelationData() {
