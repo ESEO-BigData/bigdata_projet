@@ -9,7 +9,7 @@ export function renderCorrelationData(container) {
         <div class="kpi-card">
           <h3>Coefficient de corrélation</h3>
           <div class="kpi-value" id="correlation-coefficient">Chargement...</div>
-          <div class="kpi-description">Entre véhicules électriques et bornes</div>
+          <div class="kpi-description">Entre les variables sélectionnées</div>
         </div>
         
         <div class="kpi-card">
@@ -31,8 +31,11 @@ export function renderCorrelationData(container) {
           <select id="correlation-x">
             <option value="vehicules">Nombre de véhicules électriques</option>
             <option value="bornes">Nombre de bornes</option>
+            <option value="stations">Nombre de stations</option>
+            <option value="thermiques">Nombre de véhicules thermiques</option>
             <option value="population">Population</option>
             <option value="densite">Densité de population</option>
+            <option value="superficie">Superficie</option>
           </select>
         </div>
         
@@ -41,8 +44,11 @@ export function renderCorrelationData(container) {
           <select id="correlation-y">
             <option value="bornes">Nombre de bornes</option>
             <option value="vehicules">Nombre de véhicules électriques</option>
+            <option value="stations">Nombre de stations</option>
+            <option value="thermiques">Nombre de véhicules thermiques</option>
             <option value="population">Population</option>
             <option value="densite">Densité de population</option>
+            <option value="superficie">Superficie</option>
           </select>
         </div>
         
@@ -141,7 +147,11 @@ function loadCorrelationData() {
     const filterType = document.getElementById('correlation-filter').value;
 
     // Récupérer les données de corrélation depuis l'API
-    fetch('/api/bornes-communes/statistiques/correlation')
+    const endpoint = filterType === 'departements'
+        ? '/api/departements/correlation/departements'
+        : '/api/departements/correlation/regions';
+
+    fetch(endpoint)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -159,7 +169,7 @@ function loadCorrelationData() {
 // Traiter les données de corrélation
 function processCorrelationData(data, xVariable, yVariable, filterType) {
     // Extraire les données pertinentes
-    const items = filterType === 'departements' ? data.departements : data.regions || [];
+    const items = Array.isArray(data) ? data : [];
 
     // Préparer les données pour le graphique de dispersion
     const scatterData = items.map(item => {
@@ -168,16 +178,25 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
         // Déterminer la valeur X
         switch(xVariable) {
             case 'vehicules':
-                x = item.totalVehiculesElectriques;
+                x = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
                 break;
             case 'bornes':
-                x = item.totalBornes;
+                x = filterType === 'departements' ? item.Nombre_Bornes : item.totalBornes;
+                break;
+            case 'stations':
+                x = filterType === 'departements' ? item.Nombre_stations : item.totalStations;
+                break;
+            case 'thermiques':
+                x = filterType === 'departements' ? item.NB_VP : item.totalVehiculesThermiques;
                 break;
             case 'population':
-                x = item.population || 0;
+                x = filterType === 'departements' ? item.POPULATION : item.totalPopulation;
                 break;
             case 'densite':
-                x = item.densite || 0;
+                x = filterType === 'departements' ? item["DENSITE (habitants/km2)"] : item.densite;
+                break;
+            case 'superficie':
+                x = filterType === 'departements' ? item["SUPERFICIE (km²)"] : item.totalSuperficie;
                 break;
             default:
                 x = 0;
@@ -186,16 +205,25 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
         // Déterminer la valeur Y
         switch(yVariable) {
             case 'vehicules':
-                y = item.totalVehiculesElectriques;
+                y = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
                 break;
             case 'bornes':
-                y = item.totalBornes;
+                y = filterType === 'departements' ? item.Nombre_Bornes : item.totalBornes;
+                break;
+            case 'stations':
+                y = filterType === 'departements' ? item.Nombre_stations : item.totalStations;
+                break;
+            case 'thermiques':
+                y = filterType === 'departements' ? item.NB_VP : item.totalVehiculesThermiques;
                 break;
             case 'population':
-                y = item.population || 0;
+                y = filterType === 'departements' ? item.POPULATION : item.totalPopulation;
                 break;
             case 'densite':
-                y = item.densite || 0;
+                y = filterType === 'departements' ? item["DENSITE (habitants/km2)"] : item.densite;
+                break;
+            case 'superficie':
+                y = filterType === 'departements' ? item["SUPERFICIE (km²)"] : item.totalSuperficie;
                 break;
             default:
                 y = 0;
@@ -204,7 +232,7 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
         return {
             x,
             y,
-            label: filterType === 'departements' ? `${item.code} - ${item.departement}` : item.region
+            label: filterType === 'departements' ? `${item.DEPARTEMENT} - ${item.NOM}` : item.region
         };
     });
 
@@ -221,7 +249,7 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
     document.getElementById('correlation-coefficient').textContent = coefficient.toFixed(2);
 
     // Analyser les départements bien/sous équipés
-    analyzeEquipmentRatio(items);
+    analyzeEquipmentRatio(items, filterType);
 
     // Générer l'analyse textuelle
     generateCorrelationAnalysis(coefficient, xVariable, yVariable);
@@ -261,7 +289,7 @@ function createScatterPlot(data, xVariable, yVariable) {
                     callbacks: {
                         label: function(context) {
                             const point = context.raw;
-                            return `${point.label}: (${point.x}, ${point.y})`;
+                            return `${point.label}: (${point.x.toLocaleString('fr-FR')}, ${point.y.toLocaleString('fr-FR')})`;
                         }
                     }
                 },
@@ -298,10 +326,16 @@ function getVariableLabel(variable) {
             return 'Nombre de véhicules électriques';
         case 'bornes':
             return 'Nombre de bornes';
+        case 'stations':
+            return 'Nombre de stations';
+        case 'thermiques':
+            return 'Nombre de véhicules thermiques';
         case 'population':
             return 'Population';
         case 'densite':
             return 'Densité de population';
+        case 'superficie':
+            return 'Superficie';
         default:
             return variable;
     }
@@ -338,15 +372,19 @@ function calculateCorrelation(x, y) {
 }
 
 // Analyser le ratio d'équipement (bornes/véhicules)
-function analyzeEquipmentRatio(items) {
+function analyzeEquipmentRatio(items, filterType) {
     // Filtrer les éléments avec des véhicules et des bornes
-    const validItems = items.filter(item =>
-        item.totalVehiculesElectriques > 0 && item.totalBornes > 0
-    );
+    const validItems = items.filter(item => {
+        const vehicules = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
+        const bornes = filterType === 'departements' ? item.Nombre_Bornes : item.totalBornes;
+        return vehicules > 0 && bornes > 0;
+    });
 
     // Calculer le ratio pour chaque élément
     validItems.forEach(item => {
-        item.ratio = (item.totalBornes / item.totalVehiculesElectriques) * 1000;
+        const vehicules = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
+        const bornes = filterType === 'departements' ? item.Nombre_Bornes : item.totalBornes;
+        item.ratio = (bornes / vehicules) * 1000;
     });
 
     // Calculer la moyenne des ratios
@@ -366,21 +404,25 @@ function analyzeEquipmentRatio(items) {
     document.getElementById('under-equipped-count').textContent = underEquipped.length;
 
     // Remplir les tableaux
-    populateEquipmentTable('well-equipped-table', wellEquipped.slice(0, 10));
-    populateEquipmentTable('under-equipped-table', underEquipped.slice(0, 10));
+    populateEquipmentTable('well-equipped-table', wellEquipped.slice(0, 10), filterType);
+    populateEquipmentTable('under-equipped-table', underEquipped.slice(0, 10), filterType);
 }
 
 // Remplir un tableau d'équipement
-function populateEquipmentTable(tableId, items) {
+function populateEquipmentTable(tableId, items, filterType) {
     const tableBody = document.querySelector(`#${tableId} tbody`);
     tableBody.innerHTML = '';
 
     items.forEach(item => {
+        const vehicules = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
+        const bornes = filterType === 'departements' ? item.Nombre_Bornes : item.totalBornes;
+        const nom = filterType === 'departements' ? `${item.DEPARTEMENT} - ${item.NOM}` : item.region;
+
         const row = document.createElement('tr');
         row.innerHTML = `
-      <td>${item.code ? `${item.code} - ` : ''}${item.departement || item.region}</td>
-      <td>${item.totalVehiculesElectriques.toLocaleString('fr-FR')}</td>
-      <td>${item.totalBornes.toLocaleString('fr-FR')}</td>
+      <td>${nom}</td>
+      <td>${vehicules.toLocaleString('fr-FR')}</td>
+      <td>${bornes.toLocaleString('fr-FR')}</td>
       <td>${item.ratio.toFixed(2)}</td>
     `;
         tableBody.appendChild(row);
@@ -409,7 +451,7 @@ function generateCorrelationAnalysis(coefficient, xVariable, yVariable) {
     }
 
     // Ajouter des observations spécifiques
-    if (xVariable === 'vehicules' && yVariable === 'bornes' || xVariable === 'bornes' && yVariable === 'vehicules') {
+    if ((xVariable === 'vehicules' && yVariable === 'bornes') || (xVariable === 'bornes' && yVariable === 'vehicules')) {
         analysisText += `<p>Cette relation entre le nombre de véhicules électriques et le nombre de bornes de recharge est particulièrement importante pour évaluer l'adéquation des infrastructures de recharge par rapport à la demande.</p>`;
     }
 
@@ -436,23 +478,31 @@ function generateCorrelationAnalysis(coefficient, xVariable, yVariable) {
 
 // Exporter les données de corrélation
 function exportCorrelationData() {
+    const filterType = document.getElementById('correlation-filter').value;
+    const endpoint = filterType === 'departements'
+        ? '/api/departements/correlation/departements'
+        : '/api/departements/correlation/regions';
+
     // Récupérer les données de corrélation
-    fetch('/api/bornes-communes/statistiques/correlation')
+    fetch(endpoint)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Préparer les données pour l'export
-                const items = data.data.departements;
+                const items = data.data;
 
                 // Créer les en-têtes CSV
-                let csvContent = 'Departement,Code,Region,Vehicules electriques,Bornes,Ratio (bornes/1000 vehicules),Pourcentage vehicules electriques\n';
+                let csvContent = filterType === 'departements'
+                    ? 'Departement,Code,Region,Vehicules electriques,Bornes,Stations,Vehicules thermiques,Population,Densite,Superficie\n'
+                    : 'Region,Vehicules electriques,Bornes,Stations,Vehicules thermiques,Population,Densite,Superficie\n';
 
                 // Ajouter chaque ligne de données
                 items.forEach(item => {
-                    const ratio = item.totalVehiculesElectriques > 0 ?
-                        (item.totalBornes / item.totalVehiculesElectriques * 1000).toFixed(2) : 'N/A';
-
-                    csvContent += `"${item.departement}","${item.code}","${item.region}",${item.totalVehiculesElectriques},${item.totalBornes},${ratio},${item.pourcentageVehiculesElectriques.toFixed(2)}\n`;
+                    if (filterType === 'departements') {
+                        csvContent += `"${item.NOM}","${item.DEPARTEMENT}","${item.REGION}",${item.somme_NB_VP_RECHARGEABLES_EL},${item.Nombre_Bornes},${item.Nombre_stations},${item.NB_VP},${item.POPULATION},${item["DENSITE (habitants/km2)"]},${item["SUPERFICIE (km²)"]}\n`;
+                    } else {
+                        csvContent += `"${item.region}",${item.totalVehiculesElectriques},${item.totalBornes},${item.totalStations},${item.totalVehiculesThermiques},${item.totalPopulation},${item.densite},${item.totalSuperficie}\n`;
+                    }
                 });
 
                 // Créer un objet Blob avec le contenu CSV
@@ -463,7 +513,7 @@ function exportCorrelationData() {
                 const url = URL.createObjectURL(blob);
 
                 link.setAttribute('href', url);
-                link.setAttribute('download', 'correlation-vehicules-bornes.csv');
+                link.setAttribute('download', `correlation-donnees-${filterType}.csv`);
                 link.style.visibility = 'hidden';
 
                 document.body.appendChild(link);

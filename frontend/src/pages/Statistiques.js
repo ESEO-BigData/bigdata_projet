@@ -59,8 +59,3 @@ export function renderStatistics(container) {
     // Afficher le tableau de bord par défaut
     renderDashboard(contentDiv);
 }
-
-function loadCorrelationData() {
-    console.log('Chargement des données de corrélation...');
-    // À implémenter dans la prochaine étape
-}

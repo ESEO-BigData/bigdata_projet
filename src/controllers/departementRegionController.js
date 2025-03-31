@@ -141,6 +141,12 @@ exports.getCorrelationStatsByDepartement = async (req, res) => {
 // Obtenir des statistiques de corrélation par région
 exports.getCorrelationStatsByRegion = async (req, res) => {
     try {
+        // Vérifier d'abord si des données existent
+        const count = await DepartementEtRegion.countDocuments();
+        if (count === 0) {
+            return responseFormatter.success(res, []);
+        }
+
         const statsRegions = await DepartementEtRegion.aggregate([
             {
                 $group: {
@@ -165,24 +171,34 @@ exports.getCorrelationStatsByRegion = async (req, res) => {
                     totalPopulation: 1,
                     totalSuperficie: 1,
                     nombreDepartements: 1,
-                    densite: { $divide: ["$totalPopulation", "$totalSuperficie"] },
+                    densite: {
+                        $cond: [
+                            { $eq: ["$totalSuperficie", 0] },
+                            0,
+                            { $divide: ["$totalPopulation", "$totalSuperficie"] }
+                        ]
+                    },
                     pourcentageVehiculesElectriques: {
-                        $multiply: [
-                            { $divide: ["$totalVehiculesElectriques", "$totalVehiculesThermiques"] },
-                            100
+                        $cond: [
+                            { $eq: ["$totalVehiculesThermiques", 0] },
+                            0,
+                            { $multiply: [
+                                    { $divide: ["$totalVehiculesElectriques", "$totalVehiculesThermiques"] },
+                                    100
+                                ]}
                         ]
                     },
                     ratioVehiculesParBorne: {
                         $cond: [
                             { $eq: ["$totalBornes", 0] },
-                            null,
+                            0,
                             { $divide: ["$totalVehiculesElectriques", "$totalBornes"] }
                         ]
                     },
                     bornesPour1000Vehicules: {
                         $cond: [
                             { $eq: ["$totalVehiculesElectriques", 0] },
-                            null,
+                            0,
                             { $multiply: [{ $divide: ["$totalBornes", "$totalVehiculesElectriques"] }, 1000] }
                         ]
                     }
@@ -193,6 +209,7 @@ exports.getCorrelationStatsByRegion = async (req, res) => {
 
         return responseFormatter.success(res, statsRegions);
     } catch (error) {
+        console.error('Erreur dans getCorrelationStatsByRegion:', error);
         return responseFormatter.error(res, 'Erreur lors de la récupération des statistiques de corrélation par région', error);
     }
 };
