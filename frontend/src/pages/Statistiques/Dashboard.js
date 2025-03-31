@@ -275,7 +275,6 @@ function setupChartControls() {
     }
 }
 
-
 // Fonction pour configurer les boutons d'export
 function setupExportButtons() {
     // Vérifier si l'élément existe avant d'ajouter un écouteur d'événement
@@ -296,7 +295,6 @@ function setupExportButtons() {
         console.log('Élément export-regions-data non trouvé dans le DOM');
     }
 }
-
 
 // Fonction pour exporter des données au format CSV
 function exportToCSV(data, filename) {
