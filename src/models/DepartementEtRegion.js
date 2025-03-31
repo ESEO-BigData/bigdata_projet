@@ -41,6 +41,18 @@ const DepartementEtRegionSchema = new mongoose.Schema({
     longitude_chef_lieu: {
         type: Number,
         required: false
+    },
+    Nombre_Bornes: {
+        type: Number,
+        required: true
+    },
+    Nombre_stations: {
+        type: Number,
+        required: true
+    },
+    NB_VP: {
+        type: Number,
+        required: true
     }
 }, {
     collection: 'DepartementEtRegion',
