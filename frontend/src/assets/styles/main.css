@@ -192,6 +192,9 @@ footer {
     text-transform: uppercase;
     letter-spacing: 0.03em;
     border-bottom: 2px solid #ddd;
+    padding: 10px 10px;
+    height: 50px;
+    vertical-align: middle;
 }
 
 .data-table tbody tr:hover {
@@ -199,7 +202,9 @@ footer {
     transition: background-color 0.3s ease;
 }
 
-.data-table .number {
+.data-table td.number,
+.data-table .number,
+.data-table td:nth-child(n+2) {
     text-align: center;
 }
 
