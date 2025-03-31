@@ -177,6 +177,25 @@ function loadCorrelationData() {
 
 // Traiter les données de corrélation
 function processCorrelationData(data, xVariable, yVariable, filterType) {
+    // Supprimer tout message d'avertissement existant
+    const existingWarnings = document.querySelectorAll('.warning-message');
+    existingWarnings.forEach(warning => warning.remove());
+
+    // Vérifier si les variables sont identiques
+    const isSameVariable = xVariable === yVariable;
+
+    // Ajouter un message d'avertissement si nécessaire
+    if (isSameVariable) {
+        const warningMessage = `
+      <div class="warning-message" style="background-color: #FFA500; color: white; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+        <strong>Attention :</strong> Les variables sélectionnées sont identiques. Le coefficient de corrélation sera toujours de 1, ce qui n'apporte pas d'information pertinente.
+      </div>`;
+
+        // Insérer le message d'avertissement avant le graphique
+        const chartContainer = document.querySelector('.correlation-chart-container');
+        chartContainer.insertAdjacentHTML('beforebegin', warningMessage);
+    }
+
     // Extraire les données pertinentes
     const items = Array.isArray(data) ? data : [];
 
@@ -246,7 +265,12 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
     });
 
     // Créer le graphique de dispersion
-    createScatterPlot(scatterData, xVariable, yVariable);
+    if (!isSameVariable) {
+        createScatterPlot(scatterData, xVariable, yVariable);
+    } else {
+        // Si les variables sont identiques, afficher un message dans le graphique
+        createIdentityPlot(scatterData, xVariable);
+    }
 
     // Calculer le coefficient de corrélation
     const coefficient = calculateCorrelation(
@@ -321,6 +345,68 @@ function createScatterPlot(data, xVariable, yVariable) {
                     title: {
                         display: true,
                         text: yLabel
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Créer un graphique spécial lorsque les variables sont identiques
+function createIdentityPlot(data, variable) {
+    const ctx = document.getElementById('correlation-chart').getContext('2d');
+
+    // Détruire le graphique existant s'il y en a un
+    if (window.correlationChart) {
+        window.correlationChart.destroy();
+    }
+
+    const label = getVariableLabel(variable);
+
+    // Créer un nouveau graphique
+    window.correlationChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: `${label} (variables identiques)`,
+                data: data,
+                backgroundColor: 'rgba(255, 165, 0, 0.6)',
+                borderColor: 'rgba(255, 165, 0, 1)',
+                borderWidth: 1,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const point = context.raw;
+                            return `${point.label}: ${point.x.toLocaleString('fr-FR')}`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: `Distribution de ${label}`
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: label
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: label
                     }
                 }
             }
