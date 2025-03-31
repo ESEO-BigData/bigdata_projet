@@ -506,7 +506,12 @@ function analyzeEquipmentRatio(items, filterType) {
 // Remplir un tableau d'équipement
 function populateEquipmentTable(tableId, items, filterType) {
     const tableBody = document.querySelector(`#${tableId} tbody`);
+    const tableHead = document.querySelector(`#${tableId} thead`);
     tableBody.innerHTML = '';
+
+    // Modifier le titre de la première colonne
+    const firstColumnTitle = filterType === 'departements' ? 'Département' : 'Région';
+    tableHead.querySelector('tr').firstElementChild.textContent = firstColumnTitle;
 
     items.forEach(item => {
         const vehicules = filterType === 'departements' ? item.somme_NB_VP_RECHARGEABLES_EL : item.totalVehiculesElectriques;
@@ -516,9 +521,9 @@ function populateEquipmentTable(tableId, items, filterType) {
         const row = document.createElement('tr');
         row.innerHTML = `
       <td>${nom}</td>
-      <td>${vehicules.toLocaleString('fr-FR')}</td>
-      <td>${bornes.toLocaleString('fr-FR')}</td>
-      <td>${item.ratio.toFixed(2)}</td>
+      <td class="number">${vehicules.toLocaleString('fr-FR')}</td>
+      <td class="number">${bornes.toLocaleString('fr-FR')}</td>
+      <td class="number">${item.ratio.toFixed(2)}</td>
     `;
         tableBody.appendChild(row);
     });
