@@ -66,25 +66,26 @@ export function renderComparaisonData(container) {
             </div>
           </div>
         
-        <div class="comparison-table-container">
-          <h3>Tableau comparatif</h3>
-          <table id="comparison-table" class="data-table">
-            <thead>
-              <tr>
-                <th>Indicateur</th>
-                <th id="territory1-name">Territoire 1</th>
-                <th id="territory2-name">Territoire 2</th>
-                <th>Différence</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Les données seront injectées ici -->
-            </tbody>
-          </table>
-          <div class="export-container">
-            <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
-          </div>
-        </div>
+    <div class="comparison-table-container">
+      <h3>Tableau comparatif</h3>
+      <table id="comparison-table" class="data-table">
+        <thead>
+          <tr>
+            <th>Indicateur</th>
+            <!-- AJOUT: classe numeric -->
+            <th id="territory1-name" class="numeric">Territoire 1</th>
+            <th id="territory2-name" class="numeric">Territoire 2</th>
+            <th class="numeric">Différence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Les données seront injectées ici -->
+        </tbody>
+      </table>
+      <div class="export-container">
+        <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
+      </div>
+    </div>
       </div>
     </div>
   `;
@@ -725,11 +726,11 @@ function populateCommuneComparisonTable(data) {
 
         row.innerHTML = `
       <td>${indicator.name}</td>
-      <td>${value1}</td>
-      <td>${value2}</td>
-      <td>${difference}</td>
+      <!-- AJOUT: classe numeric -->
+      <td class="numeric">${value1}</td>
+      <td class="numeric">${value2}</td>
+      <td class="numeric">${difference}</td>
     `;
-
         tableBody.appendChild(row);
     });
 }
@@ -772,11 +773,11 @@ function populateDepartementComparisonTable(data) {
 
         row.innerHTML = `
       <td>${indicator.name}</td>
-      <td>${value1}</td>
-      <td>${value2}</td>
-      <td>${difference}</td>
+      <!-- AJOUT: classe numeric -->
+      <td class="numeric">${value1}</td>
+      <td class="numeric">${value2}</td>
+      <td class="numeric">${difference}</td>
     `;
-
         tableBody.appendChild(row);
     });
 }
@@ -819,11 +820,11 @@ function populateComparisonTable(data) {
 
         row.innerHTML = `
       <td>${indicator.name}</td>
-      <td>${value1}</td>
-      <td>${value2}</td>
-      <td>${difference}</td>
+      <!-- AJOUT: classe numeric -->
+      <td class="numeric">${value1}</td>
+      <td class="numeric">${value2}</td>
+      <td class="numeric">${difference}</td>
     `;
-
         tableBody.appendChild(row);
     });
 }

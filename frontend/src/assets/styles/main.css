@@ -1,257 +1,427 @@
-/* src/assets/styles/main.css */
+/* --- Variables CSS Globales --- */
 :root {
-    --primary-color: #4CAF50;
-    --secondary-color: #2196F3;
-    --text-color: #333;
-    --background-color: #f9f9f9;
-    --border-color: #ddd;
+    /* Palette de couleurs inspirée Tech/Moderne */
+    --primary-color: #007AFF; /* Bleu vif (similaire iOS) */
+    --secondary-color: #5856D6; /* Violet doux */
+    --accent-color: #34C759; /* Vert vif (peut remplacer l'ancien --primary-color) */
+    --text-color: #1d1d1f; /* Gris très foncé (presque noir) */
+    --text-color-muted: #6e6e73; /* Gris moyen pour texte secondaire */
+    --background-color: #f5f5f7; /* Gris très clair / Off-white */
+    --card-background: #ffffff; /* Blanc pur pour les cartes/conteneurs */
+    --border-color: #d1d1d6; /* Gris clair pour les bordures subtiles */
+    --hover-background-light: rgba(0, 0, 0, 0.05); /* Superposition légère pour hover */
+    --hover-background-dark: rgba(0, 0, 0, 0.1); /* Superposition un peu plus foncée */
+
+    /* Typographie */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-size-base: 1rem; /* 16px par défaut */
+    --line-height-base: 1.6;
+
+    /* Autres */
+    --border-radius-small: 4px;
+    --border-radius-medium: 8px;
+    --box-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --box-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition-fast: 0.2s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
 }
 
-* {
+/* --- Reset et Base --- */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+html {
+    font-size: 100%; /* Base pour les REMs, 1rem = 16px */
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
     color: var(--text-color);
     background-color: var(--background-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
+/* --- Typographie Globale --- */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+h1 { font-size: 2.25rem; } /* 36px */
+h2 { font-size: 1.75rem; } /* 28px */
+h3 { font-size: 1.375rem; } /* 22px */
+h4 { font-size: 1.125rem; } /* 18px */
+
+p {
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover, a:focus {
+    color: color-mix(in srgb, var(--primary-color) 70%, black);
+    text-decoration: underline; /* Optionnel, mais bon pour l'accessibilité */
+}
+
+/* --- Layout Principal --- */
 header {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
+    background-color: var(--card-background);
+    box-shadow: var(--box-shadow-subtle);
+    padding: 1rem 1.5rem;
+    position: sticky; /* Header collant en haut */
+    top: 0;
+    z-index: 100; /* Assure qu'il est au-dessus du reste */
+    width: 100%;
 }
 
-nav ul {
+#main-nav ul {
     display: flex;
     list-style: none;
     justify-content: center;
+    align-items: center;
+    gap: 1.5rem; /* Espacement entre les éléments */
 }
 
-nav li {
-    margin: 0 1rem;
-}
-
-nav a {
-    color: var(--text-color);
-    text-decoration: none;
-    padding: 0.5rem;
+#main-nav a {
+    color: var(--text-color-muted);
+    font-weight: 500;
+    padding: 0.5rem 0.25rem; /* Moins de padding horizontal */
     border-bottom: 2px solid transparent;
-    transition: border-color 0.3s;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+    text-decoration: none; /* Enlever le soulignement par défaut des liens */
 }
 
-nav a:hover, nav a:focus {
+#main-nav a:hover,
+#main-nav a:focus {
+    color: var(--primary-color);
     border-color: var(--primary-color);
+    text-decoration: none; /* Garder non souligné au survol */
 }
 
-nav a[aria-current="page"] {
+#main-nav a[aria-current="page"] {
+    color: var(--primary-color);
+    font-weight: 600;
     border-color: var(--primary-color);
-    font-weight: bold;
 }
 
 main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    max-width: 1200px; /* Largeur max du contenu */
+    width: 100%;
+    margin: 2.5rem auto; /* Plus d'espace vertical */
+    padding: 0 1.5rem;
+    flex-grow: 1; /* Permet au main de prendre l'espace disponible */
 }
 
 footer {
     text-align: center;
-    padding: 1rem;
-    background-color: white;
+    padding: 1.5rem;
+    background-color: var(--card-background);
     border-top: 1px solid var(--border-color);
-    margin-top: 2rem;
+    margin-top: 3rem;
+    color: var(--text-color-muted);
+    font-size: 0.875rem; /* 14px */
 }
 
-.map-container {
-    height: 600px;
+/* --- Styles Communs pour Sections --- */
+section {
+    margin-bottom: 3rem; /* Espacement entre les sections */
+}
+
+/* --- Styles Globaux pour les Contrôles (base) --- */
+.btn {
+    display: inline-block;
+    padding: 0.65rem 1.25rem; /* Padding ajusté */
+    font-size: 0.95rem; /* Légèrement plus petit */
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--border-radius-medium); /* Coins plus arrondis */
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.btn:hover, .btn:focus {
+    background-color: color-mix(in srgb, var(--primary-color) 90%, black);
+    box-shadow: var(--box-shadow-medium);
+    transform: translateY(-1px); /* Léger effet de soulèvement */
+    color: white; /* S'assurer que la couleur du texte reste blanche */
+    text-decoration: none;
+}
+
+.btn:active {
+    transform: translateY(0px);
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.btn:disabled,
+.btn[disabled] {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Bouton secondaire (optionnel, exemple) */
+.btn-secondary {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.btn-secondary:hover, .btn-secondary:focus {
+    background-color: var(--hover-background-light);
+    border-color: color-mix(in srgb, var(--border-color) 80%, black);
+    box-shadow: var(--box-shadow-subtle);
+    transform: translateY(-1px);
+    color: var(--primary-color);
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+    background-color: #eeeeee;
+    color: #aaaaaa;
+    border-color: #dddddd;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+
+/* Styles de base pour les inputs et selects */
+input[type="text"],
+input[type="search"],
+select {
     width: 100%;
-    margin: 2rem 0;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    background-color: var(--card-background);
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); /* Halo de focus */
+}
+
+select {
+    appearance: none; /* Style par défaut du navigateur */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236e6e73%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 0.65em auto;
+    padding-right: 2.5rem; /* Espace pour la flèche */
+}
+
+/* --- Conteneurs Génériques (Ex: pour les sections de graphiques/cartes) --- */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    overflow: hidden; /* Pour les coins arrondis avec des enfants */
+}
+
+/* --- Styles pour les éléments spécifiques repris de l'ancien CSS (à affiner plus tard) --- */
+.map-container {
+    height: 500px; /* Un peu moins haut peut-être ? */
+    width: 100%;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius-medium);
+    overflow: hidden; /* Important pour Leaflet et les coins */
+    border: 1px solid var(--border-color); /* Bordure subtile */
 }
 
 .chart-container {
     margin: 2rem 0;
+    padding: 1rem 0; /* Ajouter un peu d'espace autour du canvas */
 }
 
-.heatmap-wrapper {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap; /* pour responsive */
+.export-container {
+    margin-top: 1.5rem;
+    text-align: right;
 }
 
-#heatmap-container {
-    flex: 1 1 70%;
-    min-width: 600px;
-    height: 500px;
-}
+/* --- Styles pour les Tableaux de Données --- */
 
-.heatmap-legend-box {
-    flex: 0 0 250px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    background: white;
-    font-size: 14px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    height: fit-content;
-    margin-top: 140px;
-}
-
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-}
-
-.pagination-btn {
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.pagination-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-#page-info {
-    margin: 0 1rem;
-}
-
-.search-container {
-    position: relative;
-    width: 100%;
-}
-
-.search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-top: none;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.result-item {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.result-item:hover {
-    background-color: #f5f5f5;
-}
-
-.no-results {
-    padding: 8px 12px;
-    color: #999;
-    font-style: italic;
-}
-
-.territory-search input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+/* Conteneur optionnel pour ajouter une marge ou un cadre */
+.data-table-container {
+    margin-bottom: 2rem; /* Espace sous le tableau */
+    overflow-x: auto; /* Permet le scroll horizontal sur petit écran */
+    background-color: var(--card-background); /* Fond blanc */
+    border-radius: var(--border-radius-medium); /* Coins arrondis */
+    box-shadow: var(--box-shadow-subtle); /* Ombre légère */
+    border: 1px solid var(--border-color); /* Bordure très fine */
 }
 
 .data-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-    background-color: #fff;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.data-table th {
-    text-align: center;
-}
-.data-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
+    border-collapse: collapse; /* Assure que les bordures se touchent proprement */
+    min-width: 600px; /* Empêche le tableau de devenir trop écrasé avant de scroller */
+    /* Enlever les anciennes propriétés de box-shadow et background, géré par le conteneur */
 }
 
 .data-table thead th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    border-bottom: 2px solid #ddd;
-    padding: 10px 10px;
-    height: 50px;
-    vertical-align: middle;
+    padding: 1rem 1.25rem; /* Augmenter le padding */
+    text-align: left; /* Aligner à gauche par défaut */
+    font-size: 0.8rem; /* Texte un peu plus petit pour l'en-tête */
+    font-weight: 600; /* Un peu plus gras */
+    color: var(--text-color-muted); /* Couleur de texte discrète */
+    text-transform: uppercase; /* Majuscules */
+    letter-spacing: 0.05em; /* Espacement des lettres */
+    background-color: var(--background-color); /* Fond très clair, différent du corps */
+    border-bottom: 2px solid var(--border-color); /* Ligne de séparation plus marquée */
+    /* Enlever height, vertical-align */
+}
+
+.data-table tbody td {
+    padding: 0.9rem 1.25rem; /* Padding vertical un peu plus petit que l'en-tête */
+    text-align: left; /* Aligner à gauche par défaut */
+    border-bottom: 1px solid var(--border-color); /* Ligne fine entre les lignes */
+    vertical-align: middle; /* Centrer verticalement si contenu de hauteurs différentes */
+    font-size: 0.95rem; /* Taille de texte standard */
+}
+
+/* Style spécifique pour les colonnes numériques (optionnel mais recommandé) */
+.data-table th.numeric,
+.data-table td.numeric {
+    text-align: right; /* Aligner les chiffres à droite */
+    font-variant-numeric: tabular-nums; /* Assure que les chiffres ont la même largeur */
+}
+/* Appliquer aux colonnes qui contiennent des chiffres si possible via JS/HTML */
+/* Ou cibler par position si la structure est fixe : */
+/* Exemple : .data-table th:nth-child(n+2), .data-table td:nth-child(n+2) { text-align: right; } */
+/* Adapte le sélecteur :nth-child si nécessaire */
+
+
+.data-table tbody tr {
+    transition: background-color var(--transition-fast);
 }
 
 .data-table tbody tr:hover {
-    background-color: #f5f5f5;
-    transition: background-color 0.3s ease;
-}
-
-.data-table td.number,
-.data-table .number,
-.data-table td:nth-child(n+2) {
-    text-align: center;
+    background-color: var(--hover-background-light); /* Effet de survol léger */
 }
 
 .data-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: none; /* Pas de bordure sous la dernière ligne */
 }
 
-.ai-btn {
-    background-color: var(--secondary-color); /* Couleur différente pour le bouton IA */
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 1em;
+/* Ajustements pour le style "centré" hérité (si besoin, sinon préférer alignement gauche/droite) */
+.data-table .centered-cell {
+    text-align: center;
 }
 
-.ai-btn:hover {
-    background-color: #1e88e5; /* Un bleu un peu plus foncé */
+/* --- Styles Spécifiques Tableaux Comparaison/Corrélation (Hérités/Adaptés) --- */
+
+/* Différence dans le tableau de comparaison */
+.comparison-table-container .data-table td:last-child { /* Cible la colonne différence */
+    font-weight: 500;
+    text-align: right; /* Assurer l'alignement à droite pour la différence */
 }
 
-.ai-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
+.comparison-table-container .data-table tr.positive-difference td:last-child {
+    color: var(--accent-color); /* Vert pour positif */
 }
 
-.ai-analysis-section h2 {
-    margin-bottom: 10px;
-    border-bottom: 2px solid var(--secondary-color);
-    padding-bottom: 5px;
-    display: inline-block; /* Pour que le border-bottom s'ajuste */
+.comparison-table-container .data-table tr.negative-difference td:last-child {
+    color: #FF3B30; /* Rouge (style iOS) pour négatif */
 }
 
-.ai-analysis-results {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #f0f4ff; /* Fond légèrement bleuté */
-    border-left: 4px solid var(--secondary-color);
-    border-radius: 4px;
-    font-size: 0.95em;
-    line-height: 1.7;
+/* Tables dans la section Corrélation (well/under-equipped) */
+.correlation-section .data-table-container {
+    margin-top: 1.5rem;
+}
+.correlation-section .data-table th:nth-child(n+2), /* Cible les colonnes numériques */
+.correlation-section .data-table td:nth-child(n+2) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
-.ai-analysis-results p {
-    margin-bottom: 10px;
+/* --- Styles pour les Cartes KPI --- */
+
+.kpi-row {
+    display: flex; /* Utiliser Flexbox pour aligner les cartes */
+    flex-wrap: wrap; /* Permettre le retour à la ligne sur petits écrans */
+    gap: 1.5rem; /* Espacement entre les cartes */
+    margin-bottom: 2.5rem; /* Espace sous la rangée de KPIs */
 }
-.ai-analysis-results p:last-child {
-    margin-bottom: 0;
+
+.kpi-card {
+    flex: 1 1 200px; /* Flexible: grandit, rétrécit, base de 200px */
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium); /* Ombre un peu plus marquée */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column; /* Organiser le contenu verticalement */
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px); /* Soulèvement plus prononcé au survol */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-card h3 {
+    font-size: 0.9rem; /* Taille du titre de la KPI */
+    font-weight: 600;
+    color: var(--text-color-muted); /* Couleur discrète pour le titre */
+    margin-bottom: 0.5rem; /* Espace sous le titre */
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.5rem; /* Grande taille pour la valeur */
+    font-weight: 700; /* Très gras */
+    color: var(--text-color); /* Couleur principale */
+    line-height: 1.1; /* Rapprocher la ligne */
+    margin-bottom: 0.75rem; /* Espace sous la valeur */
+    /* Potentiellement ajouter une couleur spécifique ? ex: color: var(--primary-color); */
+}
+
+/* Style pour l'état "Chargement..." */
+.kpi-card .kpi-value:empty::after {
+    content: "Chargement...";
+    font-size: 1.5rem; /* Plus petit que la valeur finale */
+    font-weight: 500;
+    color: var(--text-color-muted);
+    opacity: 0.7;
+}
+
+.kpi-card .kpi-description {
+    font-size: 0.85rem; /* Petite taille pour la description */
+    color: var(--text-color-muted);
+    line-height: 1.4;
+    margin-top: auto; /* Pousse la description vers le bas si la carte s'étire */
 }

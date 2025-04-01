@@ -40,24 +40,28 @@ export function renderDashboard(container) {
 </div>
 
       
-      <div class="table-section">
-        <h3>Tableau des données</h3>
-        <table id="regions-table" class="data-table">
-          <thead>
-            <tr>
-              <th>Région</th>
-              <th>Nombre de véhicules</th>
-              <th>% du total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Les données seront injectées ici -->
-          </tbody>
-        </table>
-        <div class="export-container">
-          <button id="export-regions-csv" class="export-btn">Exporter en CSV</button>
-        </div>
-      </div>
+<div class="table-section">
+  <h3>Tableau des données</h3>
+  <!-- AJOUT: Le conteneur pour le tableau -->
+  <div class="data-table-container">
+    <table id="regions-table" class="data-table">
+      <thead>
+        <tr>
+          <th>Région</th>
+          <!-- AJOUT: classe numeric pour les colonnes de chiffres -->
+          <th class="numeric">Nombre de véhicules</th>
+          <th class="numeric">% du total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Les données seront injectées ici -->
+      </tbody>
+    </table>
+  </div> <!-- FIN AJOUT Conteneur -->
+  <div class="export-container">
+    <button id="export-regions-csv" class="export-btn">Exporter en CSV</button>
+  </div>
+</div>
     </div>
   `;
 
@@ -245,8 +249,9 @@ function populateRegionsTable(regions) {
         const row = document.createElement('tr');
         row.innerHTML = `
       <td>${region.REGION}</td>
-      <td>${region.somme_NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
-      <td>${percentage}%</td>
+      <!-- AJOUT: classe numeric pour les cellules de chiffres -->
+      <td class="numeric">${region.somme_NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
+      <td class="numeric">${percentage}%</td>
     `;
 
         tableBody.appendChild(row);

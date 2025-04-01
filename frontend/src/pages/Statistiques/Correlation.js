@@ -14,25 +14,25 @@ export function renderCorrelationData(container) {
     <section class="correlation-section">
       <h1>Analyse des corrélations</h1>
       
-      <div class="kpi-dashboard">
-        <div class="kpi-card">
-          <h3>Coefficient de corrélation</h3>
-          <div class="kpi-value" id="correlation-coefficient">Chargement...</div>
-          <div class="kpi-description">Entre les variables sélectionnées</div>
-        </div>
-        
-        <div class="kpi-card">
-          <h3>Départements bien équipés</h3>
-          <div class="kpi-value" id="well-equipped-count">Chargement...</div>
-          <div class="kpi-description">Ratio bornes/véhicules > moyenne</div>
-        </div>
-        
-        <div class="kpi-card">
-          <h3>Départements sous-équipés</h3>
-          <div class="kpi-value" id="under-equipped-count">Chargement...</div>
-          <div class="kpi-description">Ratio bornes/véhicules < moyenne</div>
-        </div>
-      </div>
+        <div class="kpi-row">
+    <div class="kpi-card">
+      <h3>Coefficient de corrélation</h3>
+      <div class="kpi-value" id="correlation-coefficient">Chargement...</div>
+      <div class="kpi-description">Entre les variables sélectionnées</div>
+    </div>
+
+    <div class="kpi-card">
+      <h3>Départements bien équipés</h3>
+      <div class="kpi-value" id="well-equipped-count">Chargement...</div>
+      <div class="kpi-description">Ratio bornes/véhicules > moyenne</div>
+    </div>
+
+    <div class="kpi-card">
+      <h3>Départements sous-équipés</h3>
+      <div class="kpi-value" id="under-equipped-count">Chargement...</div>
+      <div class="kpi-description">Ratio bornes/véhicules < moyenne</div>
+    </div>
+  </div>
       
       <div class="correlation-controls">
         <div class="control-group">
@@ -96,36 +96,38 @@ export function renderCorrelationData(container) {
       <div class="data-tables-container">
         <div class="data-table-container">
           <h2>Top 10 des départements bien équipés</h2>
-          <table id="well-equipped-table" class="data-table">
-            <thead>
-              <tr>
-                <th>Département</th>
-                <th>Véhicules électriques</th>
-                <th>Bornes</th>
-                <th>Ratio (bornes/1000 véhicules)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Les données seront injectées ici -->
-            </tbody>
-          </table>
+      <table id="well-equipped-table" class="data-table">
+        <thead>
+          <tr>
+            <th>Département</th>
+            <!-- AJOUT/MODIFICATION: classe numeric -->
+            <th class="numeric">Véhicules électriques</th>
+            <th class="numeric">Bornes</th>
+            <th class="numeric">Ratio (bornes/1000 véhicules)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Les données seront injectées ici -->
+        </tbody>
+      </table>
         </div>
         
         <div class="data-table-container">
           <h2>Top 10 des départements sous-équipés</h2>
-          <table id="under-equipped-table" class="data-table">
-            <thead>
-              <tr>
-                <th>Département</th>
-                <th>Véhicules électriques</th>
-                <th>Bornes</th>
-                <th>Ratio (bornes/1000 véhicules)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Les données seront injectées ici -->
-            </tbody>
-          </table>
+      <table id="under-equipped-table" class="data-table">
+        <thead>
+          <tr>
+            <th>Département</th>
+             <!-- AJOUT/MODIFICATION: classe numeric -->
+            <th class="numeric">Véhicules électriques</th>
+            <th class="numeric">Bornes</th>
+            <th class="numeric">Ratio (bornes/1000 véhicules)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Les données seront injectées ici -->
+        </tbody>
+      </table>
         </div>
       </div>
       
@@ -552,9 +554,10 @@ function populateEquipmentTable(tableId, items, filterType) {
         const row = document.createElement('tr');
         row.innerHTML = `
       <td>${nom}</td>
-      <td class="number">${vehicules.toLocaleString('fr-FR')}</td>
-      <td class="number">${bornes.toLocaleString('fr-FR')}</td>
-      <td class="number">${item.ratio.toFixed(2)}</td>
+      <!-- MODIFICATION: class="number" -> class="numeric" -->
+      <td class="numeric">${vehicules.toLocaleString('fr-FR')}</td>
+      <td class="numeric">${bornes.toLocaleString('fr-FR')}</td>
+      <td class="numeric">${item.ratio.toFixed(2)}</td>
     `;
         tableBody.appendChild(row);
     });

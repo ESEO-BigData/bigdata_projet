@@ -79,22 +79,23 @@ function loadCommunesData() {
         <canvas id="communes-by-departement-chart"></canvas>
       </div>
       
-      <div class="data-table-container">
-  <h3>Liste des communes</h3>
-  <table id="communes-table" class="data-table">
-    <thead>
-      <tr>
-        <th>Commune</th>
-        <th>Code postal</th>
-        <th>Véhicules électriques</th>
-        <th>% du parc</th>
-        <th>Total véhicules</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Les données seront injectées ici -->
-    </tbody>
-  </table>
+  <div class="data-table-container">
+    <h3>Liste des communes</h3>
+    <table id="communes-table" class="data-table">
+      <thead>
+        <tr>
+          <th>Commune</th>
+          <!-- AJOUT: classe numeric -->
+          <th class="numeric">Code postal</th>
+          <th class="numeric">Véhicules électriques</th>
+          <th class="numeric">% du parc</th>
+          <th class="numeric">Total véhicules</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Les données seront injectées ici -->
+      </tbody>
+    </table>
   <div class="pagination-controls">
     <button id="prev-page" class="pagination-btn">Précédent</button>
     <span id="page-info">Page 1 sur 1</span>
@@ -444,12 +445,12 @@ function displayCommunesPage(page) {
         const row = document.createElement('tr');
         row.innerHTML = `
       <td>${commune.commune}</td>
-      <td>${commune.code_postal}</td>
-      <td>${commune.NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
-      <td>${pourcentage}%</td>
-      <td>${commune.NB_VP.toLocaleString('fr-FR')}</td>
+      <!-- AJOUT: classe numeric -->
+      <td class="numeric">${commune.code_postal}</td>
+      <td class="numeric">${commune.NB_VP_RECHARGEABLES_EL.toLocaleString('fr-FR')}</td>
+      <td class="numeric">${pourcentage}%</td>
+      <td class="numeric">${commune.NB_VP.toLocaleString('fr-FR')}</td>
     `;
-
         tableBody.appendChild(row);
     }
 
