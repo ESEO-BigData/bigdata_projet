@@ -292,15 +292,21 @@ function setupCommuneSearch(fieldId) {
                     communes.forEach(commune => {
                         const resultItem = document.createElement('div');
                         resultItem.className = 'result-item';
-                        resultItem.textContent = `${commune.commune} (${commune.code_postal})`;
-                        resultItem.dataset.id = commune.commune;
-                        resultItem.dataset.name = `${commune.commune} (${commune.code_postal})`;
+                        const displayName = `${commune.commune} (${commune.code_postal})`;
+                        resultItem.textContent = displayName;
+                        // Stocker les infos nécessaires dans le dataset
+                        resultItem.dataset.id = commune.commune; // Garde le nom pour affichage si besoin
+                        resultItem.dataset.postal = commune.code_postal;
+                        resultItem.dataset.name = displayName; // Pour remplir l'input visible
 
                         resultItem.addEventListener('click', () => {
                             searchInput.value = resultItem.dataset.name;
-                            hiddenInput.value = resultItem.dataset.id;
+                            // --- MODIFICATION ICI ---
+                            // Stocker une valeur combinée unique comme 'commune|code_postal'
+                            hiddenInput.value = `${resultItem.dataset.id}|${resultItem.dataset.postal}`;
+                            // --- FIN MODIFICATION ---
                             resultsContainer.innerHTML = '';
-                            compareSelectedTerritories();
+                            compareSelectedTerritories(); // Déclenche la comparaison
                         });
 
                         resultsContainer.appendChild(resultItem);
@@ -336,27 +342,28 @@ function debounce(func, wait) {
 
 function compareSelectedTerritories() {
     const territoryType = document.getElementById('territory-type').value;
-    let territory1, territory2, territory1Name, territory2Name;
+    let territory1Value, territory2Value, territory1Name, territory2Name;
 
     if (territoryType === 'communes') {
-        territory1 = document.getElementById('territory1').value;
-        territory2 = document.getElementById('territory2').value;
-        territory1Name = document.getElementById('territory1-search').value;
-        territory2Name = document.getElementById('territory2-search').value;
+        territory1Value = document.getElementById('territory1').value; // ex: "Paris|75001"
+        territory2Value = document.getElementById('territory2').value; // ex: "Lyon|69001"
+        territory1Name = document.getElementById('territory1-search').value; // Nom affiché
+        territory2Name = document.getElementById('territory2-search').value; // Nom affiché
     } else {
-        territory1 = document.getElementById('territory1').value;
-        territory2 = document.getElementById('territory2').value;
-        territory1Name = territory1 ? document.getElementById('territory1').options[document.getElementById('territory1').selectedIndex].text : '';
-        territory2Name = territory2 ? document.getElementById('territory2').options[document.getElementById('territory2').selectedIndex].text : '';
+        territory1Value = document.getElementById('territory1').value;
+        territory2Value = document.getElementById('territory2').value;
+        territory1Name = territory1Value ? document.getElementById('territory1').options[document.getElementById('territory1').selectedIndex].text : '';
+        territory2Name = territory2Value ? document.getElementById('territory2').options[document.getElementById('territory2').selectedIndex].text : '';
     }
 
     // Vérifier que les deux territoires sont sélectionnés
-    if (!territory1 || !territory2) {
+    if (!territory1Value || !territory2Value) {
+        // console.log("Sélection manquante");
         return;
     }
 
     // Vérifier que les deux territoires sont différents
-    if (territory1 === territory2) {
+    if (territory1Value === territory2Value) {
         alert('Veuillez sélectionner deux territoires différents pour la comparaison.');
         return;
     }
@@ -368,7 +375,7 @@ function compareSelectedTerritories() {
     // Charger les données pour la comparaison
     if (territoryType === 'regions') {
         // Code existant pour les régions
-        const apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1)}/${encodeURIComponent(territory2)}`;
+        const apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1Value)}/${encodeURIComponent(territory2Value)}`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -385,82 +392,122 @@ function compareSelectedTerritories() {
     } else if (territoryType === 'departements') {
         // Code existant pour les départements
         Promise.all([
-            fetch(`/api/bornes-communes/departement/${territory1}`).then(res => res.json()),
-            fetch(`/api/bornes-communes/departement/${territory2}`).then(res => res.json())
+            fetch(`/api/bornes-communes/departement/${encodeURIComponent(territory1Value)}`).then(res => res.json()),
+            fetch(`/api/bornes-communes/departement/${encodeURIComponent(territory2Value)}`).then(res => res.json())
         ])
             .then(([data1, data2]) => {
-                if (data1.success && data2.success) {
-                    const comparisonData = {
-                        departement1: {
-                            departement: data1.data.departement,
-                            code_departement: data1.data.code_departement,
-                            totalVehiculesElectriques: data1.data.statistiques.total_vehicules_electriques,
-                            totalBornes: data1.data.statistiques.total_bornes,
-                            totalPointsCharge: data1.data.statistiques.total_points_charge,
-                            pourcentageVehiculesElectriques: data1.data.statistiques.pourcentage_electriques,
-                            ratioVehiculesParBorne: data1.data.statistiques.ratio_vehicules_par_borne
-                        },
-                        departement2: {
-                            departement: data2.data.departement,
-                            code_departement: data2.data.code_departement,
-                            totalVehiculesElectriques: data2.data.statistiques.total_vehicules_electriques,
-                            totalBornes: data2.data.statistiques.total_bornes,
-                            totalPointsCharge: data2.data.statistiques.total_points_charge,
-                            pourcentageVehiculesElectriques: data2.data.statistiques.pourcentage_electriques,
-                            ratioVehiculesParBorne: data2.data.statistiques.ratio_vehicules_par_borne
-                        }
-                    };
-
-                    createDepartementComparisonCharts(comparisonData);
-                    populateDepartementComparisonTable(comparisonData);
+                // Gérer les erreurs API spécifiques
+                if (!data1.success) {
+                    console.error(`Erreur API pour département ${territory1Name}:`, data1.message);
+                    showComparisonError(`Impossible de charger les données pour ${territory1Name}.`);
+                    return;
                 }
+                if (!data2.success) {
+                    console.error(`Erreur API pour département ${territory2Name}:`, data2.message);
+                    showComparisonError(`Impossible de charger les données pour ${territory2Name}.`);
+                    return;
+                }
+
+                // Le reste du code pour traiter data1.data et data2.data est ok
+                const comparisonData = {
+                    departement1: {
+                        departement: data1.data.departement,
+                        code_departement: data1.data.code_departement,
+                        totalVehiculesElectriques: data1.data.statistiques.total_vehicules_electriques,
+                        totalBornes: data1.data.statistiques.total_bornes,
+                        totalPointsCharge: data1.data.statistiques.total_points_charge,
+                        pourcentageVehiculesElectriques: data1.data.statistiques.pourcentage_electriques,
+                        ratioVehiculesParBorne: data1.data.statistiques.ratio_vehicules_par_borne
+                    },
+                    departement2: {
+                        departement: data2.data.departement,
+                        code_departement: data2.data.code_departement,
+                        totalVehiculesElectriques: data2.data.statistiques.total_vehicules_electriques,
+                        totalBornes: data2.data.statistiques.total_bornes,
+                        totalPointsCharge: data2.data.statistiques.total_points_charge,
+                        pourcentageVehiculesElectriques: data2.data.statistiques.pourcentage_electriques,
+                        ratioVehiculesParBorne: data2.data.statistiques.ratio_vehicules_par_borne
+                    }
+                };
+
+                createDepartementComparisonCharts(comparisonData);
+                populateDepartementComparisonTable(comparisonData);
+
             })
             .catch(error => {
                 console.error('Erreur lors de la comparaison des départements:', error);
                 showComparisonError();
             });
     } else if (territoryType === 'communes') {
-        // Nouveau code pour les communes
+        // --- MODIFICATION ICI ---
+        // Extraire commune et code postal
+        const [commune1, cp1] = territory1Value.split('|');
+        const [commune2, cp2] = territory2Value.split('|');
+
+        // Vérifier si on a bien les deux parties
+        if (!commune1 || !cp1 || !commune2 || !cp2) {
+            console.error("Erreur: Identifiant de commune incomplet.", territory1Value, territory2Value);
+            showComparisonError();
+            return;
+        }
+
+        // Construire les nouvelles URLs d'API
+        const apiUrl1 = `/api/bornes-communes/commune/${encodeURIComponent(commune1)}/${encodeURIComponent(cp1)}`;
+        const apiUrl2 = `/api/bornes-communes/commune/${encodeURIComponent(commune2)}/${encodeURIComponent(cp2)}`;
+
         Promise.all([
-            fetch(`/api/bornes-communes/commune/${encodeURIComponent(territory1)}`).then(res => res.json()),
-            fetch(`/api/bornes-communes/commune/${encodeURIComponent(territory2)}`).then(res => res.json())
+            fetch(apiUrl1).then(res => res.json()),
+            fetch(apiUrl2).then(res => res.json())
         ])
             .then(([data1, data2]) => {
-                if (data1.success && data2.success) {
-                    const commune1 = data1.data;
-                    const commune2 = data2.data;
-
-                    const comparisonData = {
-                        commune1: {
-                            commune: commune1.commune,
-                            code_postal: commune1.code_postal,
-                            totalVehiculesElectriques: commune1.NB_VP_RECHARGEABLES_EL,
-                            totalVehicules: commune1.NB_VP,
-                            totalBornes: commune1.nombre_bornes,
-                            totalPointsCharge: commune1.nombre_points_charge,
-                            pourcentageVehiculesElectriques: ((commune1.NB_VP_RECHARGEABLES_EL / commune1.NB_VP) * 100).toFixed(2),
-                            ratioVehiculesParBorne: commune1.nombre_bornes > 0 ? (commune1.NB_VP_RECHARGEABLES_EL / commune1.nombre_bornes).toFixed(2) : 'N/A'
-                        },
-                        commune2: {
-                            commune: commune2.commune,
-                            code_postal: commune2.code_postal,
-                            totalVehiculesElectriques: commune2.NB_VP_RECHARGEABLES_EL,
-                            totalVehicules: commune2.NB_VP,
-                            totalBornes: commune2.nombre_bornes,
-                            totalPointsCharge: commune2.nombre_points_charge,
-                            pourcentageVehiculesElectriques: ((commune2.NB_VP_RECHARGEABLES_EL / commune2.NB_VP) * 100).toFixed(2),
-                            ratioVehiculesParBorne: commune2.nombre_bornes > 0 ? (commune2.NB_VP_RECHARGEABLES_EL / commune2.nombre_bornes).toFixed(2) : 'N/A'
-                        }
-                    };
-
-                    createCommuneComparisonCharts(comparisonData);
-                    populateCommuneComparisonTable(comparisonData);
+                // Gérer les erreurs API spécifiques
+                if (!data1.success) {
+                    console.error(`Erreur API pour ${commune1} (${cp1}):`, data1.message);
+                    showComparisonError(`Impossible de charger les données pour ${territory1Name}.`);
+                    return;
                 }
+                if (!data2.success) {
+                    console.error(`Erreur API pour ${commune2} (${cp2}):`, data2.message);
+                    showComparisonError(`Impossible de charger les données pour ${territory2Name}.`);
+                    return;
+                }
+
+                // Le reste du code pour traiter data1.data et data2.data est ok
+                const communeData1 = data1.data;
+                const communeData2 = data2.data;
+
+                const comparisonData = {
+                    commune1: {
+                        commune: communeData1.commune,
+                        code_postal: communeData1.code_postal,
+                        totalVehiculesElectriques: communeData1.NB_VP_RECHARGEABLES_EL || 0, // S'assurer que c'est un nombre
+                        totalVehicules: communeData1.NB_VP || 0,
+                        totalBornes: communeData1.nombre_bornes || 0,
+                        totalPointsCharge: communeData1.nombre_points_charge || 0,
+                        pourcentageVehiculesElectriques: (communeData1.NB_VP && communeData1.NB_VP > 0) ? ((communeData1.NB_VP_RECHARGEABLES_EL / communeData1.NB_VP) * 100).toFixed(2) : '0.00',
+                        ratioVehiculesParBorne: (communeData1.nombre_bornes && communeData1.nombre_bornes > 0) ? (communeData1.NB_VP_RECHARGEABLES_EL / communeData1.nombre_bornes).toFixed(2) : 'N/A'
+                    },
+                    commune2: {
+                        commune: communeData2.commune,
+                        code_postal: communeData2.code_postal,
+                        totalVehiculesElectriques: communeData2.NB_VP_RECHARGEABLES_EL || 0,
+                        totalVehicules: communeData2.NB_VP || 0,
+                        totalBornes: communeData2.nombre_bornes || 0,
+                        totalPointsCharge: communeData2.nombre_points_charge || 0,
+                        pourcentageVehiculesElectriques: (communeData2.NB_VP && communeData2.NB_VP > 0) ? ((communeData2.NB_VP_RECHARGEABLES_EL / communeData2.NB_VP) * 100).toFixed(2) : '0.00',
+                        ratioVehiculesParBorne: (communeData2.nombre_bornes && communeData2.nombre_bornes > 0) ? (communeData2.NB_VP_RECHARGEABLES_EL / communeData2.nombre_bornes).toFixed(2) : 'N/A'
+                    }
+                };
+
+                createCommuneComparisonCharts(comparisonData);
+                populateCommuneComparisonTable(comparisonData);
+
             })
             .catch(error => {
                 console.error('Erreur lors de la comparaison des communes:', error);
                 showComparisonError();
             });
+        // --- FIN MODIFICATION ---
     }
 }
 
@@ -487,11 +534,11 @@ function createComparisonCharts(data) {
 }
 
 // Fonction pour afficher un message d'erreur
-function showComparisonError() {
+function showComparisonError(message = "Une erreur s'est produite lors de la comparaison des territoires.") {
     const comparisonResults = document.querySelector('.comparison-results');
     comparisonResults.innerHTML = `
     <div class="error-message">
-      <p>Une erreur s'est produite lors de la comparaison des territoires.</p>
+      <p>${message}</p>
       <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
     </div>
   `;

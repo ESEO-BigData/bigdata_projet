@@ -28,20 +28,31 @@ exports.getAllBornesCommuneDepartementRegion = async (req, res) => {
     }
 };
 
-// Récupérer les données par commune
+// Récupérer les données par commune ET code postal
 exports.getByCommune = async (req, res) => {
     try {
         const commune = req.params.commune;
+        const codePostal = req.params.codePostal; // Nouveau paramètre
+
+        if (!commune || !codePostal) {
+            return responseFormatter.badRequest(res, 'Le nom de la commune et le code postal sont requis.');
+        }
+
+        // Utiliser findOne avec les deux critères pour garantir l'unicité
         const data = await BornesCommuneDepartementRegion.findOne({
-            commune: new RegExp(commune, 'i')
+            // Utiliser une regex exacte pour le nom (insensible à la casse)
+            commune: new RegExp(`^${commune}$`, 'i'),
+            code_postal: codePostal // Correspondance exacte pour le code postal
         });
 
         if (!data) {
-            return responseFormatter.notFound(res, 'Données non trouvées pour cette commune');
+            return responseFormatter.notFound(res, `Données non trouvées pour la commune ${commune} (${codePostal})`);
         }
 
+        // Les données trouvées sont uniques, on peut les renvoyer
         return responseFormatter.success(res, data);
     } catch (error) {
+        console.error(`Erreur getByCommune pour ${req.params.commune}/${req.params.codePostal}:`, error);
         return responseFormatter.error(res, 'Erreur lors de la récupération des données pour cette commune', error);
     }
 };
