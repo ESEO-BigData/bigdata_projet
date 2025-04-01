@@ -148,7 +148,6 @@ function initCorrelationControls() {
     });
 }
 
-
 // Charger les données de corrélation
 function loadCorrelationData() {
     const xVariable = document.getElementById('correlation-x').value;

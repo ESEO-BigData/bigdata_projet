@@ -97,10 +97,10 @@ function loadTerritories() {
     setupTerritorySelectors();
 
     // Si le type n'est pas communes, charger les options
-    const territoryType = document.getElementById('territory-type').value;
-    if (territoryType !== 'communes') {
-        loadTerritoryOptions();
-    }
+    //const territoryType = document.getElementById('territory-type').value;
+    //if (territoryType !== 'communes') {
+    //   loadTerritoryOptions();
+    //}
 }
 
 // Nouvelle fonction pour charger les options dans les listes déroulantes
