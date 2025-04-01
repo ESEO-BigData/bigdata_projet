@@ -55,16 +55,16 @@ export function renderComparaisonData(container) {
           </div>
         </div>
         
-          <div class="ai-analysis-section" style="margin-top: 25px;">
-    <h2>Analyse par l'IA (Gemini)</h2>
-    <button id="analyze-comparison-ai-btn" class="btn ai-btn" style="margin-bottom: 15px;">
-       🧠 Analyser la comparaison avec l'IA
-    </button>
-    <div id="ai-comparison-analysis-container" class="ai-analysis-results">
-       <!-- L'analyse de l'IA sera affichée ici -->
-       <p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
-    </div>
-  </div>
+          <div class="ai-analysis-section" id="ai-section" style="display: none; margin-top: 25px;">
+            <h2>Analyse par l'IA (Gemini)</h2>
+            <button id="analyze-comparison-ai-btn" class="btn ai-btn" style="margin-bottom: 15px;">
+               🧠 Analyser la comparaison avec l'IA
+            </button>
+            <div id="ai-comparison-analysis-container" class="ai-analysis-results">
+               <!-- L'analyse de l'IA sera affichée ici -->
+               <p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
+            </div>
+          </div>
         
         <div class="comparison-table-container">
           <h3>Tableau comparatif</h3>
@@ -363,6 +363,13 @@ function compareSelectedTerritories() {
     const territoryType = document.getElementById('territory-type').value;
     let territory1Value, territory2Value, territory1Name, territory2Name;
 
+    // ---> AJOUT : RESET de la section IA au début <---
+    const aiSection = document.getElementById('ai-section');
+    const aiContainer = document.getElementById('ai-comparison-analysis-container');
+    if (aiSection) aiSection.style.display = 'none'; // Cacher toute la section
+    if (aiContainer) aiContainer.innerHTML = '<p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l\'IA.</p>'; // Réinitialiser le texte
+    // ---> FIN AJOUT RESET <---
+
     if (territoryType === 'communes') {
         territory1Value = document.getElementById('territory1').value; // ex: "Paris|75001"
         territory2Value = document.getElementById('territory2').value; // ex: "Lyon|69001"
@@ -408,8 +415,12 @@ function compareSelectedTerritories() {
                     currentComparisonData = data.data;
                     createComparisonCharts(data.data);
                     populateComparisonTable(data.data);
+                    // ---> AFFICHER la section IA APRES succès <---
+                    if (aiSection) aiSection.style.display = 'block';
                 } else {
                     showComparisonError(data.message || `Erreur lors du chargement pour ${territoryType}`);
+                    // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
+                    if (aiSection) aiSection.style.display = 'none';
                 }
             })
             .catch(error => { /* ... */ });
@@ -457,11 +468,15 @@ function compareSelectedTerritories() {
                 currentComparisonData = comparisonData;
                 createDepartementComparisonCharts(comparisonData);
                 populateDepartementComparisonTable(comparisonData);
+                // ---> AFFICHER la section IA APRES succès <---
+                if (aiSection) aiSection.style.display = 'block';
 
             })
             .catch(error => {
                 console.error('Erreur lors de la comparaison des départements:', error);
                 showComparisonError();
+                // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
+                if (aiSection) aiSection.style.display = 'none';
             });
     } else if (territoryType === 'communes') {
         // --- MODIFICATION ICI ---
@@ -527,11 +542,15 @@ function compareSelectedTerritories() {
                 currentComparisonData = comparisonData;
                 createCommuneComparisonCharts(comparisonData);
                 populateCommuneComparisonTable(comparisonData);
+                // ---> AFFICHER la section IA APRES succès <---
+                if (aiSection) aiSection.style.display = 'block';
 
             })
             .catch(error => {
                 console.error('Erreur lors de la comparaison des communes:', error);
                 showComparisonError();
+                // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
+                if (aiSection) aiSection.style.display = 'none';
             });
     }
 }
