@@ -211,3 +211,47 @@ footer {
 .data-table tbody tr:last-child td {
     border-bottom: none;
 }
+
+.ai-btn {
+    background-color: var(--secondary-color); /* Couleur différente pour le bouton IA */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1em;
+}
+
+.ai-btn:hover {
+    background-color: #1e88e5; /* Un bleu un peu plus foncé */
+}
+
+.ai-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.ai-analysis-section h2 {
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 5px;
+    display: inline-block; /* Pour que le border-bottom s'ajuste */
+}
+
+.ai-analysis-results {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f0f4ff; /* Fond légèrement bleuté */
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 4px;
+    font-size: 0.95em;
+    line-height: 1.7;
+}
+
+.ai-analysis-results p {
+    margin-bottom: 10px;
+}
+.ai-analysis-results p:last-child {
+    margin-bottom: 0;
+}

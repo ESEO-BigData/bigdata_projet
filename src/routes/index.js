@@ -9,6 +9,7 @@ const nbVehiculesCommuneRoutes = require('./nbVehiculesCommuneRoutes');
 const departementRegionRoutes = require('./departementRegionRoutes');
 const bornesCommuneDepartementRegionRoutes = require('./bornesCommuneDepartementRegionRoutes');
 const pointDeChargeRoutes = require('./pointDeChargeRoutes');
+const aiRoutes = require('./aiRoutes');
 
 
 // Configuration des routes
@@ -19,6 +20,7 @@ router.use('/vehicules/communes', nbVehiculesCommuneRoutes);
 router.use('/departements', departementRegionRoutes);
 router.use('/bornes-communes', bornesCommuneDepartementRegionRoutes);
 router.use('/points-de-charge', pointDeChargeRoutes);
+router.use('/ai', aiRoutes);
 
 
 // Route racine

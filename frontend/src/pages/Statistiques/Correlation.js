@@ -1,5 +1,14 @@
 import Chart from 'chart.js/auto';
 
+// Variables globales au module pour stocker les données actuelles
+let currentScatterData = [];
+let currentXVariable = '';
+let currentYVariable = '';
+let currentFilterType = '';
+let currentCoefficient = 0;
+let currentXLabel = '';
+let currentYLabel = '';
+
 export function renderCorrelationData(container) {
     container.innerHTML = `
     <section class="correlation-section">
@@ -72,6 +81,17 @@ export function renderCorrelationData(container) {
           <p>Sélectionnez des variables et cliquez sur "Mettre à jour" pour voir l'analyse.</p>
         </div>
       </div>
+      
+      <div class="ai-analysis-section" style="margin-top: 25px;">
+    <h2>Analyse par l'IA (Gemini)</h2>
+    <button id="analyze-ai-btn" class="btn ai-btn" style="margin-bottom: 15px;">
+       🧠 Analyser avec l'IA
+    </button>
+    <div id="ai-analysis-container" class="ai-analysis-results">
+       <!-- L'analyse de l'IA sera affichée ici -->
+       <p>Cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
+    </div>
+</div>
       
       <div class="data-tables-container">
         <div class="data-table-container">
@@ -146,6 +166,9 @@ function initCorrelationControls() {
     exportButton.addEventListener('click', () => {
         exportCorrelationData();
     });
+
+    const aiButton = document.getElementById('analyze-ai-btn');
+    aiButton.addEventListener('click', handleAIAnalysis); // Ajout de l'appel à la nouvelle fonction
 }
 
 // Charger les données de corrélation
@@ -263,6 +286,14 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
         };
     });
 
+    // Stocker les données actuelles pour l'analyse IA
+    currentScatterData = scatterData; // Contient { x, y, label }
+    currentXVariable = xVariable;
+    currentYVariable = yVariable;
+    currentFilterType = filterType;
+    currentXLabel = getVariableLabel(xVariable); // Assurez-vous d'appeler cette fonction
+    currentYLabel = getVariableLabel(yVariable); // Assurez-vous d'appeler cette fonction
+
     // Créer le graphique de dispersion
     if (!isSameVariable) {
         createScatterPlot(scatterData, xVariable, yVariable);
@@ -271,11 +302,12 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
         createIdentityPlot(scatterData, xVariable);
     }
 
-    // Calculer le coefficient de corrélation
+// Calculer le coefficient de corrélation
     const coefficient = calculateCorrelation(
         scatterData.map(d => d.x),
         scatterData.map(d => d.y)
     );
+    currentCoefficient = coefficient; // Stocker le coefficient
 
     // Mettre à jour l'affichage du coefficient
     document.getElementById('correlation-coefficient').textContent = coefficient.toFixed(2);
@@ -623,4 +655,74 @@ function exportCorrelationData() {
         .catch(error => {
             console.error('Erreur lors de l\'export des données:', error);
         });
+}
+
+async function handleAIAnalysis() {
+    const aiContainer = document.getElementById('ai-analysis-container');
+    const aiButton = document.getElementById('analyze-ai-btn');
+
+    // Vérifier si des données sont disponibles
+    if (!currentScatterData || currentScatterData.length === 0) {
+        aiContainer.innerHTML = '<p style="color: red;">Veuillez d\'abord générer un graphique de corrélation.</p>';
+        return;
+    }
+    // Vérifier si les variables sont identiques (l'analyse IA n'est pas très utile ici)
+    if (currentXVariable === currentYVariable) {
+        aiContainer.innerHTML = `<p style="color: orange;">L'analyse IA n'est pas pertinente lorsque les deux variables sont identiques (corrélation parfaite de 1).</p>`;
+        return;
+    }
+
+
+    // Afficher un état de chargement et désactiver le bouton
+    aiContainer.innerHTML = '<p><i>🧠 Analyse par l\'IA en cours, veuillez patienter...</i></p>';
+    aiButton.disabled = true;
+    aiButton.textContent = "Analyse en cours...";
+
+    // Préparer les données à envoyer (on peut envoyer un échantillon si la liste est trop grande)
+    // Pour l'instant, envoyons tout, mais gardons à l'esprit la limite de taille potentielle.
+    const payload = {
+        xVariable: currentXVariable,
+        yVariable: currentYVariable,
+        xLabel: currentXLabel,
+        yLabel: currentYLabel,
+        filterType: currentFilterType,
+        coefficient: currentCoefficient,
+        // Envoyons les données brutes, le backend peut décider de résumer si besoin
+        scatterData: currentScatterData
+    };
+
+    try {
+        // Appel à la nouvelle route backend (à créer)
+        const response = await fetch('/api/ai/analyze-correlation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            // Essayer de récupérer un message d'erreur du backend
+            const errorData = await response.json().catch(() => ({ message: `Erreur HTTP ${response.status}` }));
+            throw new Error(errorData.message || `Erreur lors de l'appel à l'IA.`);
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.data.analysis) {
+            // Afficher l'analyse reçue (utiliser innerText pour éviter injection XSS simple)
+            // Ou utiliser une librairie de Markdown si Gemini renvoie du Markdown
+            aiContainer.innerHTML = `<p>${result.data.analysis.replace(/\n/g, '<br>')}</p>`; // Remplace les sauts de ligne par <br>
+        } else {
+            throw new Error(result.message || 'Réponse invalide de l\'API d\'analyse.');
+        }
+
+    } catch (error) {
+        console.error("Erreur lors de l'analyse IA:", error);
+        aiContainer.innerHTML = `<p style="color: red;">❌ Erreur : ${error.message}</p>`;
+    } finally {
+        // Réactiver le bouton dans tous les cas
+        aiButton.disabled = false;
+        aiButton.textContent = "🧠 Analyser avec l'IA";
+    }
 }
