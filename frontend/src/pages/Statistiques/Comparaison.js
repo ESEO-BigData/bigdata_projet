@@ -95,12 +95,6 @@ export function renderComparaisonData(container) {
 function loadTerritories() {
     // Configurer les sélecteurs en fonction du type de territoire
     setupTerritorySelectors();
-
-    // Si le type n'est pas communes, charger les options
-    //const territoryType = document.getElementById('territory-type').value;
-    //if (territoryType !== 'communes') {
-    //   loadTerritoryOptions();
-    //}
 }
 
 // Nouvelle fonction pour charger les options dans les listes déroulantes
@@ -125,6 +119,9 @@ function loadTerritoryOptions() {
             break;
     }
 
+    // Si pas de type sélectionné ou communes, ne rien faire ici
+    if (!apiUrl) return;
+
     fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
@@ -138,10 +135,25 @@ function loadTerritoryOptions() {
                         name: region.region
                     }));
                 } else if (territoryType === 'departements') {
-                    territories = data.data.departements.map(dept => ({
-                        id: dept.code,
-                        name: `${dept.code} - ${dept.departement}`
-                    }));
+                    // --- MODIFICATION ICI ---
+                    // Filtrer les départements SANS nom ou avec les codes exacts 97, 98, 99
+                    // (en supposant que '97 -', '98 -', '99 -' ont ces codes exacts et/ou pas de nom)
+                    const excludedExactCodes = ['97', '98', '99'];
+                    territories = data.data.departements
+                        .filter(dept =>
+                                // Garder si le nom du département existe ET n'est pas vide
+                                dept.departement && dept.departement.trim() !== '' &&
+                                // ET si le code n'est pas EXACTEMENT 97, 98 ou 99 (si c'est la cause du problème)
+                                !excludedExactCodes.includes(dept.code)
+                            // Alternative si le problème vient juste du nom vide:
+                            // filter(dept => dept.departement && dept.departement.trim() !== '')
+                            // Choisir la condition la plus adaptée à la structure de tes données réelles
+                        )
+                        .map(dept => ({
+                            id: dept.code,
+                            name: `${dept.code} - ${dept.departement}`
+                        }));
+                    // --- FIN MODIFICATION ---
                 }
 
                 // Trier les territoires par nom
