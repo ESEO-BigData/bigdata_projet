@@ -2,3 +2,4 @@ src/config/config.js
 frontend/node_modules
 /node_modules
 .idea/inspectionProfiles.env
+.env
