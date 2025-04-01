@@ -1,5 +1,11 @@
 import Chart from 'chart.js/auto';
 
+// Variable globale pour stocker les données de comparaison actuelles
+let currentComparisonData = null;
+let currentTerritoryType = '';
+let currentTerritory1Name = '';
+let currentTerritory2Name = '';
+
 // Fonction pour comparer les territoires sélectionnés
 export function renderComparaisonData(container) {
     container.innerHTML = `
@@ -49,6 +55,17 @@ export function renderComparaisonData(container) {
           </div>
         </div>
         
+          <div class="ai-analysis-section" style="margin-top: 25px;">
+    <h2>Analyse par l'IA (Gemini)</h2>
+    <button id="analyze-comparison-ai-btn" class="btn ai-btn" style="margin-bottom: 15px;">
+       🧠 Analyser la comparaison avec l'IA
+    </button>
+    <div id="ai-comparison-analysis-container" class="ai-analysis-results">
+       <!-- L'analyse de l'IA sera affichée ici -->
+       <p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
+    </div>
+  </div>
+        
         <div class="comparison-table-container">
           <h3>Tableau comparatif</h3>
           <table id="comparison-table" class="data-table">
@@ -89,6 +106,8 @@ export function renderComparaisonData(container) {
 
     // Configurer le bouton d'export
     document.getElementById('export-comparison').addEventListener('click', exportComparisonData);
+
+    document.getElementById('analyze-comparison-ai-btn').addEventListener('click', handleAIComparisonAnalysis);
 }
 
 // Fonction pour charger les territoires dans les sélecteurs
@@ -368,27 +387,32 @@ function compareSelectedTerritories() {
         return;
     }
 
-    // Mettre à jour les noms des territoires dans le tableau
+// Mettre à jour les noms dans le tableau
     document.getElementById('territory1-name').textContent = territory1Name;
     document.getElementById('territory2-name').textContent = territory2Name;
 
-    // Charger les données pour la comparaison
-    if (territoryType === 'regions') {
-        // Code existant pour les régions
-        const apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1Value)}/${encodeURIComponent(territory2Value)}`;
+// Stocker le type et les noms actuels
+    currentTerritoryType = territoryType;
+    currentTerritory1Name = territory1Name;
+    currentTerritory2Name = territory2Name;
+    currentComparisonData = null; // Réinitialiser en attendant les nouvelles données
 
+// Charger les données pour la comparaison
+    if (territoryType === 'regions') {
+        const apiUrl = `/api/bornes-communes/comparer/${encodeURIComponent(territory1Value)}/${encodeURIComponent(territory2Value)}`;
         fetch(apiUrl)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // ---> STOCKER LES DONNEES <---
+                    currentComparisonData = data.data;
                     createComparisonCharts(data.data);
                     populateComparisonTable(data.data);
+                } else {
+                    showComparisonError(data.message || `Erreur lors du chargement pour ${territoryType}`);
                 }
             })
-            .catch(error => {
-                console.error('Erreur lors de la comparaison des territoires:', error);
-                showComparisonError();
-            });
+            .catch(error => { /* ... */ });
     } else if (territoryType === 'departements') {
         // Code existant pour les départements
         Promise.all([
@@ -429,7 +453,8 @@ function compareSelectedTerritories() {
                         ratioVehiculesParBorne: data2.data.statistiques.ratio_vehicules_par_borne
                     }
                 };
-
+                // ---> STOCKER LES DONNEES <---
+                currentComparisonData = comparisonData;
                 createDepartementComparisonCharts(comparisonData);
                 populateDepartementComparisonTable(comparisonData);
 
@@ -498,7 +523,8 @@ function compareSelectedTerritories() {
                         ratioVehiculesParBorne: (communeData2.nombre_bornes && communeData2.nombre_bornes > 0) ? (communeData2.NB_VP_RECHARGEABLES_EL / communeData2.nombre_bornes).toFixed(2) : 'N/A'
                     }
                 };
-
+                // ---> STOCKER LES DONNEES <---
+                currentComparisonData = comparisonData;
                 createCommuneComparisonCharts(comparisonData);
                 populateCommuneComparisonTable(comparisonData);
 
@@ -507,7 +533,6 @@ function compareSelectedTerritories() {
                 console.error('Erreur lors de la comparaison des communes:', error);
                 showComparisonError();
             });
-        // --- FIN MODIFICATION ---
     }
 }
 
@@ -814,4 +839,63 @@ function exportComparisonData() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+async function handleAIComparisonAnalysis() {
+    const aiContainer = document.getElementById('ai-comparison-analysis-container');
+    const aiButton = document.getElementById('analyze-comparison-ai-btn');
+
+    // Vérifier si des données de comparaison sont disponibles
+    if (!currentComparisonData || !currentTerritoryType || !currentTerritory1Name || !currentTerritory2Name) {
+        aiContainer.innerHTML = '<p style="color: red;">Veuillez d\'abord sélectionner et afficher la comparaison entre deux territoires.</p>';
+        return;
+    }
+
+    // Afficher un état de chargement et désactiver le bouton
+    aiContainer.innerHTML = '<p><i>🧠 Analyse de la comparaison par l\'IA en cours, veuillez patienter...</i></p>';
+    aiButton.disabled = true;
+    aiButton.textContent = "Analyse en cours...";
+
+    // Préparer les données à envoyer
+    const payload = {
+        territoryType: currentTerritoryType,
+        territory1Name: currentTerritory1Name,
+        territory2Name: currentTerritory2Name,
+        comparisonData: currentComparisonData // Envoyer l'objet complet
+    };
+
+    try {
+        // Appel à la nouvelle route backend (à créer)
+        const response = await fetch('/api/ai/analyze-comparison', { // Nouvelle route !
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: `Erreur HTTP ${response.status}` }));
+            // Utiliser le message d'erreur du backend s'il existe
+            throw new Error(errorData.error?.message || errorData.message || `Erreur lors de l'appel à l'IA.`);
+        }
+
+        const result = await response.json(); // Ici on s'attend à la structure { success: true, data: { analysis: "..." } }
+
+        if (result.success && result.data.analysis) {
+            // Afficher l'analyse reçue
+            aiContainer.innerHTML = `<p>${result.data.analysis.replace(/\n/g, '<br>')}</p>`;
+        } else {
+            // Gérer le cas où success est false ou data.analysis manque
+            throw new Error(result.message || result.error?.message || 'Réponse invalide de l\'API d\'analyse de comparaison.');
+        }
+
+    } catch (error) {
+        console.error("Erreur lors de l'analyse IA de comparaison:", error);
+        aiContainer.innerHTML = `<p style="color: red;">❌ Erreur : ${error.message}</p>`;
+    } finally {
+        // Réactiver le bouton dans tous les cas
+        aiButton.disabled = false;
+        aiButton.textContent = "🧠 Analyser la comparaison avec l'IA";
+    }
 }
