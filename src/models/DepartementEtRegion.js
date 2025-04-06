@@ -22,7 +22,7 @@ const DepartementEtRegionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    "SUPERFICIE (km²)": {
+    SUPERFICIE: {
         type: Number,
         required: true
     },
@@ -30,7 +30,7 @@ const DepartementEtRegionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    "DENSITE (habitants/km2)": {
+    DENSITE: {
         type: Number,
         required: true
     },

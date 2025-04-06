@@ -245,10 +245,10 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
                 x = filterType === 'departements' ? item.POPULATION : item.totalPopulation;
                 break;
             case 'densite':
-                x = filterType === 'departements' ? item["DENSITE (habitants/km2)"] : item.densite;
+                x = filterType === 'departements' ? item.DENSITE : item.densite;
                 break;
             case 'superficie':
-                x = filterType === 'departements' ? item["SUPERFICIE (km²)"] : item.totalSuperficie;
+                x = filterType === 'departements' ? item.SUPERFICIE : item.totalSuperficie;
                 break;
             default:
                 x = 0;
@@ -272,10 +272,10 @@ function processCorrelationData(data, xVariable, yVariable, filterType) {
                 y = filterType === 'departements' ? item.POPULATION : item.totalPopulation;
                 break;
             case 'densite':
-                y = filterType === 'departements' ? item["DENSITE (habitants/km2)"] : item.densite;
+                y = filterType === 'departements' ? item.DENSITE : item.densite;
                 break;
             case 'superficie':
-                y = filterType === 'departements' ? item["SUPERFICIE (km²)"] : item.totalSuperficie;
+                y = filterType === 'departements' ? item.SUPERFICIE : item.totalSuperficie;
                 break;
             default:
                 y = 0;
@@ -633,7 +633,7 @@ function exportCorrelationData() {
                 // Ajouter chaque ligne de données
                 items.forEach(item => {
                     if (filterType === 'departements') {
-                        csvContent += `"${item.NOM}","${item.DEPARTEMENT}","${item.REGION}",${item.somme_NB_VP_RECHARGEABLES_EL},${item.Nombre_Bornes},${item.Nombre_stations},${item.NB_VP},${item.POPULATION},${item["DENSITE (habitants/km2)"]},${item["SUPERFICIE (km²)"]}\n`;
+                        csvContent += `"${item.NOM}","${item.DEPARTEMENT}","${item.REGION}",${item.somme_NB_VP_RECHARGEABLES_EL},${item.Nombre_Bornes},${item.Nombre_stations},${item.NB_VP},${item.POPULATION},${item.DENSITE},${item.SUPERFICIE}\n`;
                     } else {
                         csvContent += `"${item.region}",${item.totalVehiculesElectriques},${item.totalBornes},${item.totalStations},${item.totalVehiculesThermiques},${item.totalPopulation},${item.densite},${item.totalSuperficie}\n`;
                     }

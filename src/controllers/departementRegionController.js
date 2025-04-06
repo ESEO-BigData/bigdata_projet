@@ -51,8 +51,8 @@ exports.getDepartementsStats = async (req, res) => {
                 $group: {
                     _id: null,
                     totalPopulation: { $sum: "$POPULATION" },
-                    totalSuperficie: { $sum: "$SUPERFICIE (km²)" },
-                    densiteMoyenne: { $avg: "$DENSITE (habitants/km2)" },
+                    totalSuperficie: { $sum: "$SUPERFICIE" },
+                    densiteMoyenne: { $avg: "$DENSITE" },
                     nombreDepartements: { $sum: 1 }
                 }
             },
@@ -89,7 +89,7 @@ exports.getMostPopulatedDepartements = async (req, res) => {
 exports.getMostDenseDepartements = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
-        const departements = await DepartementEtRegion.find().sort({ "DENSITE (habitants/km2)": -1 }).limit(limit);
+        const departements = await DepartementEtRegion.find().sort({ DENSITE: -1 }).limit(limit);
 
         return responseFormatter.success(res, departements);
     } catch (error) {
@@ -110,8 +110,8 @@ exports.getCorrelationStatsByDepartement = async (req, res) => {
             Nombre_stations: 1,
             NB_VP: 1,
             POPULATION: 1,
-            "DENSITE (habitants/km2)": 1,
-            "SUPERFICIE (km²)": 1
+            DENSITE : 1,
+            SUPERFICIE: 1
         });
 
         // Ajouter des ratios calculés
@@ -156,7 +156,7 @@ exports.getCorrelationStatsByRegion = async (req, res) => {
                     totalStations: { $sum: "$Nombre_stations" },
                     totalVehiculesThermiques: { $sum: "$NB_VP" },
                     totalPopulation: { $sum: "$POPULATION" },
-                    totalSuperficie: { $sum: "$SUPERFICIE (km²)" },
+                    totalSuperficie: { $sum: "$SUPERFICIE" },
                     nombreDepartements: { $sum: 1 }
                 }
             },
