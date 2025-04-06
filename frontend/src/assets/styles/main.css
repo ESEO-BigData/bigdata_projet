@@ -436,3 +436,56 @@ select {
     line-height: 1.4;
     margin-top: auto;
 }
+
+/* --- Styles pour la Navigation des Onglets Statistiques --- */
+
+.stats-navigation {
+    border-bottom: 2px solid var(--border-color); /* Ligne de séparation sous les onglets */
+    margin-bottom: 2rem; /* Espace sous les onglets */
+}
+
+.stats-navigation ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem; /* Petit espace entre les onglets */
+}
+
+.stats-navigation li {
+    margin: 0; /* Enlever la marge par défaut des li */
+}
+
+.stats-navigation a {
+    display: block; /* Pour que le padding et la bordure fonctionnent bien */
+    padding: 0.8rem 1.5rem; /* Padding généreux */
+    color: var(--text-color-muted); /* Couleur par défaut */
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 3px solid transparent; /* Bordure invisible par défaut */
+    margin-bottom: -2px; /* Compenser l'épaisseur de la bordure parente pour aligner */
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+    border-radius: var(--border-radius-small) var(--border-radius-small) 0 0; /* Arrondi léger en haut */
+}
+
+.stats-navigation a:hover,
+.stats-navigation a:focus {
+    color: var(--primary-color);
+    background-color: var(--hover-background-light); /* Léger fond au survol */
+    border-bottom-color: color-mix(in srgb, var(--primary-color) 50%, transparent); /* Bordure légère au survol */
+    text-decoration: none;
+    outline: none;
+}
+
+/* Style pour l'onglet actif */
+.stats-navigation a.active {
+    color: var(--primary-color); /* Couleur active */
+    font-weight: 600; /* Plus gras */
+    border-bottom-color: var(--primary-color); /* Bordure visible et colorée */
+    background-color: transparent; /* Pas de fond pour l'actif pour qu'il se fonde */
+}
+
+/* Conteneur du contenu des onglets */
+#stats-content {
+    padding-top: 1rem; /* Un peu d'espace au-dessus du contenu de l'onglet */
+}
