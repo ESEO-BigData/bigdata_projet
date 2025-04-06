@@ -210,25 +210,24 @@ section {
 }
 
 
-/* Styles de base pour les inputs et selects */
+/* --- Styles de base pour les inputs et selects --- */
 input[type="text"],
 input[type="search"],
 select {
-    /* width: 100%; SUPPRIMER ou COMMENTER cette ligne */
-    width: auto; /* Laisser le navigateur/contenu déterminer la largeur */
-    min-width: 200px; /* Empêcher qu'ils soient trop étroits (ajustez si besoin) */
-    max-width: 100%; /* Important: pour ne pas déborder leur conteneur s'il est petit */
-    padding: 0.6rem 0.8rem;
+    width: auto;
+    min-width: 180px; /* Légèrement réduit la largeur minimale */
+    max-width: 100%;
+    /* padding: 0.6rem 0.8rem; ANCIEN */
+    padding: 0.5rem 0.8rem; /* MODIFIÉ: Padding vertical réduit */
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
     background-color: var(--card-background);
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.9rem; /* Légèrement réduit la taille de police */
     color: var(--text-color);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-    /* Assurez-vous que le padding droit est suffisant pour la flèche sur les selects */
-    /* (normalement géré par la règle spécifique 'select' ci-dessous) */
-    vertical-align: middle; /* Aide à l'alignement si à côté d'autres éléments */
+    vertical-align: middle;
+    height: 2.5rem; /* AJOUT: Fixer une hauteur (environ 40px) peut aider à la cohérence */
 }
 
 input[type="text"]:focus,
@@ -247,6 +246,125 @@ select {
     background-position: right 0.8rem center;
     background-size: 0.65em auto;
     padding-right: 2.5rem; /* Espace pour la flèche */
+}
+
+/* Styles spécifiques pour les inputs de recherche (si on leur donne une classe) */
+input.search-input { /* Ou cibler par ID si nécessaire */
+    min-width: 300px; /* Leur donner une largeur minimale plus grande */
+    /* width: 100%; */ /* Optionnel: si le conteneur parent le permet, prendre toute la largeur */
+}
+
+/* On peut aussi cibler le conteneur des inputs de recherche si c'est plus simple */
+.territory-search input[type="text"] {
+    min-width: 300px; /* Applique la largeur minimale aux inputs dans .territory-search */
+    /* width: 100%; */ /* Décommenter si vous voulez qu'il remplisse .territory-search */
+}
+
+/* --- Styles pour les Controles de Corrélation/Comparaison --- */
+.correlation-controls,
+.comparison-controls {
+    display: flex;
+    flex-wrap: wrap; /* Permet le retour à la ligne */
+    gap: 1.5rem; /* Espacement entre les groupes */
+    margin-bottom: 2rem;
+    align-items: center; /* Aligner verticalement les éléments */
+}
+
+.control-group,
+.territory-type-selector,
+.territory-selector,
+.territory-search {
+    display: flex;
+    flex-direction: column; /* Label au-dessus de l'input/select */
+    gap: 0.3rem; /* Petit espace entre label et input/select */
+}
+
+.control-group label,
+.territory-type-selector label,
+.territory-selector label,
+.territory-search label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-color-muted);
+}
+
+/* Spécifique pour la recherche pour qu'elle prenne plus de place si désiré */
+.territory-search {
+    flex-grow: 1; /* Permet à ce groupe de prendre plus de place si disponible */
+}
+
+/* Assurer que le conteneur du select ne force pas une largeur inutile */
+.territory-selector select,
+.territory-type-selector select,
+.control-group select {
+    width: auto; /* Assurer que le width:auto s'applique bien */
+}
+
+/* --- Styles pour les Résultats de Recherche (Communes) --- */
+
+.search-container {
+    position: relative; /* Nécessaire pour positionner les résultats */
+    width: 100%; /* Assure que le conteneur prend la largeur dispo dans son groupe */
+}
+
+/* L'input de recherche lui-même */
+.territory-search input[type="text"] {
+    /* Styles précédents pour la largeur/hauteur s'appliquent */
+    margin-bottom: 0; /* Enlever la marge basse par défaut si présente */
+}
+
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 4px); /* Positionner sous l'input avec un petit espace */
+    left: 0;
+    right: 0; /* S'assurer qu'il prend toute la largeur de .search-container */
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium); /* Coins arrondis */
+    box-shadow: var(--box-shadow-medium); /* Ombre pour le détacher */
+    z-index: 1000; /* Au-dessus des autres éléments */
+    max-height: 240px; /* Limiter la hauteur (environ 6-8 résultats visibles) */
+    overflow-y: auto; /* Activer le scroll si plus de résultats */
+    padding: 0.4rem 0; /* Petit padding vertical interne, pas horizontal */
+    opacity: 0; /* Caché par défaut */
+    visibility: hidden; /* Caché par défaut */
+    transform: translateY(-10px); /* Effet d'apparition */
+    transition: opacity var(--transition-fast), visibility var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Style pour afficher les résultats (à ajouter via JS quand il y a des résultats) */
+.search-container.results-visible .search-results {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+
+.result-item {
+    padding: 0.6rem 1rem; /* Padding interne */
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap; /* Empêcher le retour à la ligne */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ajouter ... si trop long */
+}
+
+.result-item:hover,
+.result-item:focus { /* Ajouter focus pour navigation clavier */
+    background-color: var(--primary-color); /* Fond bleu au survol */
+    color: white; /* Texte blanc */
+    outline: none; /* Enlever le contour par défaut */
+}
+
+.no-results {
+    padding: 0.6rem 1rem;
+    color: var(--text-color-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    cursor: default;
 }
 
 /* --- Conteneurs Génériques (Ex: pour les sections de graphiques/cartes) --- */

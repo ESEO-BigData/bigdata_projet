@@ -289,27 +289,25 @@ function setupCommuneSearch(fieldId) {
     const searchInput = document.getElementById(`${fieldId}-search`);
     const resultsContainer = document.getElementById(`${fieldId}-results`);
     const hiddenInput = document.getElementById(fieldId);
+    const searchContainer = searchInput.closest('.search-container'); // Ou utiliser un sélecteur plus précis si besoin
 
     searchInput.addEventListener('input', debounce(() => {
         const query = searchInput.value.trim();
+
+        // Réinitialiser avant la recherche
+        resultsContainer.innerHTML = '';
+        searchContainer.classList.remove('results-visible'); // Cacher
+
         if (query.length < 2) {
-            resultsContainer.innerHTML = '';
-            return;
+            return; // Ne rien faire si la requête est trop courte
         }
 
         fetch(`/api/bornes-communes/search/${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.success && data.data.length > 0) {
                     const communes = data.data;
-
-                    if (communes.length === 0) {
-                        resultsContainer.innerHTML = '<div class="no-results">Aucune commune trouvée</div>';
-                        return;
-                    }
-
-                    resultsContainer.innerHTML = '';
-                    communes.forEach(commune => {
+                    communes.slice(0, 8).forEach(commune => {
                         const resultItem = document.createElement('div');
                         resultItem.className = 'result-item';
                         const displayName = `${commune.commune} (${commune.code_postal})`;
@@ -321,28 +319,39 @@ function setupCommuneSearch(fieldId) {
 
                         resultItem.addEventListener('click', () => {
                             searchInput.value = resultItem.dataset.name;
-                            // --- MODIFICATION ICI ---
-                            // Stocker une valeur combinée unique comme 'commune|code_postal'
                             hiddenInput.value = `${resultItem.dataset.id}|${resultItem.dataset.postal}`;
-                            // --- FIN MODIFICATION ---
-                            resultsContainer.innerHTML = '';
-                            compareSelectedTerritories(); // Déclenche la comparaison
+                            resultsContainer.innerHTML = ''; // Vider après sélection
+                            searchContainer.classList.remove('results-visible'); // Cacher après sélection
+                            compareSelectedTerritories();
                         });
 
                         resultsContainer.appendChild(resultItem);
                     });
+                    // AJOUT: Afficher les résultats APRES les avoir ajoutés
+                    searchContainer.classList.add('results-visible');
+
+                } else if (data.success && data.data.length === 0) {
+                    resultsContainer.innerHTML = '<div class="no-results">Aucune commune trouvée</div>';
+                    // AJOUT: Afficher le message "Aucun résultat"
+                    searchContainer.classList.add('results-visible');
+                } else {
+                    resultsContainer.innerHTML = '<div class="no-results">Erreur lors de la recherche</div>';
+                    // AJOUT: Afficher le message d'erreur
+                    searchContainer.classList.add('results-visible');
                 }
             })
             .catch(error => {
                 console.error('Erreur lors de la recherche de communes:', error);
                 resultsContainer.innerHTML = '<div class="no-results">Erreur lors de la recherche</div>';
+                // AJOUT: Afficher le message d'erreur
+                searchContainer.classList.add('results-visible');
             });
     }, 300));
 
-    // Fermer les résultats si on clique ailleurs
+// Fermer les résultats si on clique ailleurs (légère modification pour la classe)
     document.addEventListener('click', (event) => {
-        if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
-            resultsContainer.innerHTML = '';
+        if (!searchContainer.contains(event.target)) { // Vérifier si le clic est en dehors du conteneur
+            searchContainer.classList.remove('results-visible');
         }
     });
 }
