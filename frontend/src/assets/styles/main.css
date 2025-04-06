@@ -214,7 +214,10 @@ section {
 input[type="text"],
 input[type="search"],
 select {
-    width: 100%;
+    /* width: 100%; SUPPRIMER ou COMMENTER cette ligne */
+    width: auto; /* Laisser le navigateur/contenu déterminer la largeur */
+    min-width: 200px; /* Empêcher qu'ils soient trop étroits (ajustez si besoin) */
+    max-width: 100%; /* Important: pour ne pas déborder leur conteneur s'il est petit */
     padding: 0.6rem 0.8rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
@@ -223,6 +226,9 @@ select {
     font-size: 0.95rem;
     color: var(--text-color);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    /* Assurez-vous que le padding droit est suffisant pour la flèche sur les selects */
+    /* (normalement géré par la règle spécifique 'select' ci-dessous) */
+    vertical-align: middle; /* Aide à l'alignement si à côté d'autres éléments */
 }
 
 input[type="text"]:focus,
@@ -233,8 +239,9 @@ select:focus {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); /* Halo de focus */
 }
 
+/* Gardez cette règle spécifique à select pour la flèche */
 select {
-    appearance: none; /* Style par défaut du navigateur */
+    appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236e6e73%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
     background-position: right 0.8rem center;
@@ -377,13 +384,15 @@ select {
 }
 
 .kpi-card {
-    flex: 1 1 200px; /* Flexible: grandit, rétrécit, base de 200px */
+    /* flex: 1 1 200px; ANCIEN */
+    flex: 1 1 185px; /* MODIFIÉ: Base légèrement plus petite */
     background-color: var(--card-background);
     border-radius: var(--border-radius-medium);
-    box-shadow: var(--box-shadow-medium); /* Ombre un peu plus marquée */
-    padding: 1.5rem;
+    box-shadow: var(--box-shadow-medium);
+    /* padding: 1.5rem; ANCIEN */
+    padding: 1.2rem; /* MODIFIÉ: Padding interne réduit */
     display: flex;
-    flex-direction: column; /* Organiser le contenu verticalement */
+    flex-direction: column;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -393,21 +402,23 @@ select {
 }
 
 .kpi-card h3 {
-    font-size: 0.9rem; /* Taille du titre de la KPI */
+    /* font-size: 0.9rem; ANCIEN (ou 0.85rem si modifié précédemment) */
+    font-size: 0.8rem; /* MODIFIÉ: Titre encore un peu plus petit */
     font-weight: 600;
-    color: var(--text-color-muted); /* Couleur discrète pour le titre */
-    margin-bottom: 0.5rem; /* Espace sous le titre */
+    color: var(--text-color-muted);
+    margin-bottom: 0.4rem; /* MODIFIÉ: Espace sous titre réduit */
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
 .kpi-card .kpi-value {
-    font-size: 2.5rem; /* Grande taille pour la valeur */
-    font-weight: 700; /* Très gras */
-    color: var(--text-color); /* Couleur principale */
-    line-height: 1.1; /* Rapprocher la ligne */
-    margin-bottom: 0.75rem; /* Espace sous la valeur */
-    /* Potentiellement ajouter une couleur spécifique ? ex: color: var(--primary-color); */
+    /* font-size: 2.5rem; ANCIEN (ou 2.25rem si modifié précédemment) */
+    font-size: 2.0rem; /* MODIFIÉ: Taille de la valeur réduite */
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1.1;
+    /* margin-bottom: 0.75rem; ANCIEN (ou 0.6rem) */
+    margin-bottom: 0.5rem; /* MODIFIÉ: Espace sous valeur réduit */
 }
 
 /* Style pour l'état "Chargement..." */
@@ -420,8 +431,8 @@ select {
 }
 
 .kpi-card .kpi-description {
-    font-size: 0.85rem; /* Petite taille pour la description */
+    font-size: 0.8rem; /* MODIFIÉ: Description un peu plus petite */
     color: var(--text-color-muted);
     line-height: 1.4;
-    margin-top: auto; /* Pousse la description vers le bas si la carte s'étire */
+    margin-top: auto;
 }
