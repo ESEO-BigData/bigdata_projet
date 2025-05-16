@@ -80,45 +80,145 @@ a:hover, a:focus {
     text-decoration: underline; /* Optionnel, mais bon pour l'accessibilité */
 }
 
-/* --- Layout Principal --- */
+/* --- NOUVEAUX STYLES POUR LA NAVIGATION PRINCIPALE (Tubelight style) --- */
 header {
-    background-color: var(--card-background);
-    box-shadow: var(--box-shadow-subtle);
-    padding: 1rem 1.5rem;
-    position: sticky; /* Header collant en haut */
-    top: 0;
-    z-index: 100; /* Assure qu'il est au-dessus du reste */
-    width: 100%;
+    /* Le header n'est plus sticky par défaut, la nav l'est */
+    /* S'assurer qu'il n'interfère pas avec le positionnement fixed de la nav */
+    position: relative; /* Ou ne rien mettre si pas de fond/ombre globale pour header */
+    height: 80px; /* Hauteur indicative pour laisser de la place si la nav est en haut */
+    /* background-color: transparent; */ /* Si vous voulez que le fond de la page passe en dessous */
 }
 
-#main-nav ul {
+#main-nav {
+    position: fixed; /* Fixe */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000; /* Au-dessus de tout */
+    /* Par défaut en haut sur desktop */
+    top: 1.5rem; /* Environ 24px du haut (sm:pt-6) */
+    bottom: auto;
+}
+
+#main-nav ul { /* Le conteneur "pill" */
     display: flex;
-    list-style: none;
-    justify-content: center;
     align-items: center;
-    gap: 1.5rem; /* Espacement entre les éléments */
+    gap: 0.25rem; /* Espace entre les boutons (gap-3 dans l'exemple mais adapté) */
+    background-color: rgba(255, 255, 255, 0.7); /* (bg-background/5 + backdrop-blur) */
+    -webkit-backdrop-filter: blur(10px); /* Effet de flou pour Safari */
+    backdrop-filter: blur(10px); /* Effet de flou */
+    border: 1px solid var(--border-color); /* (border-border) */
+    padding: 0.25rem; /* (py-1 px-1) */
+    border-radius: 9999px; /* (rounded-full) */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0,0,0,0.08); /* (shadow-lg) */
+    list-style: none; /* Enlever les puces */
+    margin: 0; /* Reset */
+    position: relative; /* Pour le positionnement de la lampe */
+}
+
+#main-nav li {
+    margin: 0; /* Reset */
 }
 
 #main-nav a {
-    color: var(--text-color-muted);
-    font-weight: 500;
-    padding: 0.5rem 0.25rem; /* Moins de padding horizontal */
-    border-bottom: 2px solid transparent;
-    transition: color var(--transition-fast), border-color var(--transition-fast);
-    text-decoration: none; /* Enlever le soulignement par défaut des liens */
+    position: relative; /* Pour le z-index de la lampe interne active */
+    display: flex; /* Pour aligner icone et texte */
+    align-items: center;
+    gap: 0.5rem; /* Espace entre icone et texte */
+    cursor: pointer;
+    font-size: 0.875rem; /* (text-sm) */
+    font-weight: 600; /* (font-semibold) */
+    padding: 0.6rem 1.2rem; /* (px-6 py-2) - Ajustez selon besoin */
+    border-radius: 9999px; /* (rounded-full) */
+    color: var(--text-color-muted); /* (text-foreground/80) */
+    text-decoration: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    white-space: nowrap; /* Empêche le texte de passer à la ligne */
 }
 
-#main-nav a:hover,
-#main-nav a:focus {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    text-decoration: none; /* Garder non souligné au survol */
+#main-nav a:hover {
+    color: var(--primary-color); /* (hover:text-primary) */
+    background-color: var(--hover-background-light); /* Subtil fond au survol */
 }
 
+#main-nav a .nav-icon {
+    display: inline-flex; /* Important pour que le SVG à l'intérieur soit bien traité par align-items */
+    align-items: center; /* Centrer le SVG dans son span */
+    justify-content: center; /* Centrer le SVG dans son span */
+    line-height: 1; /* Peut aider si le SVG a une hauteur intrinsèque qui pose problème */
+}
+
+#main-nav a .nav-icon svg {
+    display: block; /* Enlève l'espace en dessous que certains SVGs inline peuvent avoir */
+    width: 18px;   /* Ajuster la taille de l'icône si besoin */
+    height: 18px;  /* Ajuster la taille de l'icône si besoin */
+    vertical-align: middle; /* Une autre option si display:block ne suffit pas */
+}
+
+#main-nav a .nav-text {
+    display: inline-block; /* Par défaut, on affiche les deux */
+}
+
+/* Style de l'onglet actif */
 #main-nav a[aria-current="page"] {
-    color: var(--primary-color);
-    font-weight: 600;
-    border-color: var(--primary-color);
+    color: var(--primary-color); /* (text-primary) */
+    /* background-color: color-mix(in srgb, var(--primary-color) 10%, transparent); (bg-muted) */
+    /* Le fond "bg-muted" est géré par la motion.div lamp qui est sous le texte. */
+    /* On pourrait simuler avec un ::before ou ::after mais la lampe JS est mieux. */
+}
+
+/* La "lampe" qui se déplace (l'effet lumineux sous l'onglet actif) */
+#nav-lamp-effect {
+    position: absolute;
+    background-color: color-mix(in srgb, var(--primary-color) 15%, transparent); /* (bg-primary/5) */
+    border-radius: 9999px; /* (rounded-full) */
+    z-index: -1; /* ( -z-10 pour être derrière le texte du lien) */
+    height: 100%; /* Prend toute la hauteur du lien parent */
+    top: 0;
+    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Initialement cachée ou positionnée au premier élément par JS */
+    opacity: 0; /* Sera rendue visible par JS une fois positionnée */
+}
+
+/* Le petit "tube lumineux" au-dessus de la lampe */
+#nav-lamp-effect::before {
+    content: '';
+    position: absolute;
+    top: -5px; /* (-top-2, adapté) */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px; /* (w-8) */
+    height: 4px; /* (h-1) */
+    background-color: var(--primary-color); /* (bg-primary) */
+    border-radius: 2px 2px 0 0; /* (rounded-t-full, adapté) */
+    /* Effet de lueur (simplifié) */
+    box-shadow: 0 -2px 8px color-mix(in srgb, var(--primary-color) 40%, transparent),
+    0 -1px 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+
+/* --- Responsive pour la barre de navigation --- */
+@media (max-width: 767px) { /* md: breakpoint dans Tailwind est souvent 768px */
+    #main-nav {
+        top: auto; /* Enlever la position du haut */
+        bottom: 1rem; /* (mb-6 adapté, position au bas) */
+        /* width: calc(100% - 2rem); */ /* Optionnel: si vous voulez qu'elle ne touche pas les bords */
+    }
+
+    #main-nav a .nav-text {
+        display: none; /* Cacher le texte sur mobile (md:hidden pour l'icône, md:inline pour texte) */
+    }
+    #main-nav a .nav-icon {
+        display: inline-block; /* S'assurer que l'icône est visible */
+        font-size: 1.25rem; /* Icônes un peu plus grandes */
+    }
+    #main-nav a {
+        padding: 0.7rem; /* Padding carré pour les icônes seules */
+    }
+
+    /* Ajuster la lampe pour le mode icône */
+    #nav-lamp-effect::before {
+        width: 24px; /* Un peu plus petit pour les icônes */
+    }
 }
 
 main {
@@ -568,6 +668,7 @@ input.search-input { /* Ou cibler par ID si nécessaire */
     padding: 0;
     margin: 0;
     gap: 0.5rem; /* Petit espace entre les onglets */
+    justify-content: center; /* AJOUTÉ pour centrer les onglets */
 }
 
 .stats-navigation li {
@@ -606,4 +707,135 @@ input.search-input { /* Ou cibler par ID si nécessaire */
 /* Conteneur du contenu des onglets */
 #stats-content {
     padding-top: 1rem; /* Un peu d'espace au-dessus du contenu de l'onglet */
+}
+
+/* --- Styles pour la Section Hero (Page d'accueil) --- */
+.hero-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px); /* Ajuster selon hauteur header/footer */
+    padding: 2rem 1rem;
+    text-align: center;
+    background-color: var(--background-color); /* Ou un fond spécifique si désiré */
+}
+
+.hero-container {
+    max-width: 800px; /* Largeur maximale du contenu */
+    width: 100%;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem; /* Espacement entre les éléments principaux */
+}
+
+.hero-launch-btn {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-medium);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+    box-shadow: var(--box-shadow-subtle);
+    display: inline-flex; /* Pour aligner texte et flèche */
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-launch-btn:hover {
+    background-color: var(--hover-background-light);
+    box-shadow: var(--box-shadow-medium);
+}
+
+.hero-title-container {
+    margin-bottom: 1rem;
+}
+
+.hero-main-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.3; /* MODIFIÉ: légèrement augmenté pour donner de l'air */
+    color: var(--text-color);
+    margin: 0;
+    /* AJOUT: Pour aider à contenir les éléments inline-block correctement */
+    display: flex;
+    flex-wrap: wrap; /* Permet aux spans de passer à la ligne si nécessaire, bien que l'objectif soit de les garder sur une ligne */
+    justify-content: center; /* Centrer les éléments si sur plusieurs lignes */
+    align-items: baseline; /* Aligner sur la ligne de base du texte */
+}
+
+@media (min-width: 768px) {
+    .hero-main-title {
+        font-size: 4rem; /* 64px */
+    }
+}
+
+.hero-title-static {
+    /* Style pour les parties statiques du titre si besoin */
+}
+
+.hero-title-animated-wrapper {
+    display: inline-block;
+    position: relative;
+    color: var(--primary-color);
+    min-width: 13ch;
+    max-width: 100%; /* Pour éviter qu'un mot trop long ne casse tout */
+    height: 1.3em;
+    overflow: hidden;
+    margin: 0 0.3em; /* MODIFIÉ: Un peu plus d'espace autour du mot animé */
+    text-align: center;
+}
+
+/* Si .hero-main-title est flex, les spans deviennent des items flex */
+.hero-title-static, .hero-title-animated-wrapper {
+    /* Pas besoin de display: block ou inline-block spécifiquement ici
+       car ils sont des enfants flex. On peut ajuster leur alignement si besoin. */
+}
+
+.hero-animated-word {
+    position: absolute; /* Superposition des mots */
+    left: 0;
+    right: 0; /* S'assurer qu'il prend toute la largeur du wrapper */
+    text-align: center; /* Centrer le mot dans son wrapper */
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease-in-out;
+    font-weight: 700; /* Assurer la même graisse que le titre */
+    width: 100%;
+}
+
+.hero-description {
+    font-size: 1.125rem; /* 18px */
+    color: var(--text-color-muted);
+    line-height: 1.7;
+    max-width: 650px; /* Limiter la largeur du paragraphe */
+    margin-top: 0;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap; /* Retour à la ligne sur mobile */
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.hero-btn {
+    padding: 0.8rem 1.8rem; /* Padding plus généreux */
+    font-size: 1rem;
+    display: inline-flex; /* Pour aligner texte et flèche */
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-arrow {
+    transition: transform var(--transition-fast);
+}
+
+.hero-btn:hover .hero-arrow {
+    transform: translateX(4px);
 }

@@ -35,7 +35,6 @@ export function renderDashboard(container) {
   <select id="region-chart-type">
     <option value="bar">Barres</option>
     <option value="pie">Camembert</option>
-    <option value="line">Ligne</option>
   </select>
 </div>
 
@@ -149,6 +148,7 @@ function loadRegionsData() {
 
 // Fonction pour créer ou mettre à jour le graphique des régions
 function createOrUpdateRegionsChart(regions) {
+    const chartContainer = document.getElementById('regions-chart').getContext('2d').canvas.parentNode;
     const ctx = document.getElementById('regions-chart').getContext('2d');
     const chartType = document.getElementById('region-chart-type').value;
 
@@ -163,6 +163,19 @@ function createOrUpdateRegionsChart(regions) {
         window.regionsChart.destroy();
     }
 
+    // --- AJOUT : Donner une taille maximale au conteneur pour le camembert ---
+    if (chartType === 'pie') {
+        chartContainer.style.maxWidth = '1200px'; // Limite la largeur pour le camembert
+        chartContainer.style.maxHeight = '1200px'; // Limite la hauteur
+        chartContainer.style.margin = 'auto'; // Pour le centrer s'il est plus petit
+    } else {
+        chartContainer.style.maxWidth = ''; // Rétablir pour les autres types
+        chartContainer.style.maxHeight = '';
+        chartContainer.style.margin = '';
+    }
+    // --- FIN AJOUT ---
+
+
     // Créer un nouveau graphique
     window.regionsChart = new Chart(ctx, {
         type: chartType,
@@ -172,59 +185,56 @@ function createOrUpdateRegionsChart(regions) {
                 label: 'Nombre de véhicules électriques',
                 data: regions.map(region => region.somme_NB_VP_RECHARGEABLES_EL),
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)',
-                    'rgba(199, 199, 199, 0.6)',
-                    'rgba(83, 102, 255, 0.6)',
-                    'rgba(40, 159, 64, 0.6)',
-                    'rgba(210, 199, 199, 0.6)',
-                    'rgba(78, 52, 199, 0.6)',
-                    'rgba(209, 102, 226, 0.6)',
-                    'rgba(22, 159, 182, 0.6)'
+                    'rgba(75, 192, 192, 0.7)', // Couleurs un peu plus opaques
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)',
+                    'rgba(83, 102, 255, 0.7)',
+                    'rgba(40, 159, 64, 0.7)',
+                    'rgba(210, 199, 199, 0.7)',
+                    'rgba(78, 52, 199, 0.7)',
+                    'rgba(209, 102, 226, 0.7)',
+                    'rgba(22, 159, 182, 0.7)'
                 ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(199, 199, 199, 1)',
-                    'rgba(83, 102, 255, 1)',
-                    'rgba(40, 159, 64, 1)',
-                    'rgba(210, 199, 199, 1)',
-                    'rgba(78, 52, 199, 1)',
-                    'rgba(209, 102, 226, 1)',
-                    'rgba(22, 159, 182, 1)'
-                ],
-                borderWidth: 1
+                borderColor: 'rgba(255, 255, 255, 0.8)', // Bordure blanche pour séparer les tranches du camembert
+                borderWidth: chartType === 'pie' ? 2 : 1 // Plus de bordure pour le camembert
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: chartType !== 'pie', // Important pour le camembert
             plugins: {
                 legend: {
-                    position: chartType === 'bar' ? 'top' : 'right',
-                    display: chartType !== 'bar'
+                    position: chartType === 'pie' ? 'bottom' : 'top', // Légende en bas pour le camembert
+                    display: true // Toujours afficher la légende
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
                             const value = context.raw;
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `${value.toLocaleString('fr-FR')} (${percentage}%)`;
+                            if (chartType === 'pie') {
+                                return `${context.label}: ${value.toLocaleString('fr-FR')} (${percentage}%)`;
+                            }
+                            return `${label}${value.toLocaleString('fr-FR')} (${percentage}%)`;
                         }
                     }
                 }
             },
-            scales: {
+            scales: { // Cache les axes pour le camembert
                 y: {
-                    display: chartType === 'bar',
+                    display: chartType !== 'pie',
                     beginAtZero: true
+                },
+                x: {
+                    display: chartType !== 'pie',
                 }
             }
         }
