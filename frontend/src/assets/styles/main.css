@@ -317,14 +317,16 @@ section {
 
 /* Bouton secondaire (optionnel, exemple) */
 .btn-secondary {
-    background-color: var(--card-background);
+    background-color: var(--card-background); /* Fond blanc par défaut */
     color: var(--primary-color);
     border: 1px solid var(--border-color);
     box-shadow: none;
 }
 
 .btn-secondary:hover, .btn-secondary:focus {
-    background-color: var(--hover-background-light);
+    /* background-color: var(--hover-background-light); ANCIEN */
+    background-color: #e9ecef; /* MODIFIÉ: Un gris clair opaque (similaire à --bs-gray-200 de Bootstrap) */
+    /* Ou si vous voulez un blanc légèrement grisé, essayez #f8f9fa; */
     border-color: color-mix(in srgb, var(--border-color) 80%, black);
     box-shadow: var(--box-shadow-subtle);
     transform: translateY(-1px);
@@ -791,14 +793,58 @@ input.search-input { /* Ou cibler par ID si nécessaire */
 }
 
 /* --- Styles pour la Section Hero (Page d'accueil) --- */
+
+/* AJOUT: Styles pour l'effet de fond Hero */
+#hero-background-effect {
+    position: fixed; /* Couvre toute la page */
+    inset: 0; /* Équivalent à top:0, left:0, right:0, bottom:0 */
+    z-index: -1; /* Derrière tout le contenu de la page */
+    overflow: hidden; /* S'assurer que rien ne dépasse */
+    background-color: var(--background-color); /* Couleur de fond de base */
+    pointer-events: none; /* Pour que la souris interagisse avec le contenu au-dessus */
+}
+
+#grid-pattern-svg {
+    width: 100%;
+    height: 100%;
+    /* Couleur de la grille, peut être ajustée avec des variables CSS si un thème sombre est ajouté */
+    --grid-pattern-color: rgba(0, 0, 0, 0.07); /* Couleur de base pour la grille */
+}
+/* Si vous prévoyez un thème sombre, vous pourriez faire :
+body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
+*/
+
+#spotlight-effect {
+    position: fixed; /* Positionné par rapport au viewport */
+    width: 300px; /* Taille du spotlight (div) */
+    height: 300px; /* Taille du spotlight (div) */
+    border-radius: 50%;
+    background: radial-gradient(
+            circle at center,
+                /* Utiliser la couleur primaire avec de la transparence */
+                /* from-blue-800 via-blue-600 to-blue-400 */
+            color-mix(in srgb, var(--primary-color) 40%, transparent) 0%,
+            color-mix(in srgb, var(--primary-color) 20%, transparent) 30%,
+            transparent 70% /* Ajuster pour la diffusion */
+    );
+    filter: blur(60px); /* blur-xl est généralement 24px, ici on augmente pour un effet plus diffus */
+    opacity: 0; /* Caché par défaut */
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none; /* Très important pour ne pas bloquer les interactions */
+    z-index: -1; /* S'assurer qu'il reste derrière la grille si jamais, mais normalement ils sont frères */
+    will-change: left, top, opacity; /* Indication pour le navigateur */
+}
+
 .hero-section {
+    position: relative; /* Nécessaire pour que z-index fonctionne */
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 160px); /* Ajuster selon hauteur header/footer */
     padding: 2rem 1rem;
     text-align: center;
-    background-color: var(--background-color); /* Ou un fond spécifique si désiré */
+    background-color: transparent; /* Ou un fond spécifique si désiré */
 }
 
 .hero-container {
@@ -830,7 +876,7 @@ input.search-input { /* Ou cibler par ID si nécessaire */
 }
 
 .hero-launch-btn:hover {
-    background-color: var(--hover-background-light);
+    background-color: #e9ecef;
     box-shadow: var(--box-shadow-medium);
 }
 
