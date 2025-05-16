@@ -8,7 +8,7 @@ export function renderHomePage(container) {
         <div class="hero-content">
           <!-- Bouton "Launch Article" adapté -->
           <button class="hero-launch-btn" id="nav-about-link">
-            Découvrez le projet <span class="hero-arrow">→</span>
+            Découvrez le projet
           </button>
           
           <div class="hero-title-container">
@@ -27,10 +27,10 @@ export function renderHomePage(container) {
           
           <div class="hero-actions">
             <button class="btn btn-primary hero-btn" id="explore-map-home">
-              Explorer la carte <span class="hero-arrow">→</span>
+              Explorer la carte
             </button>
             <button class="btn btn-secondary hero-btn" id="view-stats-home">
-              Voir les statistiques <span class="hero-arrow">→</span>
+              Voir les statistiques
             </button>
           </div>
         </div>
