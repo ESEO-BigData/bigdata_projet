@@ -26,7 +26,7 @@
     --transition-normal: 0.3s ease-in-out;
 }
 
-/* --- Reset et Base --- */
+/* --- Reset et Styles de Base --- */
 *,
 *::before,
 *::after {
@@ -60,8 +60,6 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;
 }
 
-/* NOUVELLES TAILLES ADAPTATIVES (exemple, à ajuster) */
-/* clamp(MINIMUM_SIZE, PREFERRED_SIZE, MAXIMUM_SIZE) */
 h1 { font-size: clamp(1.125rem, 0.75rem + 1vw, 1.5rem); }   /* 18px à 24px */
 h2 { font-size: clamp(1rem, 0.7rem + 0.6vw, 1.25rem); }     /* 16px à 20px */
 h3 { font-size: clamp(0.9375rem, 0.65rem + 0.4vw, 1.125rem); } /* 15px à 18px */
@@ -69,8 +67,6 @@ h4 { font-size: clamp(0.8125rem, 0.6rem + 0.3vw, 1rem); }   /* 13px à 16px */
 
 p {
     margin-bottom: 1rem;
-    /* Pour les paragraphes, une taille fixe est souvent préférable pour la lisibilité,
-       mais on pourrait aussi utiliser clamp si le besoin s'en fait sentir. */
     font-size: var(--font-size-base); /* Reste à 1rem (16px) */
 }
 
@@ -82,182 +78,23 @@ a {
 
 a:hover, a:focus {
     color: color-mix(in srgb, var(--primary-color) 70%, black);
-    text-decoration: underline; /* Optionnel, mais bon pour l'accessibilité */
+    text-decoration: underline;
 }
 
-/* --- NOUVEAUX STYLES POUR LA NAVIGATION PRINCIPALE (Tubelight style) --- */
+/* --- Structure Principale de la Page --- */
 header {
-    /* Le header n'est plus sticky par défaut, la nav l'est */
-    /* S'assurer qu'il n'interfère pas avec le positionnement fixed de la nav */
-    position: relative; /* Ou ne rien mettre si pas de fond/ombre globale pour header */
+    position: relative;
     height: 80px; /* Hauteur indicative pour laisser de la place si la nav est en haut */
 }
 
-#main-nav {
-    position: fixed; /* Fixe */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000; /* Au-dessus de tout */
-    /* Par défaut en haut sur desktop */
-    top: 1.5rem; /* Environ 24px du haut (sm:pt-6) */
-    bottom: auto;
-}
-
-#main-nav ul { /* Le conteneur "pill" */
-    display: flex;
-    align-items: center;
-    gap: 0.25rem; /* Espace entre les boutons (gap-3 dans l'exemple mais adapté) */
-    background-color: rgba(255, 255, 255, 0.7); /* (bg-background/5 + backdrop-blur) */
-    -webkit-backdrop-filter: blur(10px); /* Effet de flou pour Safari */
-    backdrop-filter: blur(10px); /* Effet de flou */
-    border: 1px solid var(--border-color); /* (border-border) */
-    padding: 0.25rem; /* (py-1 px-1) */
-    border-radius: 9999px; /* (rounded-full) */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0,0,0,0.08); /* (shadow-lg) */
-    list-style: none; /* Enlever les puces */
-    margin: 0; /* Reset */
-    position: relative; /* Pour le positionnement de la lampe */
-}
-
-#main-nav li {
-    margin: 0; /* Reset */
-}
-
-#main-nav a {
-    position: relative; /* Pour le z-index de la lampe interne active */
-    display: flex; /* Pour aligner icone et texte */
-    align-items: center;
-    gap: 0.5rem; /* Espace entre icone et texte */
-    cursor: pointer;
-    font-size: 0.875rem; /* (text-sm) */
-    font-weight: 600; /* (font-semibold) */
-    padding: 0.6rem 1.2rem; /* (px-6 py-2) - Ajustez selon besoin */
-    border-radius: 9999px; /* (rounded-full) */
-    color: var(--text-color-muted); /* (text-foreground/80) */
-    text-decoration: none;
-    transition: color var(--transition-fast), background-color var(--transition-fast);
-    white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-
-#main-nav a:hover {
-    color: var(--primary-color); /* (hover:text-primary) */
-    background-color: var(--hover-background-light); /* Subtil fond au survol */
-}
-
-#main-nav a .nav-icon {
-    display: inline-flex; /* Important pour que le SVG à l'intérieur soit bien traité par align-items */
-    align-items: center; /* Centrer le SVG dans son span */
-    justify-content: center; /* Centrer le SVG dans son span */
-    line-height: 1; /* Peut aider si le SVG a une hauteur intrinsèque qui pose problème */
-}
-
-#main-nav a .nav-icon svg {
-    display: block; /* Enlève l'espace en dessous que certains SVGs inline peuvent avoir */
-    width: 18px;   /* Ajuster la taille de l'icône si besoin */
-    height: 18px;  /* Ajuster la taille de l'icône si besoin */
-    vertical-align: middle; /* Une autre option si display:block ne suffit pas */
-}
-
-#main-nav a .nav-text {
-    display: inline-block; /* Par défaut, on affiche les deux */
-}
-
-/* Style de l'onglet actif */
-#main-nav a[aria-current="page"] {
-    color: var(--primary-color); /* (text-primary) */
-    /* background-color: color-mix(in srgb, var(--primary-color) 10%, transparent); (bg-muted) */
-    /* Le fond "bg-muted" est géré par la motion.div lamp qui est sous le texte. */
-    /* On pourrait simuler avec un ::before ou ::after mais la lampe JS est mieux. */
-}
-
-/* La "lampe" qui se déplace (l'effet lumineux sous l'onglet actif) */
-#nav-lamp-effect {
-    position: absolute;
-    background-color: color-mix(in srgb, var(--primary-color) 15%, transparent); /* (bg-primary/5) */
-    border-radius: 9999px; /* (rounded-full) */
-    z-index: -1; /* ( -z-10 pour être derrière le texte du lien) */
-    height: 100%; /* Prend toute la hauteur du lien parent */
-    top: 0;
-    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Initialement cachée ou positionnée au premier élément par JS */
-    opacity: 0; /* Sera rendue visible par JS une fois positionnée */
-}
-
-/* Le petit "tube lumineux" au-dessus de la lampe */
-#nav-lamp-effect::before {
-    content: '';
-    position: absolute;
-    top: -5px; /* (-top-2, adapté) */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 32px; /* (w-8) */
-    height: 4px; /* (h-1) */
-    background-color: var(--primary-color); /* (bg-primary) */
-    border-radius: 2px 2px 0 0; /* (rounded-t-full, adapté) */
-    /* Effet de lueur (simplifié) */
-    box-shadow: 0 -2px 8px color-mix(in srgb, var(--primary-color) 40%, transparent),
-    0 -1px 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
-}
-
-
-/* --- Responsive pour la barre de navigation --- */
-@media (max-width: 768px) {
-    main {
-        /* La hauteur de la nav est d'environ 50-60px + son top de 1.5rem (24px) = ~80px
-           Plus la marge initiale de main de 2.5rem (40px) */
-        margin-top: calc(1.5rem + 60px + 2.5rem); /* top_nav + height_nav + initial_margin_main */
-        /* Simplifié: Si le header a déjà une height de 80px, le margin-top de main (2.5rem) s'ajoute.
-           Il faut juste être sûr que le `main` commence bien en dessous de la nav.
-           Le `header height: 80px` est déjà une bonne base pour pousser le `main` vers le bas.
-           La marge `main { margin: 2.5rem auto; }` ajoute un espacement supplémentaire, ce qui est bien.
-           Nous pouvons donc laisser le margin-top de main à 2.5rem si le header est là pour pousser.
-           Cependant, si vous voulez être plus précis par rapport à la nav flottante : */
-        padding-top: 60px; /* Espace supplémentaire pour la nav fixe. Ajustez 60px si la nav est plus haute/basse */
-        /* Ou mieux: utiliser le margin-top du header. */
-        /* Avec header height: 80px, et nav top: 1.5rem (24px),
-        main margin-top: 2.5rem est OK.
-        Pour éviter le calcul complexe, on peut juste s'assurer que le main a assez d'espace.
-        La `height: 80px` sur `header` et `margin-top: 2.5rem` sur `main` devraient suffire.
-        L'essentiel est que `main` ne commence pas sous la barre de navigation fixe.
-        Avec la nav à `top: 1.5rem` et une hauteur d'environ `3.5rem` (padding + font),
-        elle descend jusqu'à `5rem` du haut.
-        Le `header` avec `height: 80px` (soit `5rem`) pousse bien `main`.
-        Le `margin-top: 2.5rem` de `main` ajoute un espacement supplémentaire. C'est bon.
-        Pas besoin de `padding-top` ici si le `header` fait son travail.
-        Retirons ce padding-top spécifique, car le `header` est déjà là pour ça.
-*/
-    }
-    #main-nav {
-        top: auto; /* Enlever la position du haut */
-        bottom: 1rem; /* (mb-6 adapté, position au bas) */
-        /* width: calc(100% - 2rem); */ /* Optionnel: si vous voulez qu'elle ne touche pas les bords */
-    }
-
-    #main-nav a .nav-text {
-        display: none; /* Cacher le texte sur mobile (md:hidden pour l'icône, md:inline pour texte) */
-    }
-    #main-nav a .nav-icon {
-        display: inline-block; /* S'assurer que l'icône est visible */
-        font-size: 1.25rem; /* Icônes un peu plus grandes */
-    }
-    #main-nav a {
-        padding: 0.7rem; /* Padding carré pour les icônes seules */
-    }
-
-    /* Ajuster la lampe pour le mode icône */
-    #nav-lamp-effect::before {
-        width: 24px; /* Un peu plus petit pour les icônes */
-    }
-}
-
 main {
-    width: 90%; /* MODIFIÉ: Prend 90% de la largeur de la fenêtre */
-    max-width: 1440px; /* MODIFIÉ: Limite supérieure, vous pouvez l'ajuster (ex: 1500px, 1366px) */
-    margin-left: auto;   /* Pour centrer le bloc */
-    margin-right: auto;  /* Pour centrer le bloc */
-    margin-top: 2.5rem;  /* Conserver les marges verticales */
-    margin-bottom: 2.5rem;/* Conserver les marges verticales */
-    padding: 0 2rem;     /* MODIFIÉ: Augmenter légèrement le padding interne horizontal */
+    width: 90%;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    padding: 0 2rem;
     flex-grow: 1;
 }
 
@@ -271,22 +108,147 @@ footer {
     font-size: 0.875rem; /* 14px */
 }
 
-/* --- Styles Communs pour Sections --- */
 section {
     margin-bottom: 3rem; /* Espacement entre les sections */
 }
 
-/* --- Styles Globaux pour les Contrôles (base) --- */
+/* --- Navigation Principale (Style "Tubelight") --- */
+#main-nav {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    top: 1.5rem;
+    bottom: auto;
+}
+
+#main-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0,0,0,0.08);
+    list-style: none;
+    margin: 0;
+    position: relative;
+}
+
+#main-nav li {
+    margin: 0;
+}
+
+#main-nav a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    color: var(--text-color-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    white-space: nowrap;
+}
+
+#main-nav a:hover {
+    color: var(--primary-color);
+    background-color: var(--hover-background-light);
+}
+
+#main-nav a .nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+#main-nav a .nav-icon svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+#main-nav a .nav-text {
+    display: inline-block;
+}
+
+#main-nav a[aria-current="page"] {
+    color: var(--primary-color);
+}
+
+/* La "lampe" qui se déplace (l'effet lumineux sous l'onglet actif) */
+#nav-lamp-effect {
+    position: absolute;
+    background-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    border-radius: 9999px;
+    z-index: -1;
+    height: 100%;
+    top: 0;
+    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+}
+
+/* Le petit "tube lumineux" au-dessus de la lampe */
+#nav-lamp-effect::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 4px;
+    background-color: var(--primary-color);
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 -2px 8px color-mix(in srgb, var(--primary-color) 40%, transparent),
+    0 -1px 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+/* Responsive pour la Navigation Principale */
+@media (max-width: 768px) {
+    main {
+        padding-top: 60px;
+    }
+    #main-nav {
+        top: auto;
+        bottom: 1rem;
+    }
+
+    #main-nav a .nav-text {
+        display: none;
+    }
+    #main-nav a .nav-icon {
+        display: inline-block;
+        font-size: 1.25rem;
+    }
+    #main-nav a {
+        padding: 0.7rem;
+    }
+
+    #nav-lamp-effect::before {
+        width: 24px;
+    }
+}
+
+/* --- Boutons et Contrôles de Formulaires Globaux --- */
 .btn {
     display: inline-block;
-    padding: 0.65rem 1.25rem; /* Padding ajusté */
-    font-size: 0.95rem; /* Légèrement plus petit */
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
     font-weight: 500;
     text-align: center;
     text-decoration: none;
     cursor: pointer;
     border: none;
-    border-radius: var(--border-radius-medium); /* Coins plus arrondis */
+    border-radius: var(--border-radius-medium);
     transition: background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
     background-color: var(--primary-color);
     color: white;
@@ -296,8 +258,8 @@ section {
 .btn:hover, .btn:focus {
     background-color: color-mix(in srgb, var(--primary-color) 90%, black);
     box-shadow: var(--box-shadow-medium);
-    transform: translateY(-1px); /* Léger effet de soulèvement */
-    color: white; /* S'assurer que la couleur du texte reste blanche */
+    transform: translateY(-1px);
+    color: white;
     text-decoration: none;
 }
 
@@ -315,18 +277,15 @@ section {
     transform: none;
 }
 
-/* Bouton secondaire (optionnel, exemple) */
 .btn-secondary {
-    background-color: var(--card-background); /* Fond blanc par défaut */
+    background-color: var(--card-background);
     color: var(--primary-color);
     border: 1px solid var(--border-color);
     box-shadow: none;
 }
 
 .btn-secondary:hover, .btn-secondary:focus {
-    /* background-color: var(--hover-background-light); ANCIEN */
-    background-color: #e9ecef; /* MODIFIÉ: Un gris clair opaque (similaire à --bs-gray-200 de Bootstrap) */
-    /* Ou si vous voulez un blanc légèrement grisé, essayez #f8f9fa; */
+    background-color: #e9ecef;
     border-color: color-mix(in srgb, var(--border-color) 80%, black);
     box-shadow: var(--box-shadow-subtle);
     transform: translateY(-1px);
@@ -343,25 +302,22 @@ section {
     transform: none;
 }
 
-
-/* --- Styles de base pour les inputs et selects --- */
 input[type="text"],
 input[type="search"],
 select {
     width: auto;
-    min-width: 180px; /* Légèrement réduit la largeur minimale */
+    min-width: 180px;
     max-width: 100%;
-    /* padding: 0.6rem 0.8rem; ANCIEN */
-    padding: 0.5rem 0.8rem; /* MODIFIÉ: Padding vertical réduit */
+    padding: 0.5rem 0.8rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
     background-color: var(--card-background);
     font-family: inherit;
-    font-size: 0.9rem; /* Légèrement réduit la taille de police */
+    font-size: 0.9rem;
     color: var(--text-color);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     vertical-align: middle;
-    height: 2.5rem; /* AJOUT: Fixer une hauteur (environ 40px) peut aider à la cohérence */
+    height: 2.5rem;
 }
 
 input[type="text"]:focus,
@@ -369,39 +325,26 @@ input[type="search"]:focus,
 select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); /* Halo de focus */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
 }
 
-/* Gardez cette règle spécifique à select pour la flèche */
 select {
     appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236e6e73%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
     background-position: right 0.8rem center;
     background-size: 0.65em auto;
-    padding-right: 2.5rem; /* Espace pour la flèche */
+    padding-right: 2.5rem;
 }
 
-/* Styles spécifiques pour les inputs de recherche (si on leur donne une classe) */
-input.search-input { /* Ou cibler par ID si nécessaire */
-    min-width: 300px; /* Leur donner une largeur minimale plus grande */
-    /* width: 100%; */ /* Optionnel: si le conteneur parent le permet, prendre toute la largeur */
-}
-
-/* On peut aussi cibler le conteneur des inputs de recherche si c'est plus simple */
-.territory-search input[type="text"] {
-    min-width: 300px; /* Applique la largeur minimale aux inputs dans .territory-search */
-    /* width: 100%; */ /* Décommenter si vous voulez qu'il remplisse .territory-search */
-}
-
-/* --- Styles pour les Controles de Corrélation/Comparaison --- */
+/* --- Contrôles Spécifiques (Corrélation, Comparaison, Recherche de Territoire) --- */
 .correlation-controls,
 .comparison-controls {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem;
     margin-bottom: 2rem;
-    align-items: flex-end; /* MODIFIÉ: Aligne les éléments sur leur ligne de base (utile si labels de hauteurs diff) */
+    align-items: flex-end;
 }
 
 .control-group,
@@ -411,10 +354,9 @@ input.search-input { /* Ou cibler par ID si nécessaire */
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    flex: 1 1 auto; /* MODIFIÉ: Permet de grandir et rétrécir, base auto */
-    min-width: 180px; /* Pour éviter qu'ils ne deviennent trop petits */
-    /* AJOUT: Limiter l'étirement excessif d'un seul contrôle */
-    max-width: 350px; /* Ajustez cette valeur au besoin */
+    flex: 1 1 auto;
+    min-width: 180px;
+    max-width: 350px;
 }
 
 .control-group label,
@@ -426,79 +368,81 @@ input.search-input { /* Ou cibler par ID si nécessaire */
     color: var(--text-color-muted);
 }
 
-/* Spécifique pour la recherche pour qu'elle prenne plus de place si désiré */
 .territory-search {
-    flex-grow: 2; /* MODIFIÉ: Donner un peu plus de priorité à la recherche pour s'étendre */
-    max-width: 450px; /* Mais pas indéfiniment */
+    flex-grow: 2;
+    max-width: 450px;
 }
 
-/* Assurer que le conteneur du select ne force pas une largeur inutile */
+/* Ciblage spécifique pour les inputs dans les groupes de contrôle */
 .control-group select,
 .control-group input[type="text"],
 .territory-type-selector select,
 .territory-selector select,
 .territory-search input[type="text"] {
-    width: 100%; /* MODIFIÉ: Force l'input/select à remplir son conteneur .control-group etc. */
-    min-width: 0; /* Réinitialiser le min-width hérité des styles globaux d'input/select */
+    width: 100%;
+    min-width: 0;
 }
 
-/* --- Styles pour les Résultats de Recherche (Communes) --- */
+/* Style spécifique pour les inputs de recherche par classe ou dans un conteneur */
+input.search-input {
+    min-width: 300px;
+}
+.territory-search input[type="text"] { /* S'assure que celui-ci est bien ciblé */
+    min-width: 300px; /* Peut être redondant si .search-input est utilisé, mais assure la spécificité */
+}
 
+
+/* --- Résultats de Recherche Dynamiques (pour Communes, etc.) --- */
 .search-container {
-    position: relative; /* Nécessaire pour positionner les résultats */
-    width: 100%; /* Assure que le conteneur prend la largeur dispo dans son groupe */
+    position: relative;
+    width: 100%;
 }
 
-/* L'input de recherche lui-même */
-.territory-search input[type="text"] {
-    /* Styles précédents pour la largeur/hauteur s'appliquent */
-    margin-bottom: 0; /* Enlever la marge basse par défaut si présente */
+.search-container input[type="text"] { /* Assure que l'input dans le container est bien stylé */
+    margin-bottom: 0;
 }
-
 
 .search-results {
     position: absolute;
-    top: calc(100% + 4px); /* Positionner sous l'input avec un petit espace */
+    top: calc(100% + 4px);
     left: 0;
-    right: 0; /* S'assurer qu'il prend toute la largeur de .search-container */
+    right: 0;
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-medium); /* Coins arrondis */
-    box-shadow: var(--box-shadow-medium); /* Ombre pour le détacher */
-    z-index: 1000; /* Au-dessus des autres éléments */
-    max-height: 240px; /* Limiter la hauteur (environ 6-8 résultats visibles) */
-    overflow-y: auto; /* Activer le scroll si plus de résultats */
-    padding: 0.4rem 0; /* Petit padding vertical interne, pas horizontal */
-    opacity: 0; /* Caché par défaut */
-    visibility: hidden; /* Caché par défaut */
-    transform: translateY(-10px); /* Effet d'apparition */
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    z-index: 1000;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 0.4rem 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
     transition: opacity var(--transition-fast), visibility var(--transition-fast), transform var(--transition-fast);
 }
 
-/* Style pour afficher les résultats (à ajouter via JS quand il y a des résultats) */
 .search-container.results-visible .search-results {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-
 .result-item {
-    padding: 0.6rem 1rem; /* Padding interne */
+    padding: 0.6rem 1rem;
     cursor: pointer;
     font-size: 0.9rem;
     color: var(--text-color);
     transition: background-color var(--transition-fast), color var(--transition-fast);
-    white-space: nowrap; /* Empêcher le retour à la ligne */
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Ajouter ... si trop long */
+    text-overflow: ellipsis;
 }
 
 .result-item:hover,
-.result-item:focus { /* Ajouter focus pour navigation clavier */
-    background-color: var(--primary-color); /* Fond bleu au survol */
-    color: white; /* Texte blanc */
-    outline: none; /* Enlever le contour par défaut */
+.result-item:focus {
+    background-color: var(--primary-color);
+    color: white;
+    outline: none;
 }
 
 .no-results {
@@ -509,218 +453,68 @@ input.search-input { /* Ou cibler par ID si nécessaire */
     cursor: default;
 }
 
-/* --- Conteneurs Génériques (Ex: pour les sections de graphiques/cartes) --- */
+/* --- Cartes et Conteneurs Génériques --- */
 .card {
     background-color: var(--card-background);
     border-radius: var(--border-radius-medium);
     box-shadow: var(--box-shadow-medium);
     padding: 1.5rem;
     margin-bottom: 2rem;
-    overflow: hidden; /* Pour les coins arrondis avec des enfants */
+    overflow: hidden;
 }
 
-/* --- Styles pour les éléments spécifiques repris de l'ancien CSS (à affiner plus tard) --- */
-.map-container {
-    height: 500px; /* Un peu moins haut peut-être ? */
-    width: 100%;
-    margin: 1.5rem 0;
-    border-radius: var(--border-radius-medium);
-    overflow: hidden; /* Important pour Leaflet et les coins */
-    border: 1px solid var(--border-color); /* Bordure subtile */
-}
-
-.chart-container {
-    margin: 2rem 0;
-    padding: 1rem 0;
-    position: relative; /* Important pour Chart.js */
-    width: 100%; /* S'assurer qu'il prend la largeur de son parent */
-    /* max-width: 800px; */ /* SUPPRIMER ou AJUSTER: Limite la largeur maximale du graphique.
-                             Si vous voulez qu'il s'étende plus, augmentez ou supprimez cette ligne.
-                             Pour le dashboard, le camembert avait son propre max-width, c'est bien.
-                             Pour les barres, on peut le laisser s'étendre plus. */
-    /* Exemple: max-width: 1000px; pour les graphiques en barres, pour éviter qu'ils ne soient trop "plats" */
-}
-
-/* Spécifique pour le dashboard, la taille du camembert est gérée en JS, c'est OK.
-   Pour le graphique en barres du dashboard : */
-.dashboard-container .chart-section .chart-container { /* Cible plus spécifique si besoin */
-    max-width: 1000px; /* Limite pour le graphique en barres des régions */
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Pour les graphiques de comparaison et corrélation */
-.comparison-charts .chart-container,
-.correlation-chart-container {
-    flex: 1 1 300px; /* Permet aux graphiques de se mettre côte à côte si l'espace le permet */
-    min-width: 280px;
-    max-width: 600px; /* Limiter la largeur de chaque graphique comparatif/corrélation */
-}
-
-.comparison-charts { /* Le conteneur des 3 graphiques de comparaison */
+/* --- Cartes KPI (Indicateurs Clés de Performance) --- */
+.kpi-row {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem;
-    justify-content: space-around; /* Pour bien répartir */
-}
-
-.export-container {
-    margin-top: 1.5rem;
-    text-align: right;
-}
-
-/* --- Styles pour les Tableaux de Données --- */
-
-/* Conteneur optionnel pour ajouter une marge ou un cadre */
-.data-table-container {
-    margin-bottom: 2rem; /* Espace sous le tableau */
-    overflow-x: auto; /* Permet le scroll horizontal sur petit écran */
-    background-color: var(--card-background); /* Fond blanc */
-    border-radius: var(--border-radius-medium); /* Coins arrondis */
-    box-shadow: var(--box-shadow-subtle); /* Ombre légère */
-    border: 1px solid var(--border-color); /* Bordure très fine */
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse; /* Assure que les bordures se touchent proprement */
-    min-width: 600px; /* Empêche le tableau de devenir trop écrasé avant de scroller */
-    /* Enlever les anciennes propriétés de box-shadow et background, géré par le conteneur */
-}
-
-.data-table thead th {
-    padding: 1rem 1.25rem; /* Augmenter le padding */
-    text-align: left; /* Aligner à gauche par défaut */
-    font-size: 0.8rem; /* Texte un peu plus petit pour l'en-tête */
-    font-weight: 600; /* Un peu plus gras */
-    color: var(--text-color-muted); /* Couleur de texte discrète */
-    text-transform: uppercase; /* Majuscules */
-    letter-spacing: 0.05em; /* Espacement des lettres */
-    background-color: var(--background-color); /* Fond très clair, différent du corps */
-    border-bottom: 2px solid var(--border-color); /* Ligne de séparation plus marquée */
-    /* Enlever height, vertical-align */
-}
-
-.data-table tbody td {
-    padding: 0.9rem 1.25rem; /* Padding vertical un peu plus petit que l'en-tête */
-    text-align: left; /* Aligner à gauche par défaut */
-    border-bottom: 1px solid var(--border-color); /* Ligne fine entre les lignes */
-    vertical-align: middle; /* Centrer verticalement si contenu de hauteurs différentes */
-    font-size: 0.95rem; /* Taille de texte standard */
-}
-
-/* Style spécifique pour les colonnes numériques (optionnel mais recommandé) */
-.data-table th.numeric,
-.data-table td.numeric {
-    text-align: right; /* Aligner les chiffres à droite */
-    font-variant-numeric: tabular-nums; /* Assure que les chiffres ont la même largeur */
-}
-/* Appliquer aux colonnes qui contiennent des chiffres si possible via JS/HTML */
-/* Ou cibler par position si la structure est fixe : */
-/* Exemple : .data-table th:nth-child(n+2), .data-table td:nth-child(n+2) { text-align: right; } */
-/* Adapte le sélecteur :nth-child si nécessaire */
-
-
-.data-table tbody tr {
-    transition: background-color var(--transition-fast);
-}
-
-.data-table tbody tr:hover {
-    background-color: var(--hover-background-light); /* Effet de survol léger */
-}
-
-.data-table tbody tr:last-child td {
-    border-bottom: none; /* Pas de bordure sous la dernière ligne */
-}
-
-/* Ajustements pour le style "centré" hérité (si besoin, sinon préférer alignement gauche/droite) */
-.data-table .centered-cell {
-    text-align: center;
-}
-
-/* --- Styles Spécifiques Tableaux Comparaison/Corrélation (Hérités/Adaptés) --- */
-
-/* Différence dans le tableau de comparaison */
-.comparison-table-container .data-table td:last-child { /* Cible la colonne différence */
-    font-weight: 500;
-    text-align: right; /* Assurer l'alignement à droite pour la différence */
-}
-
-.comparison-table-container .data-table tr.positive-difference td:last-child {
-    color: var(--accent-color); /* Vert pour positif */
-}
-
-.comparison-table-container .data-table tr.negative-difference td:last-child {
-    color: #FF3B30; /* Rouge (style iOS) pour négatif */
-}
-
-/* Tables dans la section Corrélation (well/under-equipped) */
-.correlation-section .data-table-container {
-    margin-top: 1.5rem;
-}
-.correlation-section .data-table th:nth-child(n+2), /* Cible les colonnes numériques */
-.correlation-section .data-table td:nth-child(n+2) {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-}
-
-/* --- Styles pour les Cartes KPI --- */
-
-.kpi-row {
-    display: flex; /* Utiliser Flexbox pour aligner les cartes */
-    flex-wrap: wrap; /* Permettre le retour à la ligne sur petits écrans */
-    gap: 1.5rem; /* Espacement entre les cartes */
-    margin-bottom: 2.5rem; /* Espace sous la rangée de KPIs */
+    margin-bottom: 2.5rem;
     justify-content: center;
 }
 
 .kpi-card {
-    flex: 1 1 185px; /* MODIFIÉ: Base légèrement plus petite */
+    flex: 1 1 185px;
     background-color: var(--card-background);
     border-radius: var(--border-radius-medium);
     box-shadow: var(--box-shadow-medium);
-    /* padding: 1.5rem; ANCIEN */
-    padding: 1.2rem; /* MODIFIÉ: Padding interne réduit */
+    padding: 1.2rem;
     display: flex;
     flex-direction: column;
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .kpi-card:hover {
-    transform: translateY(-3px); /* Soulèvement plus prononcé au survol */
+    transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
 .kpi-card h3 {
-    /* font-size: 0.9rem; ANCIEN (ou 0.85rem si modifié précédemment) */
-    font-size: 0.8rem; /* MODIFIÉ: Titre encore un peu plus petit */
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-color-muted);
-    margin-bottom: 0.4rem; /* MODIFIÉ: Espace sous titre réduit */
+    margin-bottom: 0.4rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
 .kpi-card .kpi-value {
-    /* font-size: 2.5rem; ANCIEN (ou 2.25rem si modifié précédemment) */
-    font-size: 2.0rem; /* MODIFIÉ: Taille de la valeur réduite */
+    font-size: 2.0rem;
     font-weight: 700;
     color: var(--text-color);
     line-height: 1.1;
-    margin-bottom: 0.5rem; /* MODIFIÉ: Espace sous valeur réduit */
+    margin-bottom: 0.5rem;
 }
 
-/* Style pour l'état "Chargement..." */
 .kpi-card .kpi-value:empty::after {
     content: "Chargement...";
-    font-size: 1.5rem; /* Plus petit que la valeur finale */
+    font-size: 1.5rem;
     font-weight: 500;
     color: var(--text-color-muted);
     opacity: 0.7;
 }
 
 .kpi-card .kpi-description {
-    font-size: 0.8rem; /* MODIFIÉ: Description un peu plus petite */
+    font-size: 0.8rem;
     color: var(--text-color-muted);
     line-height: 1.4;
     margin-top: auto;
@@ -728,21 +522,143 @@ input.search-input { /* Ou cibler par ID si nécessaire */
 
 @media (min-width: 1400px) {
     .kpi-card {
-        flex-basis: 220px; /* Augmenter la base pour qu'elles soient un peu plus larges */
+        flex-basis: 220px;
     }
 }
 
 @media (min-width: 1600px) {
     .kpi-card {
-        flex-basis: 250px; /* Encore un peu plus large si l'écran est très grand */
+        flex-basis: 250px;
     }
 }
 
-/* --- Styles pour la Navigation des Onglets Statistiques --- */
+/* --- Éléments Spécifiques aux Sections (Carte Géo, Graphiques, Export) --- */
+.map-container {
+    height: 500px;
+    width: 100%;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius-medium);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
 
+.chart-container {
+    margin: 2rem 0;
+    padding: 1rem 0;
+    position: relative;
+    width: 100%;
+}
+
+.dashboard-container .chart-section .chart-container {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.comparison-charts .chart-container,
+.correlation-chart-container {
+    flex: 1 1 300px;
+    min-width: 280px;
+    max-width: 600px;
+}
+
+.comparison-charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: space-around;
+}
+
+.export-container {
+    margin-top: 1.5rem;
+    text-align: right;
+}
+
+/* --- Tableaux de Données --- */
+.data-table-container {
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-subtle);
+    border: 1px solid var(--border-color);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.data-table thead th {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--background-color);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.data-table tbody td {
+    padding: 0.9rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+.data-table th.numeric,
+.data-table td.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.data-table tbody tr {
+    transition: background-color var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--hover-background-light);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table .centered-cell {
+    text-align: center;
+}
+
+/* Styles Spécifiques pour Tableaux de Comparaison/Corrélation */
+.comparison-table-container .data-table td:last-child {
+    font-weight: 500;
+    text-align: right;
+}
+
+.comparison-table-container .data-table tr.positive-difference td:last-child {
+    color: var(--accent-color);
+}
+
+.comparison-table-container .data-table tr.negative-difference td:last-child {
+    color: #FF3B30;
+}
+
+.correlation-section .data-table-container {
+    margin-top: 1.5rem;
+}
+.correlation-section .data-table th:nth-child(n+2),
+.correlation-section .data-table td:nth-child(n+2) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Navigation des Onglets Statistiques --- */
 .stats-navigation {
-    border-bottom: 2px solid var(--border-color); /* Ligne de séparation sous les onglets */
-    margin-bottom: 2rem; /* Espace sous les onglets */
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2rem;
 }
 
 .stats-navigation ul {
@@ -750,105 +666,95 @@ input.search-input { /* Ou cibler par ID si nécessaire */
     list-style: none;
     padding: 0;
     margin: 0;
-    gap: 0.5rem; /* Petit espace entre les onglets */
-    justify-content: center; /* AJOUTÉ pour centrer les onglets */
+    gap: 0.5rem;
+    justify-content: center;
 }
 
 .stats-navigation li {
-    margin: 0; /* Enlever la marge par défaut des li */
+    margin: 0;
 }
 
 .stats-navigation a {
-    display: block; /* Pour que le padding et la bordure fonctionnent bien */
-    padding: 0.8rem 1.5rem; /* Padding généreux */
-    color: var(--text-color-muted); /* Couleur par défaut */
+    display: block;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-color-muted);
     text-decoration: none;
     font-weight: 500;
-    border-bottom: 3px solid transparent; /* Bordure invisible par défaut */
-    margin-bottom: -2px; /* Compenser l'épaisseur de la bordure parente pour aligner */
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
     transition: color var(--transition-fast), border-color var(--transition-fast);
-    border-radius: var(--border-radius-small) var(--border-radius-small) 0 0; /* Arrondi léger en haut */
+    border-radius: var(--border-radius-small) var(--border-radius-small) 0 0;
 }
 
 .stats-navigation a:hover,
 .stats-navigation a:focus {
     color: var(--primary-color);
-    background-color: var(--hover-background-light); /* Léger fond au survol */
-    border-bottom-color: color-mix(in srgb, var(--primary-color) 50%, transparent); /* Bordure légère au survol */
+    background-color: var(--hover-background-light);
+    border-bottom-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
     text-decoration: none;
     outline: none;
 }
 
-/* Style pour l'onglet actif */
 .stats-navigation a.active {
-    color: var(--primary-color); /* Couleur active */
-    font-weight: 600; /* Plus gras */
-    border-bottom-color: var(--primary-color); /* Bordure visible et colorée */
-    background-color: transparent; /* Pas de fond pour l'actif pour qu'il se fonde */
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom-color: var(--primary-color);
+    background-color: transparent;
 }
 
-/* Conteneur du contenu des onglets */
 #stats-content {
-    padding-top: 1rem; /* Un peu d'espace au-dessus du contenu de l'onglet */
+    padding-top: 1rem;
 }
 
-/* --- Styles pour la Section Hero (Page d'accueil) --- */
-
-/* AJOUT: Styles pour l'effet de fond Hero */
+/* --- Section "Hero" (Page d'Accueil) --- */
 #hero-background-effect {
-    position: fixed; /* Couvre toute la page */
-    inset: 0; /* Équivalent à top:0, left:0, right:0, bottom:0 */
-    z-index: -1; /* Derrière tout le contenu de la page */
-    overflow: hidden; /* S'assurer que rien ne dépasse */
-    background-color: var(--background-color); /* Couleur de fond de base */
-    pointer-events: none; /* Pour que la souris interagisse avec le contenu au-dessus */
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background-color: var(--background-color);
+    pointer-events: none;
 }
 
 #grid-pattern-svg {
     width: 100%;
     height: 100%;
-    /* Couleur de la grille, peut être ajustée avec des variables CSS si un thème sombre est ajouté */
-    --grid-pattern-color: rgba(0, 0, 0, 0.07); /* Couleur de base pour la grille */
+    --grid-pattern-color: rgba(0, 0, 0, 0.07);
 }
-/* Si vous prévoyez un thème sombre, vous pourriez faire :
-body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
-*/
 
 #spotlight-effect {
-    position: fixed; /* Positionné par rapport au viewport */
-    width: 300px; /* Taille du spotlight (div) */
-    height: 300px; /* Taille du spotlight (div) */
+    position: fixed;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
     background: radial-gradient(
             circle at center,
-                /* Utiliser la couleur primaire avec de la transparence */
-                /* from-blue-800 via-blue-600 to-blue-400 */
             color-mix(in srgb, var(--primary-color) 40%, transparent) 0%,
             color-mix(in srgb, var(--primary-color) 20%, transparent) 30%,
-            transparent 70% /* Ajuster pour la diffusion */
+            transparent 70%
     );
-    filter: blur(60px); /* blur-xl est généralement 24px, ici on augmente pour un effet plus diffus */
-    opacity: 0; /* Caché par défaut */
+    filter: blur(60px);
+    opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    pointer-events: none; /* Très important pour ne pas bloquer les interactions */
-    z-index: -1; /* S'assurer qu'il reste derrière la grille si jamais, mais normalement ils sont frères */
-    will-change: left, top, opacity; /* Indication pour le navigateur */
+    pointer-events: none;
+    z-index: -1;
+    will-change: left, top, opacity;
 }
 
 .hero-section {
-    position: relative; /* Nécessaire pour que z-index fonctionne */
+    position: relative;
     z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 160px); /* Ajuster selon hauteur header/footer */
+    min-height: calc(100vh - 160px);
     padding: 2rem 1rem;
     text-align: center;
-    background-color: transparent; /* Ou un fond spécifique si désiré */
+    background-color: transparent;
 }
 
 .hero-container {
-    max-width: 1100px; /* Largeur maximale du contenu */
+    max-width: 1100px;
     width: 100%;
 }
 
@@ -856,7 +762,7 @@ body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem; /* Espacement entre les éléments principaux */
+    gap: 1.5rem;
 }
 
 .hero-launch-btn {
@@ -870,7 +776,7 @@ body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
     cursor: pointer;
     transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
     box-shadow: var(--box-shadow-subtle);
-    display: inline-flex; /* Pour aligner texte et flèche */
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
 }
@@ -887,24 +793,23 @@ body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
 .hero-main-title {
     font-size: 3rem;
     font-weight: 700;
-    line-height: 1.3; /* MODIFIÉ: légèrement augmenté pour donner de l'air */
+    line-height: 1.3;
     color: var(--text-color);
     margin: 0;
-    /* AJOUT: Pour aider à contenir les éléments inline-block correctement */
     display: flex;
-    flex-wrap: wrap; /* Permet aux spans de passer à la ligne si nécessaire, bien que l'objectif soit de les garder sur une ligne */
-    justify-content: center; /* Centrer les éléments si sur plusieurs lignes */
-    align-items: baseline; /* Aligner sur la ligne de base du texte */
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
 }
 
 @media (min-width: 768px) {
     .hero-main-title {
-        font-size: 4rem; /* 64px */
+        font-size: 4rem;
     }
 }
 
 .hero-title-static {
-    /* Style pour les parties statiques du titre si besoin */
+    /* Styles pour les parties statiques du titre */
 }
 
 .hero-title-animated-wrapper {
@@ -912,49 +817,43 @@ body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
     position: relative;
     color: var(--primary-color);
     min-width: 13ch;
-    max-width: 100%; /* Pour éviter qu'un mot trop long ne casse tout */
+    max-width: 100%;
     height: 1.3em;
     overflow: hidden;
-    margin: 0 0.3em; /* MODIFIÉ: Un peu plus d'espace autour du mot animé */
+    margin: 0 0.3em;
     text-align: center;
 }
 
-/* Si .hero-main-title est flex, les spans deviennent des items flex */
-.hero-title-static, .hero-title-animated-wrapper {
-    /* Pas besoin de display: block ou inline-block spécifiquement ici
-       car ils sont des enfants flex. On peut ajuster leur alignement si besoin. */
-}
-
 .hero-animated-word {
-    position: absolute; /* Superposition des mots */
+    position: absolute;
     left: 0;
-    right: 0; /* S'assurer qu'il prend toute la largeur du wrapper */
-    text-align: center; /* Centrer le mot dans son wrapper */
+    right: 0;
+    text-align: center;
     transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease-in-out;
-    font-weight: 700; /* Assurer la même graisse que le titre */
+    font-weight: 700;
     width: 100%;
 }
 
 .hero-description {
-    font-size: 1.125rem; /* 18px */
+    font-size: 1.125rem;
     color: var(--text-color-muted);
     line-height: 1.7;
-    max-width: 650px; /* Limiter la largeur du paragraphe */
+    max-width: 650px;
     margin-top: 0;
 }
 
 .hero-actions {
     display: flex;
-    flex-wrap: wrap; /* Retour à la ligne sur mobile */
+    flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
     margin-top: 1rem;
 }
 
 .hero-btn {
-    padding: 0.8rem 1.8rem; /* Padding plus généreux */
+    padding: 0.8rem 1.8rem;
     font-size: 1rem;
-    display: inline-flex; /* Pour aligner texte et flèche */
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
 }
@@ -966,3 +865,4 @@ body.dark #grid-pattern-svg { --grid-pattern-color: rgba(255, 255, 255, 0.1); }
 .hero-btn:hover .hero-arrow {
     transform: translateX(4px);
 }
+
