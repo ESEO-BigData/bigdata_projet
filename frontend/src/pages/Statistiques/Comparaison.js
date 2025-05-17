@@ -66,28 +66,27 @@ export function renderComparaisonData(container) {
             </div>
           </div>
         
-    <div class="comparison-table-container">
-      <h3>Tableau comparatif</h3>
-      <table id="comparison-table" class="data-table">
-        <thead>
-          <tr>
-            <th>Indicateur</th>
-            <!-- AJOUT: classe numeric -->
-            <th id="territory1-name" class="numeric">Territoire 1</th>
-            <th id="territory2-name" class="numeric">Territoire 2</th>
-            <th class="numeric">Différence</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Les données seront injectées ici -->
-        </tbody>
-      </table>
-      <div class="export-container">
-        <button id="export-comparison" class="btn btn-primary hero-btn">Exporter la comparaison</button>
-      </div>
-    </div>
-      </div>
-    </div>
+        <h3>Tableau comparatif</h3>
+        <div class="data-table-container">
+          <table id="comparison-table" class="data-table">
+            <thead>
+              <tr>
+                <th>Indicateur</th>
+                <th id="territory1-name" class="numeric">Territoire 1</th>
+                <th id="territory2-name" class="numeric">Territoire 2</th>
+                <th class="numeric">Différence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Les données seront injectées ici -->
+            </tbody>
+          </table>
+        </div>
+          <div class="export-container">
+            <button id="export-comparison" class="btn btn-primary hero-btn">Exporter la comparaison</button>
+          </div>
+        </div> <!-- Fin de data-table-container -->
+      </div> <!-- Fin de comparison-results -->
   `;
 // Charger la liste des territoires en fonction du type sélectionné
     loadTerritories();

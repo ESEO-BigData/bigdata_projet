@@ -78,14 +78,12 @@ function loadCommunesData() {
       <div class="chart-container">
         <canvas id="communes-by-departement-chart"></canvas>
       </div>
-      
+          <h3>Liste des communes</h3>
   <div class="data-table-container">
-    <h3>Liste des communes</h3>
     <table id="communes-table" class="data-table">
       <thead>
         <tr>
           <th>Commune</th>
-          <!-- AJOUT: classe numeric -->
           <th class="numeric">Code postal</th>
           <th class="numeric">Véhicules électriques</th>
           <th class="numeric">% du parc</th>
@@ -101,11 +99,11 @@ function loadCommunesData() {
     <span id="page-info">Page 1 sur 1</span>
     <button id="next-page" class="pagination-btn">Suivant</button>
   </div>
+  </div>
     <div class="export-container">
     <button id="export-communes-csv" class="btn btn-primary hero-btn">Exporter en CSV</button>
   </div>
 </div>
-    </div>
   `;
 
     // Charger les données des départements
