@@ -5,7 +5,27 @@ import javascriptLogo from '../assets/images/javascript.svg';
 import leafletLogo from '../assets/images/leaflet.svg';
 import chartjsLogo from '../assets/images/chartjs.svg';
 import webpackLogo from '../assets/images/webpack.svg';
-export function renderAboutPage(container) {
+async function loadSplineViewerScript() {
+    if (window.customElements.get('spline-viewer')) {
+        return Promise.resolve(); // Déjà chargé
+    }
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://unpkg.com/@splinetool/viewer@1.0.93/build/spline-viewer.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+export async function renderAboutPage(container) {
+    try {
+        await loadSplineViewerScript();
+    } catch (error) {
+        console.error("Failed to load Spline Viewer script:", error);
+        // Afficher un message d'erreur à l'utilisateur peut-être
+    }
     const backgroundEffectHTML = `
     <div id="hero-background-effect">
       <svg id="grid-pattern-svg">
@@ -161,8 +181,6 @@ export function renderAboutPage(container) {
         // Si la scène est vraiment rapide, elle sera déjà là.
         // Cela aide si les événements 'load'/'ready' sont manqués pour une raison quelconque.
         setTimeout(() => {
-            // On vérifie si le canvas interne de spline-viewer existe.
-            // C'est un bon indicateur que le rendu a commencé.
             const internalCanvas = splineViewerElement.shadowRoot
                 ? splineViewerElement.shadowRoot.querySelector('canvas')
                 : splineViewerElement.querySelector('canvas');
