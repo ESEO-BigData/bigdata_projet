@@ -1,5 +1,4 @@
 import './assets/styles/main.css';
-import 'leaflet/dist/leaflet.css';
 import { renderHomePage } from './pages/Home';
 import { renderBornesMap } from './pages/BornesMap';
 import { renderStatistics } from './pages/Statistiques';

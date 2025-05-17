@@ -395,7 +395,6 @@ function renderStatsHeatMap(container) {
                 }
             }).addTo(map);
 
-            // ✅ Légende externe
             const legendContainer = document.getElementById('heatmap-legend');
             const grades = [0, 0.01, 0.05, 0.1, 0.2, 0.35, 0.5, 0.75];
             let legendHTML = `<strong>Légende : ${field}</strong><br>`;
