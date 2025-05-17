@@ -1121,3 +1121,158 @@ input.search-input {
 .logos-carousel-container:hover .logos-scrolling {
     animation-play-state: paused;
 }
+
+/* --- Styles pour la Section Équipe (Page À Propos) --- */
+.team-presentation-card {
+    background-color: #111113; /* Fond sombre (similaire à bg-black/[0.96]) */
+    color: #e4e4e7; /* Couleur de texte claire (similaire à text-neutral-50/text-neutral-300) */
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    position: relative; /* Pour le positionnement du spotlight */
+    overflow: hidden;  /* Pour les coins arrondis et le spotlight */
+    padding: 0; /* Le padding sera dans le wrapper interne */
+    min-height: 500px; /* Hauteur minimale comme dans l'exemple */
+    display: flex; /* Pour centrer le contenu si nécessaire, mais le wrapper prendra la place */
+    margin-bottom: 3rem;
+}
+
+.team-spotlight { /* L'effet lumineux statique */
+    position: absolute;
+    top: -80px;  /* -top-20 (5rem) */
+    left: 40%; /* Un peu décalé (md:left-60) */
+    width: 350px; /* Ajuster la taille de la lumière */
+    height: 350px; /* Ajuster la taille de la lumière */
+    background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.15) 0%,  /* Lumière blanche diffuse */
+    rgba(255, 255, 255, 0.08) 40%,
+    transparent 70%
+    );
+    filter: blur(40px); /* blur-xl */
+    border-radius: 50%;
+    pointer-events: none; /* Pour ne pas interférer avec les clics */
+    opacity: 0.7;
+}
+
+.team-content-wrapper {
+    display: flex;
+    flex-direction: column; /* Par défaut, pour mobile */
+    width: 100%;
+    flex-grow: 1;
+    position: relative; /* Pour que z-index fonctionne pour le texte */
+    z-index: 1;
+}
+
+.team-text-content {
+    flex: 1; /* Prendra l'espace disponible ou une taille fixe */
+    padding: 2.5rem; /* p-8 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centrer verticalement le texte */
+}
+
+.team-title {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 700; /* font-bold */
+    background: linear-gradient(to bottom, #f0f0f0, #c0c0c0); /* bg-gradient-to-b from-neutral-50 to-neutral-400 */
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem; /* mt-4 sur le paragraphe suivant */
+    border-bottom: none; /* Enlever la bordure par défaut des h2 de about-section */
+}
+
+.team-description {
+    font-size: 1rem; /* text-base (si le style p global est différent) */
+    color: #d4d4d8; /* text-neutral-300 */
+    max-width: 36rem; /* max-w-lg */
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.team-members-list {
+    list-style: none; /* Enlever les puces par défaut */
+    padding-left: 0;
+    margin-top: 1rem;
+}
+
+.team-member-item {
+    font-size: 0.95rem;
+    color: #a1a1aa; /* un peu plus clair que text-neutral-400 */
+    margin-bottom: 0.5rem;
+}
+.team-member-item strong {
+    color: #e4e4e7; /* Noms un peu plus clairs */
+}
+
+
+.team-spline-scene {
+    flex: 1;
+    min-height: 300px;
+    position: relative;
+    background-color: transparent;
+    display: flex; /* Pour que spline-viewer à l'intérieur puisse s'étirer si besoin */
+    flex-direction: column; /* Pour que spline-viewer à l'intérieur puisse s'étirer si besoin */
+}
+
+
+/* Styles pour l'élément spline-viewer lui-même */
+.spline-viewer-instance, /* Si vous utilisez la classe */
+spline-viewer {          /* Ou cibler directement la balise */
+    width: 100%;
+    flex-grow: 1;
+    display: block; /* Important */
+    border: none;   /* S'assurer qu'il n'y a pas de bordures par défaut */
+}
+
+/* Styles pour le loader de la scène Spline */
+.spline-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(17, 17, 19, 0.8); /* Fond semi-transparent pendant le chargement */
+    color: #e4e4e7;
+    font-size: 0.9rem;
+    z-index: 5; /* Au-dessus de l'iframe tant qu'il charge */
+    transition: opacity 0.3s ease-out;
+}
+
+.spline-loader .loader-graphic {
+    border: 4px solid #444; /* Gris foncé */
+    border-top: 4px solid var(--primary-color); /* Couleur primaire pour la partie qui tourne */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Responsive pour la section équipe */
+@media (min-width: 768px) { /* md: breakpoint */
+    .team-content-wrapper {
+        flex-direction: row; /* Texte à gauche, 3D à droite */
+    }
+    .team-text-content {
+        flex-basis: 45%; /* Proportion pour le texte */
+        padding: 3rem;
+    }
+    .team-spline-scene {
+        flex-basis: 55%; /* Proportion pour la scène 3D */
+        flex-grow: 1;
+    }
+    .team-title {
+        font-size: 3rem; /* md:text-5xl */
+    }
+    .team-spotlight { /* Ajustement position spotlight pour desktop */
+        left: 15%; /* md:left-60 (si 60 correspond à ~15% de la largeur) */
+        top: -50px; /* md:-top-20 */
+    }
+}

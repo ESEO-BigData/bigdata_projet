@@ -21,6 +21,17 @@ export function renderAboutPage(container) {
     </div>
     `;
 
+    const teamMembers = [
+        { name: "Maxime Guerin", role: "Développeur Full-Stack & Chef de projet" },
+        { name: "Tom Royer", role: "Spécialiste Data & Visualisation Carte" },
+        { name: "Corentin Jozwiak", role: "Expert Backend & IA" },
+        { name: "Ruben Vardanyan", role: "Expert Data" }
+    ];
+
+    let teamListHTML = teamMembers.map(member =>
+        `<li class="team-member-item"><strong>${member.name}</strong> - ${member.role}</li>`
+    ).join('');
+
     container.innerHTML = `
     ${backgroundEffectHTML}
     <section class="about-section page-content">
@@ -84,16 +95,100 @@ export function renderAboutPage(container) {
         </div>
       </div>
       
-      <div class="about-card team-section">
-        <h2>Équipe</h2>
-        <p>Projet réalisé par l'équipe BigData de l'ESEO.</p>
+<div class="team-presentation-card">
+        <div class="team-spotlight"></div>
+        <div class="team-content-wrapper">
+          <div class="team-text-content">
+            <h2 class="team-title">Notre Équipe</h2>
+            <p class="team-description">
+              Ce projet a été rendu possible grâce à la collaboration et à l'expertise de chaque membre de notre équipe. 
+              Nous avons combiné nos compétences pour analyser, visualiser et présenter les données sur l'électromobilité en France.
+            </p>
+            <ul class="team-members-list">
+              ${teamListHTML}
+            </ul>
+          </div>
+          <div class="team-spline-scene">
+            <spline-viewer 
+              url="https://prod.spline.design/lX7nDShXYFmL9hae/scene.splinecode"
+              class="spline-viewer-instance"
+              events-target="global"
+              logo="false">
+            </spline-viewer>
+            <div class="spline-loader">
+                <span class="loader-graphic"></span> Chargement de la scène 3D...
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   `;
 
-    // Assurer que le spotlight de la page Home est désactivé si on navigue ici
-    const spotlight = document.getElementById('spotlight-effect');
-    if (spotlight) {
-        spotlight.style.opacity = '0';
+    const splineViewerElement = container.querySelector('spline-viewer');
+    const splineLoader = container.querySelector('.spline-loader');
+
+    if (splineViewerElement && splineLoader) {
+        let sceneReady = false;
+
+        const hideLoaderIfNeeded = () => {
+            if (!sceneReady && splineLoader.style.display !== 'none') {
+                splineLoader.style.display = 'none';
+                console.log('Spline loader hidden.');
+                sceneReady = true;
+            }
+        };
+
+        // Événement 'load' comme principal indicateur
+        splineViewerElement.addEventListener('load', () => {
+            console.log('Spline scene "load" event triggered.');
+            hideLoaderIfNeeded();
+        });
+
+        // Événement 'ready' au cas où (certaines versions du viewer)
+        splineViewerElement.addEventListener('ready', () => {
+            console.log('Spline scene "ready" event triggered.');
+            hideLoaderIfNeeded();
+        });
+
+        splineViewerElement.addEventListener('error', (e) => {
+            console.error("Erreur de chargement de Spline Viewer:", e.detail);
+            splineLoader.innerHTML = `<span style="color:red;">❌ Erreur au chargement de la scène 3D.</span>`;
+            // Ne pas cacher le loader s'il y a une erreur, pour que l'utilisateur voie le message.
+            sceneReady = true; // Marquer comme "prêt" pour éviter le timeout de masquage
+        });
+
+        // Tentative de masquage optimiste après un court délai.
+        // Si la scène est vraiment rapide, elle sera déjà là.
+        // Cela aide si les événements 'load'/'ready' sont manqués pour une raison quelconque.
+        setTimeout(() => {
+            // On vérifie si le canvas interne de spline-viewer existe.
+            // C'est un bon indicateur que le rendu a commencé.
+            const internalCanvas = splineViewerElement.shadowRoot
+                ? splineViewerElement.shadowRoot.querySelector('canvas')
+                : splineViewerElement.querySelector('canvas');
+            if (internalCanvas) {
+                console.log('Spline internal canvas detected (optimistic check).');
+                hideLoaderIfNeeded();
+            } else {
+
+                console.log('Fallback (1.5s): Hiding loader.');
+                hideLoaderIfNeeded();
+            }
+        }, 1000);
+        const removeSplineLogoInterval = setInterval(() => {
+            if (splineViewerElement && splineViewerElement.shadowRoot) {
+                const logoElement = splineViewerElement.shadowRoot.querySelector('#logo');
+                if (logoElement) {
+                    logoElement.remove(); // Ou logoElement.style.display = 'none';
+                    console.log("Spline logo removed!");
+                    clearInterval(removeSplineLogoInterval); // Arrêter l'intervalle une fois le logo supprimé
+                }
+            } else if (sceneReady || !splineLoader || splineLoader.style.display === 'none') {}
+
+        }, 300); // Vérifier toutes les 300ms
+}
+    const spotlightHome = document.getElementById('spotlight-effect');
+    if (spotlightHome) {
+        spotlightHome.style.opacity = '0';
     }
 }
