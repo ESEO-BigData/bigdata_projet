@@ -37,7 +37,7 @@ export function renderComparaisonData(container) {
         </div>
       </div>
       
-      <div class="comparison-results">
+      <div class="comparison-results" style="display: none;"> 
         <div class="comparison-charts">
           <div class="chart-container">
             <h3>Nombre de véhicules électriques</h3>
@@ -371,12 +371,14 @@ function debounce(func, wait) {
 function compareSelectedTerritories() {
     const territoryType = document.getElementById('territory-type').value;
     let territory1Value, territory2Value, territory1Name, territory2Name;
+    const comparisonResultsDiv = document.querySelector('.comparison-results'); // Ciblez la div
 
-    // ---> AJOUT : RESET de la section IA au début <---
+    // ---> AJOUT : RESET de la section IA et masquage des résultats au début <---
     const aiSection = document.getElementById('ai-section');
     const aiContainer = document.getElementById('ai-comparison-analysis-container');
-    if (aiSection) aiSection.style.display = 'none'; // Cacher toute la section
-    if (aiContainer) aiContainer.innerHTML = '<p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l\'IA.</p>'; // Réinitialiser le texte
+    if (aiSection) aiSection.style.display = 'none';
+    if (aiContainer) aiContainer.innerHTML = '<p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l\'IA.</p>';
+    if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'none'; // Masquer initialement
     // ---> FIN AJOUT RESET <---
 
     if (territoryType === 'communes') {
@@ -420,19 +422,17 @@ function compareSelectedTerritories() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // ---> STOCKER LES DONNEES <---
                     currentComparisonData = data.data;
                     createComparisonCharts(data.data);
                     populateComparisonTable(data.data);
-                    // ---> AFFICHER la section IA APRES succès <---
                     if (aiSection) aiSection.style.display = 'block';
+                    if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'block'; // Afficher les résultats
                 } else {
                     showComparisonError(data.message || `Erreur lors du chargement pour ${territoryType}`);
-                    // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
                     if (aiSection) aiSection.style.display = 'none';
                 }
             })
-            .catch(error => { /* ... */ });
+            .catch(error => { /* ... */ if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'none';});
     } else if (territoryType === 'departements') {
         // Code existant pour les départements
         Promise.all([
@@ -477,16 +477,10 @@ function compareSelectedTerritories() {
                 currentComparisonData = comparisonData;
                 createDepartementComparisonCharts(comparisonData);
                 populateDepartementComparisonTable(comparisonData);
-                // ---> AFFICHER la section IA APRES succès <---
                 if (aiSection) aiSection.style.display = 'block';
-
+                if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'block'; // Afficher les résultats
             })
-            .catch(error => {
-                console.error('Erreur lors de la comparaison des départements:', error);
-                showComparisonError();
-                // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
-                if (aiSection) aiSection.style.display = 'none';
-            });
+            .catch(error => { /* ... */ if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'none';});
     } else if (territoryType === 'communes') {
         // --- MODIFICATION ICI ---
         // Extraire commune et code postal
@@ -547,20 +541,13 @@ function compareSelectedTerritories() {
                         ratioVehiculesParBorne: (communeData2.nombre_bornes && communeData2.nombre_bornes > 0) ? (communeData2.NB_VP_RECHARGEABLES_EL / communeData2.nombre_bornes).toFixed(2) : 'N/A'
                     }
                 };
-                // ---> STOCKER LES DONNEES <---
                 currentComparisonData = comparisonData;
                 createCommuneComparisonCharts(comparisonData);
                 populateCommuneComparisonTable(comparisonData);
-                // ---> AFFICHER la section IA APRES succès <---
                 if (aiSection) aiSection.style.display = 'block';
-
+                if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'block'; // Afficher les résultats
             })
-            .catch(error => {
-                console.error('Erreur lors de la comparaison des communes:', error);
-                showComparisonError();
-                // ---> S'assurer qu'elle reste cachée en cas d'erreur <---
-                if (aiSection) aiSection.style.display = 'none';
-            });
+            .catch(error => { /* ... */ if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'none';});
     }
 }
 
@@ -588,13 +575,17 @@ function createComparisonCharts(data) {
 
 // Fonction pour afficher un message d'erreur
 function showComparisonError(message = "Une erreur s'est produite lors de la comparaison des territoires.") {
-    const comparisonResults = document.querySelector('.comparison-results');
-    comparisonResults.innerHTML = `
-    <div class="error-message">
-      <p>${message}</p>
-      <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
-    </div>
-  `;
+    const comparisonResultsDiv = document.querySelector('.comparison-results'); // Ciblez la div principale
+    if (comparisonResultsDiv) {
+        comparisonResultsDiv.style.display = 'block'; // Assurez-vous que la div est visible
+        comparisonResultsDiv.innerHTML = ` 
+        <div class="error-message card"> <!-- Ajout de la classe card pour un style plus intégré -->
+          <h3>Erreur de comparaison</h3>
+          <p>${message}</p>
+          <p>Veuillez réessayer ou sélectionner d'autres territoires.</p>
+        </div>
+      `;
+    }
 }
 
 // Fonction pour créer un graphique en barres

@@ -571,9 +571,9 @@ input.search-input {
 
 /* --- Export --- */
 .export-container {
-    text-align: right; /* Garder pour aligner le bouton à droite si souhaité */
-    margin-top: 1.5rem; /* Espace au-dessus du bouton d'export, en dehors du conteneur du tableau */
-    margin-bottom: 2rem; /* Espace en dessous */
+    text-align: right;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 /* --- Tableaux de Données --- */
@@ -582,7 +582,7 @@ input.search-input {
     border-radius: var(--border-radius-medium); /* Coins arrondis pour le conteneur */
     border: 1px solid var(--border-color);     /* Bordure subtile autour du conteneur */
     box-shadow: var(--box-shadow-subtle);
-    overflow: hidden; /* Important pour que les coins arrondis s'appliquent bien à la table à l'intérieur */
+    overflow: hidden;
     margin-bottom: 2rem;
 }
 
@@ -600,16 +600,14 @@ input.search-input {
 
 .data-table th,
 .data-table td {
-    padding: 0.75rem 1rem; /* Padding un peu plus réduit (similaire à h-9 py-2) */
-    vertical-align: middle; /* Bon alignement vertical */
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
 }
 
 .data-table thead th {
-    font-weight: 500; /* Moins gras que 600 par défaut */
-    color: var(--text-color-muted); /* Couleur du texte d'en-tête (similaire à text-muted-foreground) */
-    border-bottom: 1px solid var(--border-color); /* Ligne sous l'en-tête */
-    /* text-transform: uppercase; /* Optionnel, si vous voulez garder les majuscules */
-    /* letter-spacing: 0.05em; /* Optionnel */
+    font-weight: 500;
+    color: var(--text-color-muted);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .data-table tbody tr {
@@ -633,17 +631,17 @@ input.search-input {
 
 /* Pour la première cellule de données qui est souvent un "nom" ou "titre" */
 .data-table tbody td:first-child {
-    font-weight: 500; /* Un peu plus de poids pour le premier élément de la ligne */
-    color: var(--text-color); /* Texte plus foncé */
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 /* --- Pagination --- */
 .pagination-controls {
     display: flex;
-    justify-content: space-between; /* Ou center si vous préférez */
+    justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1rem; /* Padding dans le conteneur de pagination */
-    border-top: 1px solid var(--border-color); /* Ligne au-dessus de la pagination */
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .pagination-btn {
