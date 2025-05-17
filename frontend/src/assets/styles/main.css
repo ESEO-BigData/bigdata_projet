@@ -943,3 +943,29 @@ input.search-input {
 .btn.analyzing-ai {
     /* background-color: color-mix(in srgb, var(--primary-color) 70%, black); */ /* Exemple */
 }
+
+/* --- Styles pour l'animation de texte IA "Fade-in Word by Word" --- */
+.ai-analysis-results {
+    /* Styles de base pour le conteneur de la réponse IA */
+    line-height: 1.7; /* Bonne lisibilité */
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.ai-analysis-results .fade-segment {
+    display: inline; /* Pour que les mots et espaces se suivent naturellement */
+    opacity: 0;
+    animation-name: fadeInWord;
+    animation-fill-mode: forwards;
+}
+
+/* Pour gérer correctement les espaces multiples ou les retours à la ligne si besoin */
+.ai-analysis-results .fade-segment.is-space {
+    white-space: pre;
+}
+
+@keyframes fadeInWord {
+    to {
+        opacity: 1;
+    }
+}

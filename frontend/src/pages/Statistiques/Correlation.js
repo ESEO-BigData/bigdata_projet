@@ -1,4 +1,5 @@
 import Chart from 'chart.js/auto';
+import { animateTextStreamByWord } from '../../utils/animateTextStream';
 
 // Variables globales au module pour stocker les données actuelles
 let currentScatterData = [];
@@ -89,7 +90,6 @@ export function renderCorrelationData(container) {
     </button>
     <div id="ai-analysis-container" class="ai-analysis-results">
        <!-- L'analyse de l'IA sera affichée ici -->
-       <p>Cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
     </div>
 </div>
       
@@ -677,7 +677,6 @@ async function handleAIAnalysis() {
 
 
     // Afficher un état de chargement et désactiver le bouton
-    aiContainer.innerHTML = '<p><i>🧠 Analyse par l\'IA en cours, veuillez patienter...</i></p>';
     aiButton.disabled = true;
     aiButton.innerHTML = `<span class="shining-text-container"><span class="shining-text">Analyse en cours...</span></span>`;
     aiButton.classList.add('analyzing-ai'); // Optionnel, pour styler le bouton lui-même si besoin
@@ -714,9 +713,10 @@ async function handleAIAnalysis() {
         const result = await response.json();
 
         if (result.success && result.data.analysis) {
-            // Afficher l'analyse reçue (utiliser innerText pour éviter injection XSS simple)
-            // Ou utiliser une librairie de Markdown si Gemini renvoie du Markdown
-            aiContainer.innerHTML = `<p>${result.data.analysis.replace(/\n/g, '<br>')}</p>`; // Remplace les sauts de ligne par <br>
+            animateTextStreamByWord(aiContainer, result.data.analysis, {
+                fadeDuration: 150, // Durée du fondu pour chaque mot (ms)
+                segmentDelay: 20   // Délai entre l'apparition de chaque mot (ms)
+            });
         } else {
             throw new Error(result.message || 'Réponse invalide de l\'API d\'analyse.');
         }
@@ -725,7 +725,6 @@ async function handleAIAnalysis() {
         console.error("Erreur lors de l'analyse IA:", error);
         aiContainer.innerHTML = `<p style="color: red;">❌ Erreur : ${error.message}</p>`;
     } finally {
-        // Réactiver le bouton dans tous les cas
         aiButton.disabled = false;
         aiButton.innerHTML = "🧠 Analyser avec l'IA";
         aiButton.classList.remove('analyzing-ai');

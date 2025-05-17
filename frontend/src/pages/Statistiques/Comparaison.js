@@ -1,4 +1,5 @@
 import Chart from 'chart.js/auto';
+import { animateTextStreamByWord } from '../../utils/animateTextStream';
 
 // Variable globale pour stocker les données de comparaison actuelles
 let currentComparisonData = null;
@@ -62,7 +63,6 @@ export function renderComparaisonData(container) {
             </button>
             <div id="ai-comparison-analysis-container" class="ai-analysis-results">
                <!-- L'analyse de l'IA sera affichée ici -->
-               <p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l'IA.</p>
             </div>
           </div>
         
@@ -377,7 +377,6 @@ function compareSelectedTerritories() {
     const aiSection = document.getElementById('ai-section');
     const aiContainer = document.getElementById('ai-comparison-analysis-container');
     if (aiSection) aiSection.style.display = 'none';
-    if (aiContainer) aiContainer.innerHTML = '<p>Sélectionnez deux territoires et cliquez sur le bouton pour obtenir une analyse générée par l\'IA.</p>';
     if (comparisonResultsDiv) comparisonResultsDiv.style.display = 'none'; // Masquer initialement
     // ---> FIN AJOUT RESET <---
 
@@ -871,7 +870,6 @@ async function handleAIComparisonAnalysis() {
     }
 
     // Afficher un état de chargement et désactiver le bouton
-    aiContainer.innerHTML = '<p><i>🧠 Analyse de la comparaison par l\'IA en cours, veuillez patienter...</i></p>';
     aiButton.disabled = true;
     aiButton.innerHTML = `<span class="shining-text-container"><span class="shining-text">Analyse en cours...</span></span>`;
     aiButton.classList.add('analyzing-ai'); // Optionnel
@@ -903,10 +901,11 @@ async function handleAIComparisonAnalysis() {
         const result = await response.json(); // Ici on s'attend à la structure { success: true, data: { analysis: "..." } }
 
         if (result.success && result.data.analysis) {
-            // Afficher l'analyse reçue
-            aiContainer.innerHTML = `<p>${result.data.analysis.replace(/\n/g, '<br>')}</p>`;
+            animateTextStreamByWord(aiContainer, result.data.analysis, {
+                fadeDuration: 150, // Durée du fondu pour chaque mot (ms)
+                segmentDelay: 20
+            });
         } else {
-            // Gérer le cas où success est false ou data.analysis manque
             throw new Error(result.message || result.error?.message || 'Réponse invalide de l\'API d\'analyse de comparaison.');
         }
 
@@ -914,9 +913,8 @@ async function handleAIComparisonAnalysis() {
         console.error("Erreur lors de l'analyse IA de comparaison:", error);
         aiContainer.innerHTML = `<p style="color: red;">❌ Erreur : ${error.message}</p>`;
     } finally {
-        // Réactiver le bouton dans tous les cas
         aiButton.disabled = false;
         aiButton.innerHTML = "🧠 Analyser la comparaison avec l'IA";
-        aiButton.classList.remove('analyzing-ai'); // Enlever la classe optionnelle
+        aiButton.classList.remove('analyzing-ai');
     }
 }
