@@ -94,13 +94,13 @@ export function renderCorrelationData(container) {
 </div>
       
       <div class="data-tables-container">
+        <div> <!-- Conteneur pour le titre et le tableau des bien équipés -->
+            <h2>Top 10 des départements bien équipés</h2>
         <div class="data-table-container">
-          <h2>Top 10 des départements bien équipés</h2>
       <table id="well-equipped-table" class="data-table">
         <thead>
           <tr>
             <th>Département</th>
-            <!-- AJOUT/MODIFICATION: classe numeric -->
             <th class="numeric">Véhicules électriques</th>
             <th class="numeric">Bornes</th>
             <th class="numeric">Ratio (bornes/1000 véhicules)</th>
@@ -111,28 +111,28 @@ export function renderCorrelationData(container) {
         </tbody>
       </table>
         </div>
+        <div>
         
-        <div class="data-table-container">
-          <h2>Top 10 des départements sous-équipés</h2>
-      <table id="under-equipped-table" class="data-table">
-        <thead>
-          <tr>
-            <th>Département</th>
-             <!-- AJOUT/MODIFICATION: classe numeric -->
-            <th class="numeric">Véhicules électriques</th>
-            <th class="numeric">Bornes</th>
-            <th class="numeric">Ratio (bornes/1000 véhicules)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Les données seront injectées ici -->
-        </tbody>
-      </table>
-        </div>
-      </div>
+     <div> <!-- Conteneur pour le titre et le tableau des sous-équipés -->
+       <h2>Top 10 des départements sous-équipés</h2>
+       <div class="data-table-container">
+         <table id="under-equipped-table" class="data-table">
+           <thead>
+             <tr>
+               <th>Département</th>
+               <th class="numeric">Véhicules électriques</th>
+              <th class="numeric">Bornes</th>
+              <th class="numeric">Ratio (bornes/1000 véhicules)</th>
+             </tr>
+           </thead>
+           <tbody></tbody>
+         </table>
+       </div>
+     </div>
+   </div>
       
       <div class="export-container">
-        <button id="export-correlation-data" class="export-btn">Exporter les données</button>
+        <button id="export-correlation-data" class="btn btn-primary hero-btn">Exporter les données</button>
       </div>
     </section>
   `;

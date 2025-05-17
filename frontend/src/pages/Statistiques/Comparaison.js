@@ -83,7 +83,7 @@ export function renderComparaisonData(container) {
         </tbody>
       </table>
       <div class="export-container">
-        <button id="export-comparison" class="export-btn">Exporter la comparaison</button>
+        <button id="export-comparison" class="btn btn-primary hero-btn">Exporter la comparaison</button>
       </div>
     </div>
       </div>

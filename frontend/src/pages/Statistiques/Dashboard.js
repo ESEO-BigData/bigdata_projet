@@ -58,7 +58,7 @@ export function renderDashboard(container) {
     </table>
   </div> <!-- FIN AJOUT Conteneur -->
   <div class="export-container">
-    <button id="export-regions-csv" class="export-btn">Exporter en CSV</button>
+    <button id="export-regions-csv" class="btn btn-primary hero-btn">Exporter en CSV</button>
   </div>
 </div>
     </div>

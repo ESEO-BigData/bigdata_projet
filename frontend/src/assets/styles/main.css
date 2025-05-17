@@ -569,67 +569,108 @@ input.search-input {
     justify-content: space-around;
 }
 
+/* --- Export --- */
 .export-container {
-    margin-top: 1.5rem;
-    text-align: right;
+    text-align: right; /* Garder pour aligner le bouton à droite si souhaité */
+    margin-top: 1.5rem; /* Espace au-dessus du bouton d'export, en dehors du conteneur du tableau */
+    margin-bottom: 2rem; /* Espace en dessous */
 }
 
 /* --- Tableaux de Données --- */
 .data-table-container {
-    margin-bottom: 2rem;
-    overflow-x: auto;
     background-color: var(--card-background);
-    border-radius: var(--border-radius-medium);
+    border-radius: var(--border-radius-medium); /* Coins arrondis pour le conteneur */
+    border: 1px solid var(--border-color);     /* Bordure subtile autour du conteneur */
     box-shadow: var(--box-shadow-subtle);
-    border: 1px solid var(--border-color);
+    overflow: hidden; /* Important pour que les coins arrondis s'appliquent bien à la table à l'intérieur */
+    margin-bottom: 2rem;
 }
 
 .data-table {
     width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
+    border-collapse: collapse; /* Essentiel pour le style des bordures */
+    min-width: 600px; /* Pour éviter que le tableau ne devienne trop étroit */
+    text-align: left; /* Alignement par défaut du texte */
+    font-size: 0.875rem; /* 14px, taille de police légèrement réduite */
+}
+
+.data-table thead {
+    background-color: color-mix(in srgb, var(--background-color) 50%, var(--card-background) 50%); /* Gris très clair, presque blanc */
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem 1rem; /* Padding un peu plus réduit (similaire à h-9 py-2) */
+    vertical-align: middle; /* Bon alignement vertical */
 }
 
 .data-table thead th {
-    padding: 1rem 1.25rem;
-    text-align: left;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-color-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background-color: var(--background-color);
-    border-bottom: 2px solid var(--border-color);
-}
-
-.data-table tbody td {
-    padding: 0.9rem 1.25rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
-    font-size: 0.95rem;
-}
-
-.data-table th.numeric,
-.data-table td.numeric {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
+    font-weight: 500; /* Moins gras que 600 par défaut */
+    color: var(--text-color-muted); /* Couleur du texte d'en-tête (similaire à text-muted-foreground) */
+    border-bottom: 1px solid var(--border-color); /* Ligne sous l'en-tête */
+    /* text-transform: uppercase; /* Optionnel, si vous voulez garder les majuscules */
+    /* letter-spacing: 0.05em; /* Optionnel */
 }
 
 .data-table tbody tr {
+    border-bottom: 1px solid var(--border-color); /* Ligne entre chaque ligne de données */
     transition: background-color var(--transition-fast);
 }
 
+.data-table tbody tr:last-child {
+    border-bottom: none; /* Pas de bordure pour la dernière ligne */
+}
+
 .data-table tbody tr:hover {
+    background-color: var(--hover-background-light); /* Fond léger au survol */
+}
+
+.data-table td.numeric,
+.data-table th.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums; /* Pour un bon alignement des chiffres */
+}
+
+/* Pour la première cellule de données qui est souvent un "nom" ou "titre" */
+.data-table tbody td:first-child {
+    font-weight: 500; /* Un peu plus de poids pour le premier élément de la ligne */
+    color: var(--text-color); /* Texte plus foncé */
+}
+
+/* --- Pagination --- */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between; /* Ou center si vous préférez */
+    align-items: center;
+    padding: 0.75rem 1rem; /* Padding dans le conteneur de pagination */
+    border-top: 1px solid var(--border-color); /* Ligne au-dessus de la pagination */
+}
+
+.pagination-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
     background-color: var(--hover-background-light);
 }
 
-.data-table tbody tr:last-child td {
-    border-bottom: none;
+.pagination-btn:disabled {
+    color: var(--text-color-muted);
+    background-color: var(--background-color);
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
-.data-table .centered-cell {
-    text-align: center;
+#page-info {
+    font-size: 0.875rem;
+    color: var(--text-color-muted);
 }
 
 /* Styles Spécifiques pour Tableaux de Comparaison/Corrélation */

@@ -102,7 +102,7 @@ function loadCommunesData() {
     <button id="next-page" class="pagination-btn">Suivant</button>
   </div>
     <div class="export-container">
-    <button id="export-communes-csv" class="export-btn">Exporter en CSV</button>
+    <button id="export-communes-csv" class="btn btn-primary hero-btn">Exporter en CSV</button>
   </div>
 </div>
     </div>
