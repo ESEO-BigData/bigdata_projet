@@ -969,3 +969,155 @@ input.search-input {
         opacity: 1;
     }
 }
+
+/* --- Styles pour la Page "À propos" --- */
+.page-content { /* Classe générique pour les contenus de page au-dessus du fond */
+    position: relative;
+    z-index: 1;
+}
+
+.about-section h1 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem; /* Taille du titre principal de la page */
+}
+
+.about-section h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    display: inline-block; /* Pour que la bordure ne prenne pas toute la largeur */
+}
+
+.about-card {
+    background-color: var(--card-background);
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-subtle);
+    margin-bottom: 2rem;
+}
+
+.about-section ul {
+    list-style: disc;
+    margin-left: 1.5rem;
+    padding-left: 0.5rem;
+}
+
+.about-section ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+}
+
+/* Section Technologies */
+.tech-stack-section h2 {
+    margin-bottom: 1.5rem;
+}
+
+.tech-category {
+    margin-bottom: 2rem;
+}
+
+.tech-category h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.2rem;
+    text-align: center;
+}
+
+.logos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive */
+    gap: 2rem 1.5rem; /* Espacement vertical et horizontal */
+    align-items: center;
+    justify-content: center; /* Centre les items s'il y a de l'espace */
+}
+
+.logo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.logo-item img {
+    height: 48px; /* Hauteur par défaut des logos, tu ajusteras */
+    width: auto;   /* Garder le ratio */
+    max-width: 100px; /* Éviter que les logos larges ne prennent trop de place */
+    object-fit: contain; /* S'assure que le logo est bien affiché */
+    filter: grayscale(30%); /* Optionnel: logos un peu grisés pour un look sobre */
+    transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.logo-item:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+}
+
+.logo-item .logo-name {
+    font-size: 0.8rem;
+    color: var(--text-color-muted);
+    font-weight: 500;
+}
+
+/* Section Équipe */
+.team-section {
+    /* Styles spécifiques pour la section équipe si besoin plus tard */
+}
+
+.logos-carousel-container {
+    width: 100%;
+    overflow: hidden; /* Essentiel pour cacher ce qui dépasse */
+    position: relative; /* Nécessaire pour positionner les pseudo-éléments ::before et ::after */
+    padding: 1rem 0; /* Espace vertical autour du carrousel */
+}
+
+/* Remplacement de mask-image par des pseudo-éléments pour une meilleure compatibilité */
+.logos-carousel-container::before,
+.logos-carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px; /* Largeur de la zone de fondu, ajuste si besoin */
+    z-index: 2; /* Pour être au-dessus des logos qui défilent */
+    pointer-events: none; /* Pour ne pas bloquer le survol pour la pause */
+}
+
+.logos-carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--card-background) 25%, transparent 100%);
+}
+
+.logos-carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--card-background) 25%, transparent 100%);
+}
+
+.logos-grid.logos-scrolling {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    animation: scrollLogos 30s linear infinite;
+}
+
+.logos-grid.logos-scrolling .logo-item {
+    flex-shrink: 0;
+    margin: 0 2rem; /* Marge horizontale entre les logos */
+}
+
+@keyframes scrollLogos {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-33.3333%); /* Pour une duplication où la séquence originale est répétée 3 fois au total */
+    }
+}
+
+.logos-carousel-container:hover .logos-scrolling {
+    animation-play-state: paused;
+}

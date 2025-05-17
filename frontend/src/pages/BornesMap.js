@@ -63,7 +63,6 @@ export function renderBornesMap(container) {
             Object.values(vehiculesByRegion).forEach(count => {
                 totalVehicules += Number(count || 0);
             });
-            //console.log(`🚗 Total de véhicules électriques (métropole uniquement) : ${totalVehicules}`);
 
             fetch('/api/departements')
                 .then(res => res.json())
