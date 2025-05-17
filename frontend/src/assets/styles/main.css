@@ -905,3 +905,41 @@ input.search-input {
     transform: translateX(4px);
 }
 
+/* --- Styles pour l'effet Shining Text --- */
+.shining-text-container {
+    display: inline-block;
+}
+
+.shining-text {
+    background: linear-gradient(
+            110deg,
+            var(--text-color-muted) 20%,
+            #ffffff 45%,
+            var(--text-color-muted) 70%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+
+    animation: shine 2s linear infinite;
+
+    /* Assurer que la police et la taille sont cohérentes avec le texte du bouton */
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    display: inline-block;
+}
+
+@keyframes shine {
+    0% {
+        background-position: 200% 0; /* Début de l'animation, gradient à droite */
+    }
+    100% {
+        background-position: -200% 0; /* Fin de l'animation, gradient à gauche */
+    }
+}
+
+.btn.analyzing-ai {
+    /* background-color: color-mix(in srgb, var(--primary-color) 70%, black); */ /* Exemple */
+}

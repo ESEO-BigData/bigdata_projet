@@ -679,7 +679,8 @@ async function handleAIAnalysis() {
     // Afficher un état de chargement et désactiver le bouton
     aiContainer.innerHTML = '<p><i>🧠 Analyse par l\'IA en cours, veuillez patienter...</i></p>';
     aiButton.disabled = true;
-    aiButton.textContent = "Analyse en cours...";
+    aiButton.innerHTML = `<span class="shining-text-container"><span class="shining-text">Analyse en cours...</span></span>`;
+    aiButton.classList.add('analyzing-ai'); // Optionnel, pour styler le bouton lui-même si besoin
 
     // Préparer les données à envoyer (on peut envoyer un échantillon si la liste est trop grande)
     // Pour l'instant, envoyons tout, mais gardons à l'esprit la limite de taille potentielle.
@@ -726,6 +727,7 @@ async function handleAIAnalysis() {
     } finally {
         // Réactiver le bouton dans tous les cas
         aiButton.disabled = false;
-        aiButton.textContent = "🧠 Analyser avec l'IA";
+        aiButton.innerHTML = "🧠 Analyser avec l'IA";
+        aiButton.classList.remove('analyzing-ai');
     }
 }

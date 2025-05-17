@@ -873,7 +873,8 @@ async function handleAIComparisonAnalysis() {
     // Afficher un état de chargement et désactiver le bouton
     aiContainer.innerHTML = '<p><i>🧠 Analyse de la comparaison par l\'IA en cours, veuillez patienter...</i></p>';
     aiButton.disabled = true;
-    aiButton.textContent = "Analyse en cours...";
+    aiButton.innerHTML = `<span class="shining-text-container"><span class="shining-text">Analyse en cours...</span></span>`;
+    aiButton.classList.add('analyzing-ai'); // Optionnel
 
     // Préparer les données à envoyer
     const payload = {
@@ -915,6 +916,7 @@ async function handleAIComparisonAnalysis() {
     } finally {
         // Réactiver le bouton dans tous les cas
         aiButton.disabled = false;
-        aiButton.textContent = "🧠 Analyser la comparaison avec l'IA";
+        aiButton.innerHTML = "🧠 Analyser la comparaison avec l'IA";
+        aiButton.classList.remove('analyzing-ai'); // Enlever la classe optionnelle
     }
 }
