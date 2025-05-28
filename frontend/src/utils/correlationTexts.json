@@ -1,0 +1,26 @@
+{
+  "interpretations": {
+    "forte_positive": "Il existe une <strong>forte corrélation positive</strong> ({{coefficient}}) entre {{xLabel}} et {{yLabel}}. Cela suggère que lorsque {{xLabel}} augmente, {{yLabel}} tend également à augmenter de manière significative.",
+    "moderee_positive": "Il existe une <strong>corrélation positive modérée</strong> ({{coefficient}}) entre {{xLabel}} et {{yLabel}}. Cela suggère une tendance où {{yLabel}} augmente généralement avec {{xLabel}}, mais avec des variations notables.",
+    "faible": "Il existe une <strong>corrélation faible ou négligeable</strong> ({{coefficient}}) entre {{xLabel}} et {{yLabel}}. Cela suggère que ces deux variables ne sont pas fortement liées.",
+    "moderee_negative": "Il existe une <strong>corrélation négative modérée</strong> ({{coefficient}}) entre {{xLabel}} et {{yLabel}}. Cela suggère une tendance où {{yLabel}} diminue généralement quand {{xLabel}} augmente.",
+    "forte_negative": "Il existe une <strong>forte corrélation négative</strong> ({{coefficient}}) entre {{xLabel}} et {{yLabel}}. Cela suggère que lorsque {{xLabel}} augmente, {{yLabel}} tend à diminuer de manière significative."
+  },
+  "observations_specifiques": {
+    "vehicules_bornes": "Cette relation entre le nombre de véhicules électriques et le nombre de bornes de recharge est particulièrement importante pour évaluer l'adéquation des infrastructures de recharge par rapport à la demande.",
+    "population": "La population d'un territoire est un facteur démographique clé qui peut influencer le déploiement des infrastructures et l'adoption des véhicules électriques.",
+    "densite": "La densité de population peut affecter la stratégie de déploiement des bornes de recharge, avec potentiellement plus de bornes dans les zones urbaines denses.",
+    "superficie": "La superficie d'un territoire influence la répartition géographique des infrastructures de recharge et peut affecter l'accessibilité des bornes.",
+    "vehicules_thermiques": "La relation avec les véhicules thermiques peut révéler des tendances de transition énergétique dans les différents territoires.",
+    "stations": "Le nombre de stations de recharge est un indicateur important de la densité du réseau d'infrastructure disponible."
+  },
+  "recommandations": {
+    "vehicules_bornes_positive": "La corrélation positive suggère que le déploiement des bornes suit généralement l'adoption des véhicules électriques. Il serait judicieux de continuer à surveiller cette relation pour s'assurer que l'infrastructure de recharge reste adéquate.",
+    "vehicules_bornes_faible": "La faible corrélation entre les véhicules électriques et les bornes de recharge pourrait indiquer un déséquilibre dans certains territoires. Une analyse plus approfondie des zones sous-équipées serait recommandée.",
+    "population_forte": "La forte corrélation avec la population confirme l'importance de cibler les zones les plus peuplées pour le déploiement des infrastructures de recharge.",
+    "densite_positive": "Cette corrélation positive avec la densité suggère une stratégie urbaine efficace pour le déploiement des bornes de recharge.",
+    "generale_forte": "Cette forte corrélation suggère une relation significative qui mérite une attention particulière dans la planification des politiques de mobilité électrique.",
+    "generale_faible": "Cette faible corrélation suggère que d'autres facteurs peuvent influencer ces variables. Il serait intéressant d'explorer d'autres corrélations."
+  },
+  "titre_recommandations": "Recommandations"
+} 

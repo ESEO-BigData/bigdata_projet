@@ -1,5 +1,6 @@
 import Chart from 'chart.js/auto';
 import { animateTextStreamByWord } from '../../utils/animateTextStream';
+import correlationTexts from '../../utils/correlationTexts.json';
 
 // Variables globales au module pour stocker les données actuelles
 let currentScatterData = [];
@@ -563,6 +564,88 @@ function populateEquipmentTable(tableId, items, filterType) {
     });
 }
 
+// Fonction utilitaire pour remplacer les placeholders dans les textes
+function replacePlaceholders(text, variables) {
+    let result = text;
+    for (const [key, value] of Object.entries(variables)) {
+        const placeholder = `{{${key}}}`;
+        result = result.replace(new RegExp(placeholder, 'g'), value);
+    }
+    return result;
+}
+
+// Déterminer les observations spécifiques à ajouter
+function getSpecificObservations(xVariable, yVariable) {
+    const observations = [];
+    
+    // Vérifier la relation véhicules/bornes
+    if ((xVariable === 'vehicules' && yVariable === 'bornes') || 
+        (xVariable === 'bornes' && yVariable === 'vehicules')) {
+        observations.push(correlationTexts.observations_specifiques.vehicules_bornes);
+    }
+    
+    // Vérifier si la population est impliquée
+    if (xVariable === 'population' || yVariable === 'population') {
+        observations.push(correlationTexts.observations_specifiques.population);
+    }
+    
+    // Vérifier si la densité est impliquée
+    if (xVariable === 'densite' || yVariable === 'densite') {
+        observations.push(correlationTexts.observations_specifiques.densite);
+    }
+    
+    // Vérifier si la superficie est impliquée
+    if (xVariable === 'superficie' || yVariable === 'superficie') {
+        observations.push(correlationTexts.observations_specifiques.superficie);
+    }
+    
+    // Vérifier si les véhicules thermiques sont impliqués
+    if (xVariable === 'thermiques' || yVariable === 'thermiques') {
+        observations.push(correlationTexts.observations_specifiques.vehicules_thermiques);
+    }
+    
+    // Vérifier si les stations sont impliquées
+    if (xVariable === 'stations' || yVariable === 'stations') {
+        observations.push(correlationTexts.observations_specifiques.stations);
+    }
+    
+    return observations;
+}
+
+// Déterminer les recommandations à ajouter
+function getRecommendations(coefficient, xVariable, yVariable) {
+    const recommendations = [];
+    
+    // Recommandations spécifiques pour véhicules/bornes
+    if ((xVariable === 'vehicules' && yVariable === 'bornes') || 
+        (xVariable === 'bornes' && yVariable === 'vehicules')) {
+        if (coefficient > 0.3) {
+            recommendations.push(correlationTexts.recommandations.vehicules_bornes_positive);
+        } else {
+            recommendations.push(correlationTexts.recommandations.vehicules_bornes_faible);
+        }
+    }
+    
+    // Recommandations pour la population
+    if ((xVariable === 'population' || yVariable === 'population') && Math.abs(coefficient) > 0.7) {
+        recommendations.push(correlationTexts.recommandations.population_forte);
+    }
+    
+    // Recommandations pour la densité
+    if ((xVariable === 'densite' || yVariable === 'densite') && coefficient > 0.3) {
+        recommendations.push(correlationTexts.recommandations.densite_positive);
+    }
+    
+    // Recommandations générales
+    if (Math.abs(coefficient) > 0.7) {
+        recommendations.push(correlationTexts.recommandations.generale_forte);
+    } else if (Math.abs(coefficient) < 0.3) {
+        recommendations.push(correlationTexts.recommandations.generale_faible);
+    }
+    
+    return recommendations;
+}
+
 // Générer une analyse textuelle de la corrélation
 function generateCorrelationAnalysis(coefficient, xVariable, yVariable) {
     const analysisContainer = document.getElementById('correlation-analysis');
@@ -571,39 +654,47 @@ function generateCorrelationAnalysis(coefficient, xVariable, yVariable) {
 
     let analysisText = '';
 
-    // Interpréter le coefficient de corrélation
+    // Variables pour le templating
+    const templateVars = {
+        coefficient: coefficient.toFixed(2),
+        xLabel: xLabel,
+        yLabel: yLabel
+    };
+
+    // Déterminer le type de corrélation et obtenir le texte correspondant
+    let interpretationKey;
     if (coefficient > 0.7) {
-        analysisText = `<p>Il existe une <strong>forte corrélation positive</strong> (${coefficient.toFixed(2)}) entre ${xLabel} et ${yLabel}. Cela suggère que lorsque ${xLabel} augmente, ${yLabel} tend également à augmenter de manière significative.</p>`;
+        interpretationKey = 'forte_positive';
     } else if (coefficient > 0.3) {
-        analysisText = `<p>Il existe une <strong>corrélation positive modérée</strong> (${coefficient.toFixed(2)}) entre ${xLabel} et ${yLabel}. Cela suggère une tendance où ${yLabel} augmente généralement avec ${xLabel}, mais avec des variations notables.</p>`;
+        interpretationKey = 'moderee_positive';
     } else if (coefficient > -0.3) {
-        analysisText = `<p>Il existe une <strong>corrélation faible ou négligeable</strong> (${coefficient.toFixed(2)}) entre ${xLabel} et ${yLabel}. Cela suggère que ces deux variables ne sont pas fortement liées.</p>`;
+        interpretationKey = 'faible';
     } else if (coefficient > -0.7) {
-        analysisText = `<p>Il existe une <strong>corrélation négative modérée</strong> (${coefficient.toFixed(2)}) entre ${xLabel} et ${yLabel}. Cela suggère une tendance où ${yLabel} diminue généralement quand ${xLabel} augmente.</p>`;
+        interpretationKey = 'moderee_negative';
     } else {
-        analysisText = `<p>Il existe une <strong>forte corrélation négative</strong> (${coefficient.toFixed(2)}) entre ${xLabel} et ${yLabel}. Cela suggère que lorsque ${xLabel} augmente, ${yLabel} tend à diminuer de manière significative.</p>`;
+        interpretationKey = 'forte_negative';
     }
 
-    // Ajouter des observations spécifiques
-    if ((xVariable === 'vehicules' && yVariable === 'bornes') || (xVariable === 'bornes' && yVariable === 'vehicules')) {
-        analysisText += `<p>Cette relation entre le nombre de véhicules électriques et le nombre de bornes de recharge est particulièrement importante pour évaluer l'adéquation des infrastructures de recharge par rapport à la demande.</p>`;
-    }
+    // Générer le texte d'interprétation
+    const interpretationText = replacePlaceholders(
+        correlationTexts.interpretations[interpretationKey], 
+        templateVars
+    );
+    analysisText += `<p>${interpretationText}</p>`;
 
-    if (xVariable === 'population' || yVariable === 'population') {
-        analysisText += `<p>La population d'un territoire est un facteur démographique clé qui peut influencer le déploiement des infrastructures et l'adoption des véhicules électriques.</p>`;
-    }
+    // Ajouter les observations spécifiques
+    const observations = getSpecificObservations(xVariable, yVariable);
+    observations.forEach(observation => {
+        analysisText += `<p>${observation}</p>`;
+    });
 
-    if (xVariable === 'densite' || yVariable === 'densite') {
-        analysisText += `<p>La densité de population peut affecter la stratégie de déploiement des bornes de recharge, avec potentiellement plus de bornes dans les zones urbaines denses.</p>`;
-    }
-
-    // Ajouter des recommandations
-    analysisText += `<h3>Recommandations</h3>`;
-
-    if (coefficient > 0.3 && ((xVariable === 'vehicules' && yVariable === 'bornes') || (xVariable === 'bornes' && yVariable === 'vehicules'))) {
-        analysisText += `<p>La corrélation positive suggère que le déploiement des bornes suit généralement l'adoption des véhicules électriques. Il serait judicieux de continuer à surveiller cette relation pour s'assurer que l'infrastructure de recharge reste adéquate.</p>`;
-    } else if (coefficient < 0.3 && ((xVariable === 'vehicules' && yVariable === 'bornes') || (xVariable === 'bornes' && yVariable === 'vehicules'))) {
-        analysisText += `<p>La faible corrélation entre les véhicules électriques et les bornes de recharge pourrait indiquer un déséquilibre dans certains territoires. Une analyse plus approfondie des zones sous-équipées serait recommandée.</p>`;
+    // Ajouter les recommandations
+    const recommendations = getRecommendations(coefficient, xVariable, yVariable);
+    if (recommendations.length > 0) {
+        analysisText += `<h3>${correlationTexts.titre_recommandations}</h3>`;
+        recommendations.forEach(recommendation => {
+            analysisText += `<p>${recommendation}</p>`;
+        });
     }
 
     // Mettre à jour le conteneur d'analyse
