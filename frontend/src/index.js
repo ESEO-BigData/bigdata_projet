@@ -3,6 +3,7 @@ import { renderHomePage } from './pages/Home';
 import { renderBornesMap } from './pages/BornesMap';
 import { renderStatistics } from './pages/Statistiques';
 import { renderAboutPage } from './pages/About';
+import eseoLogo from './assets/images/ESEO-logo.png';
 
 function handleNavigation() {
     const navLinks = [
@@ -61,6 +62,14 @@ function handleNavigation() {
     }
 }
 
+function initializeFooter() {
+    const footerLogo = document.querySelector('.footer-logo');
+    if (footerLogo) {
+        footerLogo.src = eseoLogo;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     handleNavigation();
+    initializeFooter();
 });
