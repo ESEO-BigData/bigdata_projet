@@ -10,6 +10,7 @@ router.get('/commune/:commune', bornesCommuneDepartementRegionController.getByCo
 router.get('/codepostal/:codePostal', bornesCommuneDepartementRegionController.getByCodePostal);
 router.get('/departement/:codeDepartement', bornesCommuneDepartementRegionController.getByDepartement);
 router.get('/region/:region', bornesCommuneDepartementRegionController.getByRegion);
+router.get('/commune/:commune/:codePostal', bornesCommuneDepartementRegionController.getByCommune);
 
 // Routes pour les classements
 router.get('/top/bornes', bornesCommuneDepartementRegionController.getTopBornes);

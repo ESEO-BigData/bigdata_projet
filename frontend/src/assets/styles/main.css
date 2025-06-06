@@ -1,172 +1,1364 @@
-/* src/assets/styles/main.css */
+/* --- Variables CSS Globales --- */
 :root {
-    --primary-color: #4CAF50;
-    --secondary-color: #2196F3;
-    --text-color: #333;
-    --background-color: #f9f9f9;
-    --border-color: #ddd;
+    /* Palette de couleurs inspirée Tech/Moderne */
+    --primary-color: #007AFF; /* Bleu vif (similaire iOS) */
+    --secondary-color: #5856D6; /* Violet doux */
+    --accent-color: #34C759; /* Vert vif (peut remplacer l'ancien --primary-color) */
+    --text-color: #1d1d1f; /* Gris très foncé (presque noir) */
+    --text-color-muted: #6e6e73; /* Gris moyen pour texte secondaire */
+    --background-color: #f5f5f7; /* Gris très clair / Off-white */
+    --card-background: #ffffff; /* Blanc pur pour les cartes/conteneurs */
+    --border-color: #d1d1d6; /* Gris clair pour les bordures subtiles */
+    --hover-background-light: rgba(0, 0, 0, 0.05); /* Superposition légère pour hover */
+    --hover-background-dark: rgba(0, 0, 0, 0.1); /* Superposition un peu plus foncée */
+
+    /* Typographie */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-size-base: 1rem; /* 16px par défaut */
+    --line-height-base: 1.6;
+
+    /* Autres */
+    --border-radius-small: 4px;
+    --border-radius-medium: 8px;
+    --box-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --box-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition-fast: 0.2s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
 }
 
-* {
+/* --- Reset et Styles de Base --- */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+html {
+    font-size: 100%; /* Base pour les REMs, 1rem = 16px */
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
     color: var(--text-color);
     background-color: var(--background-color);
-}
-
-header {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-}
-
-nav ul {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
     display: flex;
-    list-style: none;
-    justify-content: center;
+    flex-direction: column;
 }
 
-nav li {
-    margin: 0 1rem;
+/* --- Typographie Globale --- */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
-nav a {
-    color: var(--text-color);
+h1 { font-size: clamp(1.125rem, 0.75rem + 1vw, 1.5rem); }   /* 18px à 24px */
+h2 { font-size: clamp(1rem, 0.7rem + 0.6vw, 1.25rem); }     /* 16px à 20px */
+h3 { font-size: clamp(0.9375rem, 0.65rem + 0.4vw, 1.125rem); } /* 15px à 18px */
+h4 { font-size: clamp(0.8125rem, 0.6rem + 0.3vw, 1rem); }   /* 13px à 16px */
+
+p {
+    margin-bottom: 1rem;
+    font-size: var(--font-size-base); /* Reste à 1rem (16px) */
+}
+
+a {
+    color: var(--primary-color);
     text-decoration: none;
-    padding: 0.5rem;
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.3s;
+    transition: color var(--transition-fast);
 }
 
-nav a:hover, nav a:focus {
-    border-color: var(--primary-color);
+a:hover, a:focus {
+    color: color-mix(in srgb, var(--primary-color) 70%, black);
+    text-decoration: underline;
 }
 
-nav a[aria-current="page"] {
-    border-color: var(--primary-color);
-    font-weight: bold;
+/* --- Structure Principale de la Page --- */
+header {
+    position: relative;
+    height: 80px; /* Hauteur indicative pour laisser de la place si la nav est en haut */
 }
 
 main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    width: 90%;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    padding: 0 2rem;
+    flex-grow: 1;
 }
 
 footer {
-    text-align: center;
-    padding: 1rem;
-    background-color: white;
-    border-top: 1px solid var(--border-color);
-    margin-top: 2rem;
-}
-
-.map-container {
-    height: 600px;
-    width: 100%;
-    margin: 2rem 0;
-}
-
-.chart-container {
-    margin: 2rem 0;
-}
-
-.heatmap-wrapper {
+    position: relative;
     display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap; /* pour responsive */
-}
-
-#heatmap-container {
-    flex: 1 1 70%;
-    min-width: 600px;
-    height: 500px;
-}
-
-.heatmap-legend-box {
-    flex: 0 0 250px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    background: white;
-    font-size: 14px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    height: fit-content;
-    margin-top: 140px;
-}
-
-.pagination-controls {
-    display: flex;
-    justify-content: center;
     align-items: center;
-    margin-top: 1rem;
+    justify-content: center;
+    padding: 1rem 2rem;
+    background-color: var(--card-background);
+    border-top: 1px solid var(--border-color);
+    margin-top: 3rem;
+    color: var(--text-color-muted);
+    font-size: 0.875rem; /* 14px */
+    height: 60px; /* Hauteur réduite et fixée */
 }
 
-.pagination-btn {
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
+footer .footer-logo {
+    position: absolute;
+    right: 2rem;
+    bottom: 50%;
+    transform: translateY(50%);
+    height: 32px;
+    width: auto;
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+}
+
+footer .footer-logo:hover {
+    opacity: 1;
+}
+
+section {
+    margin-bottom: 3rem; /* Espacement entre les sections */
+}
+
+/* --- Navigation Principale (Style "Tubelight") --- */
+#main-nav {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    top: 1.5rem;
+    bottom: auto;
+}
+
+#main-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0,0,0,0.08);
+    list-style: none;
+    margin: 0;
+    position: relative;
+}
+
+#main-nav li {
+    margin: 0;
+}
+
+#main-nav a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    color: var(--text-color-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    white-space: nowrap;
 }
 
-.pagination-btn:disabled {
+#main-nav a:hover {
+    color: var(--primary-color);
+    background-color: var(--hover-background-light);
+}
+
+#main-nav a .nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+#main-nav a .nav-icon svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+#main-nav a .nav-text {
+    display: inline-block;
+}
+
+#main-nav a[aria-current="page"] {
+    color: var(--primary-color);
+}
+
+/* La "lampe" qui se déplace (l'effet lumineux sous l'onglet actif) */
+#nav-lamp-effect {
+    position: absolute;
+    background-color: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    border-radius: 9999px;
+    z-index: -1;
+    height: 100%;
+    top: 0;
+    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+}
+
+/* Le petit "tube lumineux" au-dessus de la lampe */
+#nav-lamp-effect::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 4px;
+    background-color: var(--primary-color);
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 -2px 8px color-mix(in srgb, var(--primary-color) 40%, transparent),
+    0 -1px 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+/* Responsive pour la Navigation Principale */
+@media (max-width: 768px) {
+    main {
+        padding-top: 60px;
+    }
+    #main-nav {
+        top: auto;
+        bottom: 1rem;
+    }
+
+    #main-nav a .nav-text {
+        display: none;
+    }
+    #main-nav a .nav-icon {
+        display: inline-block;
+        font-size: 1.25rem;
+    }
+    #main-nav a {
+        padding: 0.7rem;
+    }
+
+    #nav-lamp-effect::before {
+        width: 24px;
+    }
+}
+
+/* --- Boutons et Contrôles de Formulaires Globaux --- */
+.btn {
+    display: inline-block;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--border-radius-medium);
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.btn:hover, .btn:focus {
+    background-color: color-mix(in srgb, var(--primary-color) 90%, black);
+    box-shadow: var(--box-shadow-medium);
+    transform: translateY(-1px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn:active {
+    transform: translateY(0px);
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.btn:disabled,
+.btn[disabled] {
     background-color: #cccccc;
+    color: #666666;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
-#page-info {
-    margin: 0 1rem;
+.btn-secondary {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
 }
 
+.btn-secondary:hover, .btn-secondary:focus {
+    background-color: #e9ecef;
+    border-color: color-mix(in srgb, var(--border-color) 80%, black);
+    box-shadow: var(--box-shadow-subtle);
+    transform: translateY(-1px);
+    color: var(--primary-color);
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+    background-color: #eeeeee;
+    color: #aaaaaa;
+    border-color: #dddddd;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+input[type="text"],
+input[type="search"],
+select {
+    width: auto;
+    min-width: 180px;
+    max-width: 100%;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    background-color: var(--card-background);
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    vertical-align: middle;
+    height: 2.5rem;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236e6e73%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 0.65em auto;
+    padding-right: 2.5rem;
+}
+
+/* --- Contrôles Spécifiques (Corrélation, Comparaison, Recherche de Territoire) --- */
+.correlation-controls,
+.comparison-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-end;
+}
+
+.control-group,
+.territory-type-selector,
+.territory-selector,
+.territory-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1 1 auto;
+    min-width: 180px;
+    max-width: 350px;
+}
+
+.control-group label,
+.territory-type-selector label,
+.territory-selector label,
+.territory-search label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-color-muted);
+}
+
+.territory-search {
+    flex-grow: 2;
+    max-width: 450px;
+}
+
+/* Ciblage spécifique pour les inputs dans les groupes de contrôle */
+.control-group select,
+.control-group input[type="text"],
+.territory-type-selector select,
+.territory-selector select,
+.territory-search input[type="text"] {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Style spécifique pour les inputs de recherche par classe ou dans un conteneur */
+input.search-input {
+    min-width: 300px;
+}
+.territory-search input[type="text"] { /* S'assure que celui-ci est bien ciblé */
+    min-width: 300px; /* Peut être redondant si .search-input est utilisé, mais assure la spécificité */
+}
+
+
+/* --- Résultats de Recherche Dynamiques (pour Communes, etc.) --- */
 .search-container {
     position: relative;
     width: 100%;
 }
 
+.search-container input[type="text"] { /* Assure que l'input dans le container est bien stylé */
+    margin-bottom: 0;
+}
+
 .search-results {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
-    width: 100%;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-top: none;
+    right: 0;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
     z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 0.4rem 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity var(--transition-fast), visibility var(--transition-fast), transform var(--transition-fast);
+}
+
+.search-container.results-visible .search-results {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 .result-item {
-    padding: 8px 12px;
+    padding: 0.6rem 1rem;
     cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.result-item:hover {
-    background-color: #f5f5f5;
+.result-item:hover,
+.result-item:focus {
+    background-color: var(--primary-color);
+    color: white;
+    outline: none;
 }
 
 .no-results {
-    padding: 8px 12px;
-    color: #999;
+    padding: 0.6rem 1rem;
+    color: var(--text-color-muted);
     font-style: italic;
+    font-size: 0.9rem;
+    cursor: default;
 }
 
-.territory-search input {
+/* --- Cartes et Conteneurs Génériques --- */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+/* --- Cartes KPI (Indicateurs Clés de Performance) --- */
+.kpi-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+}
+
+.kpi-card {
+    flex: 1 1 185px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-card h3 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-color-muted);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.0rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card .kpi-value:empty::after {
+    content: "Chargement...";
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-color-muted);
+    opacity: 0.7;
+}
+
+.kpi-card .kpi-description {
+    font-size: 0.8rem;
+    color: var(--text-color-muted);
+    line-height: 1.4;
+    margin-top: auto;
+}
+
+@media (min-width: 1400px) {
+    .kpi-card {
+        flex-basis: 220px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .kpi-card {
+        flex-basis: 250px;
+    }
+}
+
+/* --- Éléments Spécifiques aux Sections (Carte Géo, Graphiques, Export) --- */
+.map-container {
+    height: 500px;
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    margin: 1.5rem 0;
+    border-radius: var(--border-radius-medium);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+/* --- Styles pour la carte comparative avec légende à gauche --- */
+.heatmap-wrapper {
+    display: flex;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    align-items: flex-start;
+}
+
+.heatmap-legend-box {
+    flex: 0 0 280px; /* Largeur fixe de 280px pour la légende (était 220px) */
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-medium);
+    padding: 1.5rem; /* Plus d'espacement interne (était 1rem) */
+    box-shadow: var(--box-shadow-subtle);
+    font-size: 0.95rem; /* Taille de police plus grande (était 0.875rem) */
+    line-height: 1.6; /* Plus d'espacement entre les lignes (était 1.4) */
+}
+
+.heatmap-wrapper #heatmap-container {
+    flex: 1; /* Prend l'espace restant */
+    height: 550px; /* Légèrement plus haut que la carte normale */
+    margin: 0; /* Reset des marges car elles sont gérées par le wrapper */
+    width: auto; /* Auto pour s'adapter au flex */
+}
+
+/* Amélioration de l'espacement dans la légende */
+.heatmap-legend-box strong {
+    display: block;
+    margin-bottom: 0.75rem; /* Espacement après le titre */
+    font-size: 1rem; /* Titre légèrement plus grand */
+    color: var(--text-color);
+}
+
+.heatmap-legend-box > div {
+    margin-bottom: 0.5rem; /* Espacement entre les éléments de couleur */
+}
+
+.heatmap-legend-box > div:last-of-type {
+    margin-bottom: 0.75rem; /* Plus d'espace avant le min/max */
+}
+
+.heatmap-legend-box em {
+    display: block;
+    margin-top: 0.75rem; /* Espacement avant le texte min/max */
+    font-style: italic;
+    color: var(--text-color-muted);
+    font-size: 0.875rem; /* Légèrement plus petit pour le min/max */
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 768px) {
+    .heatmap-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .heatmap-legend-box {
+        flex: none;
+        width: 100%;
+    }
+    
+    .heatmap-wrapper #heatmap-container {
+        height: 400px; /* Plus petit sur mobile */
+    }
+}
+
+.chart-container {
+    margin: 2rem 0;
+    padding: 1rem 0;
+    position: relative;
+    width: 100%;
+}
+
+.dashboard-container .chart-section .chart-container {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.comparison-charts .chart-container,
+.correlation-chart-container {
+    flex: 1 1 300px;
+    min-width: 280px;
+    max-width: 600px;
+}
+
+.comparison-charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: space-around;
+}
+
+/* --- Export --- */
+.export-container {
+    text-align: right;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* --- Tableaux de Données --- */
+.data-table-container {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius-medium); /* Coins arrondis pour le conteneur */
+    border: 1px solid var(--border-color);     /* Bordure subtile autour du conteneur */
+    box-shadow: var(--box-shadow-subtle);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* Essentiel pour le style des bordures */
+    min-width: 600px; /* Pour éviter que le tableau ne devienne trop étroit */
+    text-align: left; /* Alignement par défaut du texte */
+    font-size: 0.875rem; /* 14px, taille de police légèrement réduite */
+}
+
+.data-table thead {
+    background-color: color-mix(in srgb, var(--background-color) 50%, var(--card-background) 50%); /* Gris très clair, presque blanc */
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    font-weight: 500;
+    color: var(--text-color-muted);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid var(--border-color); /* Ligne entre chaque ligne de données */
+    transition: background-color var(--transition-fast);
+}
+
+.data-table tbody tr:last-child {
+    border-bottom: none; /* Pas de bordure pour la dernière ligne */
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--hover-background-light); /* Fond léger au survol */
+}
+
+.data-table td.numeric,
+.data-table th.numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums; /* Pour un bon alignement des chiffres */
+}
+
+/* Pour la première cellule de données qui est souvent un "nom" ou "titre" */
+.data-table tbody td:first-child {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* --- Pagination --- */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.pagination-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--hover-background-light);
+}
+
+.pagination-btn:disabled {
+    color: var(--text-color-muted);
+    background-color: var(--background-color);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#page-info {
+    font-size: 0.875rem;
+    color: var(--text-color-muted);
+}
+
+/* Styles Spécifiques pour Tableaux de Comparaison/Corrélation */
+.comparison-table-container .data-table td:last-child {
+    font-weight: 500;
+    text-align: right;
+}
+
+.comparison-table-container .data-table tr.positive-difference td:last-child {
+    color: var(--accent-color);
+}
+
+.comparison-table-container .data-table tr.negative-difference td:last-child {
+    color: #FF3B30;
+}
+
+.correlation-section .data-table-container {
+    margin-top: 1.5rem;
+}
+.correlation-section .data-table th:nth-child(n+2),
+.correlation-section .data-table td:nth-child(n+2) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Navigation des Onglets Statistiques --- */
+.stats-navigation {
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.stats-navigation ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.stats-navigation li {
+    margin: 0;
+}
+
+.stats-navigation a {
+    display: block;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-color-muted);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+    border-radius: var(--border-radius-small) var(--border-radius-small) 0 0;
+}
+
+.stats-navigation a:hover,
+.stats-navigation a:focus {
+    color: var(--primary-color);
+    background-color: var(--hover-background-light);
+    border-bottom-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    text-decoration: none;
+    outline: none;
+}
+
+.stats-navigation a.active {
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom-color: var(--primary-color);
+    background-color: transparent;
+}
+
+#stats-content {
+    padding-top: 1rem;
+}
+
+/* --- Section "Hero" (Page d'Accueil) --- */
+#hero-background-effect {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background-color: var(--background-color);
+    pointer-events: none;
+}
+
+#grid-pattern-svg {
+    width: 100%;
+    height: 100%;
+    --grid-pattern-color: rgba(0, 0, 0, 0.07);
+}
+
+#spotlight-effect {
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(
+            circle at center,
+            color-mix(in srgb, var(--primary-color) 40%, transparent) 0%,
+            color-mix(in srgb, var(--primary-color) 20%, transparent) 30%,
+            transparent 70%
+    );
+    filter: blur(60px);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    z-index: -1;
+    will-change: left, top, opacity;
+}
+
+.hero-section {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 160px);
+    padding: 2rem 1rem;
+    text-align: center;
+    background-color: transparent;
+}
+
+.hero-container {
+    max-width: 1100px;
+    width: 100%;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.hero-launch-btn {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-medium);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+    box-shadow: var(--box-shadow-subtle);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-launch-btn:hover {
+    background-color: #e9ecef;
+    box-shadow: var(--box-shadow-medium);
+}
+
+.hero-title-container {
+    margin-bottom: 1rem;
+}
+
+.hero-main-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+}
+
+@media (min-width: 768px) {
+    .hero-main-title {
+        font-size: 4rem;
+    }
+}
+
+.hero-title-static {
+    /* Styles pour les parties statiques du titre */
+}
+
+.hero-title-animated-wrapper {
+    display: inline-block;
+    position: relative;
+    color: var(--primary-color);
+    min-width: 13ch;
+    max-width: 100%;
+    height: 1.3em;
+    overflow: hidden;
+    margin: 0 0.3em;
+    text-align: center;
+}
+
+.hero-animated-word {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease-in-out;
+    font-weight: 700;
+    width: 100%;
+}
+
+.hero-description {
+    font-size: 1.125rem;
+    color: var(--text-color-muted);
+    line-height: 1.7;
+    max-width: 650px;
+    margin-top: 0;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.hero-btn {
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-arrow {
+    transition: transform var(--transition-fast);
+}
+
+.hero-btn:hover .hero-arrow {
+    transform: translateX(4px);
+}
+
+/* --- Styles pour l'effet Shining Text --- */
+.shining-text-container {
+    display: inline-block;
+}
+
+.shining-text {
+    background: linear-gradient(
+            110deg,
+            var(--text-color-muted) 20%,
+            #ffffff 45%,
+            var(--text-color-muted) 70%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+
+    animation: shine 2s linear infinite;
+
+    /* Assurer que la police et la taille sont cohérentes avec le texte du bouton */
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    display: inline-block;
+}
+
+@keyframes shine {
+    0% {
+        background-position: 200% 0; /* Début de l'animation, gradient à droite */
+    }
+    100% {
+        background-position: -200% 0; /* Fin de l'animation, gradient à gauche */
+    }
+}
+
+.btn.analyzing-ai {
+    /* background-color: color-mix(in srgb, var(--primary-color) 70%, black); */ /* Exemple */
+}
+
+/* --- Styles pour l'animation de texte IA "Fade-in Word by Word" --- */
+.ai-analysis-results {
+    /* Styles de base pour le conteneur de la réponse IA */
+    line-height: 1.7; /* Bonne lisibilité */
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.ai-analysis-results .fade-segment {
+    display: inline; /* Pour que les mots et espaces se suivent naturellement */
+    opacity: 0;
+    animation-name: fadeInWord;
+    animation-fill-mode: forwards;
+}
+
+/* Pour gérer correctement les espaces multiples ou les retours à la ligne si besoin */
+.ai-analysis-results .fade-segment.is-space {
+    white-space: pre;
+}
+
+@keyframes fadeInWord {
+    to {
+        opacity: 1;
+    }
+}
+
+/* --- Styles pour la Page "À propos" --- */
+.page-content { /* Classe générique pour les contenus de page au-dessus du fond */
+    position: relative;
+    z-index: 1;
+}
+
+.about-section h1 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem; /* Taille du titre principal de la page */
+}
+
+.about-section h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    display: inline-block; /* Pour que la bordure ne prenne pas toute la largeur */
+}
+
+.about-card {
+    background-color: var(--card-background);
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-subtle);
+    margin-bottom: 2rem;
+}
+
+.about-section ul {
+    list-style: disc;
+    margin-left: 1.5rem;
+    padding-left: 0.5rem;
+}
+
+.about-section ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+}
+
+/* Section Technologies */
+.tech-stack-section h2 {
+    margin-bottom: 1.5rem;
+}
+
+.tech-category {
+    margin-bottom: 2rem;
+}
+
+.tech-category h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.2rem;
+    text-align: center;
+}
+
+.logos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive */
+    gap: 2rem 1.5rem; /* Espacement vertical et horizontal */
+    align-items: center;
+    justify-content: center; /* Centre les items s'il y a de l'espace */
+}
+
+.logo-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.logo-item img {
+    height: 48px; /* Hauteur par défaut des logos, tu ajusteras */
+    width: auto;   /* Garder le ratio */
+    max-width: 100px; /* Éviter que les logos larges ne prennent trop de place */
+    object-fit: contain; /* S'assure que le logo est bien affiché */
+    filter: grayscale(30%); /* Optionnel: logos un peu grisés pour un look sobre */
+    transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.logo-item:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+}
+
+.logo-item .logo-name {
+    font-size: 0.8rem;
+    color: var(--text-color-muted);
+    font-weight: 500;
+}
+
+/* Section Équipe */
+.team-section {
+    /* Styles spécifiques pour la section équipe si besoin plus tard */
+}
+
+.logos-carousel-container {
+    width: 100%;
+    overflow: hidden; /* Essentiel pour cacher ce qui dépasse */
+    position: relative; /* Nécessaire pour positionner les pseudo-éléments ::before et ::after */
+    padding: 1rem 0; /* Espace vertical autour du carrousel */
+}
+
+/* Remplacement de mask-image par des pseudo-éléments pour une meilleure compatibilité */
+.logos-carousel-container::before,
+.logos-carousel-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px; /* Largeur de la zone de fondu, ajuste si besoin */
+    z-index: 2; /* Pour être au-dessus des logos qui défilent */
+    pointer-events: none; /* Pour ne pas bloquer le survol pour la pause */
+}
+
+.logos-carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--card-background) 25%, transparent 100%);
+}
+
+.logos-carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--card-background) 25%, transparent 100%);
+}
+
+.logos-grid.logos-scrolling {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    animation: scrollLogos 30s linear infinite;
+}
+
+.logos-grid.logos-scrolling .logo-item {
+    flex-shrink: 0;
+    margin: 0 2rem; /* Marge horizontale entre les logos */
+}
+
+@keyframes scrollLogos {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-33.3333%); /* Pour une duplication où la séquence originale est répétée 3 fois au total */
+    }
+}
+
+.logos-carousel-container:hover .logos-scrolling {
+    animation-play-state: paused;
+}
+
+/* --- Styles pour la Section Équipe (Page À Propos) --- */
+.team-presentation-card {
+    background-color: #111113; /* Fond sombre (similaire à bg-black/[0.96]) */
+    color: #e4e4e7; /* Couleur de texte claire (similaire à text-neutral-50/text-neutral-300) */
+    border-radius: var(--border-radius-medium);
+    box-shadow: var(--box-shadow-medium);
+    position: relative; /* Pour le positionnement du spotlight */
+    overflow: hidden;  /* Pour les coins arrondis et le spotlight */
+    padding: 0; /* Le padding sera dans le wrapper interne */
+    min-height: 500px; /* Hauteur minimale comme dans l'exemple */
+    display: flex; /* Pour centrer le contenu si nécessaire, mais le wrapper prendra la place */
+    margin-bottom: 3rem;
+}
+
+.team-spotlight { /* L'effet lumineux statique */
+    position: absolute;
+    top: -80px;  /* -top-20 (5rem) */
+    left: 40%; /* Un peu décalé (md:left-60) */
+    width: 350px; /* Ajuster la taille de la lumière */
+    height: 350px; /* Ajuster la taille de la lumière */
+    background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.15) 0%,  /* Lumière blanche diffuse */
+    rgba(255, 255, 255, 0.08) 40%,
+    transparent 70%
+    );
+    filter: blur(40px); /* blur-xl */
+    border-radius: 50%;
+    pointer-events: none; /* Pour ne pas interférer avec les clics */
+    opacity: 0.7;
+}
+
+.team-content-wrapper {
+    display: flex;
+    flex-direction: column; /* Par défaut, pour mobile */
+    width: 100%;
+    flex-grow: 1;
+    position: relative; /* Pour que z-index fonctionne pour le texte */
+    z-index: 1;
+}
+
+.team-text-content {
+    flex: 1; /* Prendra l'espace disponible ou une taille fixe */
+    padding: 2.5rem; /* p-8 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centrer verticalement le texte */
+}
+
+.team-title {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 700; /* font-bold */
+    background: linear-gradient(to bottom, #f0f0f0, #c0c0c0); /* bg-gradient-to-b from-neutral-50 to-neutral-400 */
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem; /* mt-4 sur le paragraphe suivant */
+    border-bottom: none; /* Enlever la bordure par défaut des h2 de about-section */
+}
+
+.team-description {
+    font-size: 1rem; /* text-base (si le style p global est différent) */
+    color: #d4d4d8; /* text-neutral-300 */
+    max-width: 36rem; /* max-w-lg */
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.team-members-list {
+    list-style: none; /* Enlever les puces par défaut */
+    padding-left: 0;
+    margin-top: 1rem;
+}
+
+.team-member-item {
+    font-size: 0.95rem;
+    color: #a1a1aa; /* un peu plus clair que text-neutral-400 */
+    margin-bottom: 0.5rem;
+}
+.team-member-item strong {
+    color: #e4e4e7; /* Noms un peu plus clairs */
 }
 
 
+.team-spline-scene {
+    flex: 1;
+    min-height: 300px;
+    position: relative;
+    background-color: transparent;
+    display: flex; /* Pour que spline-viewer à l'intérieur puisse s'étirer si besoin */
+    flex-direction: column; /* Pour que spline-viewer à l'intérieur puisse s'étirer si besoin */
+}
+
+
+/* Styles pour l'élément spline-viewer lui-même */
+.spline-viewer-instance, /* Si vous utilisez la classe */
+spline-viewer {          /* Ou cibler directement la balise */
+    width: 100%;
+    flex-grow: 1;
+    display: block; /* Important */
+    border: none;   /* S'assurer qu'il n'y a pas de bordures par défaut */
+}
+
+/* Styles pour le loader de la scène Spline */
+.spline-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(17, 17, 19, 0.8); /* Fond semi-transparent pendant le chargement */
+    color: #e4e4e7;
+    font-size: 0.9rem;
+    z-index: 5; /* Au-dessus de l'iframe tant qu'il charge */
+    transition: opacity 0.3s ease-out;
+}
+
+.spline-loader .loader-graphic {
+    border: 4px solid #444; /* Gris foncé */
+    border-top: 4px solid var(--primary-color); /* Couleur primaire pour la partie qui tourne */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Responsive pour la section équipe */
+@media (min-width: 768px) { /* md: breakpoint */
+    .team-content-wrapper {
+        flex-direction: row; /* Texte à gauche, 3D à droite */
+    }
+    .team-text-content {
+        flex-basis: 45%; /* Proportion pour le texte */
+        padding: 3rem;
+    }
+    .team-spline-scene {
+        flex-basis: 55%; /* Proportion pour la scène 3D */
+        flex-grow: 1;
+    }
+    .team-title {
+        font-size: 3rem; /* md:text-5xl */
+    }
+    .team-spotlight { /* Ajustement position spotlight pour desktop */
+        left: 15%; /* md:left-60 (si 60 correspond à ~15% de la largeur) */
+        top: -50px; /* md:-top-20 */
+    }
+}

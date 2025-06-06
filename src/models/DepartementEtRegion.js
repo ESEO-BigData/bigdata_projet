@@ -22,7 +22,7 @@ const DepartementEtRegionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    "SUPERFICIE (km²)": {
+    SUPERFICIE: {
         type: Number,
         required: true
     },
@@ -30,7 +30,7 @@ const DepartementEtRegionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    "DENSITE (habitants/km2)": {
+    DENSITE: {
         type: Number,
         required: true
     },
@@ -41,6 +41,18 @@ const DepartementEtRegionSchema = new mongoose.Schema({
     longitude_chef_lieu: {
         type: Number,
         required: false
+    },
+    Nombre_Bornes: {
+        type: Number,
+        required: true
+    },
+    Nombre_stations: {
+        type: Number,
+        required: true
+    },
+    NB_VP: {
+        type: Number,
+        required: true
     }
 }, {
     collection: 'DepartementEtRegion',

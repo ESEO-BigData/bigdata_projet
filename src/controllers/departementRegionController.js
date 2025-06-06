@@ -51,8 +51,8 @@ exports.getDepartementsStats = async (req, res) => {
                 $group: {
                     _id: null,
                     totalPopulation: { $sum: "$POPULATION" },
-                    totalSuperficie: { $sum: "$SUPERFICIE (km²)" },
-                    densiteMoyenne: { $avg: "$DENSITE (habitants/km2)" },
+                    totalSuperficie: { $sum: "$SUPERFICIE" },
+                    densiteMoyenne: { $avg: "$DENSITE" },
                     nombreDepartements: { $sum: 1 }
                 }
             },
@@ -89,10 +89,149 @@ exports.getMostPopulatedDepartements = async (req, res) => {
 exports.getMostDenseDepartements = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
-        const departements = await DepartementEtRegion.find().sort({ "DENSITE (habitants/km2)": -1 }).limit(limit);
+        const departements = await DepartementEtRegion.find().sort({ DENSITE: -1 }).limit(limit);
 
         return responseFormatter.success(res, departements);
     } catch (error) {
         return responseFormatter.error(res, 'Erreur lors de la récupération des départements les plus denses', error);
+    }
+};
+
+// Obtenir des statistiques de corrélation par département
+exports.getCorrelationStatsByDepartement = async (req, res) => {
+    try {
+        const departements = await DepartementEtRegion.find().select({
+            _id: 0,
+            DEPARTEMENT: 1,
+            NOM: 1,
+            REGION: 1,
+            somme_NB_VP_RECHARGEABLES_EL: 1,
+            Nombre_Bornes: 1,
+            Nombre_stations: 1,
+            NB_VP: 1,
+            POPULATION: 1,
+            DENSITE : 1,
+            SUPERFICIE: 1
+        });
+
+        // Ajouter des ratios calculés
+        const departementsWithRatios = departements.map(dept => {
+            const data = dept.toObject();
+            // Ratio véhicules électriques / bornes
+            data.ratio_vehicules_bornes = data.Nombre_Bornes > 0 ?
+                (data.somme_NB_VP_RECHARGEABLES_EL / data.Nombre_Bornes).toFixed(2) : 'N/A';
+
+            // Pourcentage de véhicules électriques
+            data.pourcentage_vehicules_electriques = data.NB_VP > 0 ?
+                ((data.somme_NB_VP_RECHARGEABLES_EL / data.NB_VP) * 100).toFixed(2) : 0;
+
+            // Bornes pour 1000 véhicules électriques
+            data.bornes_pour_1000_vehicules = data.somme_NB_VP_RECHARGEABLES_EL > 0 ?
+                ((data.Nombre_Bornes / data.somme_NB_VP_RECHARGEABLES_EL) * 1000).toFixed(2) : 'N/A';
+
+            return data;
+        });
+
+        return responseFormatter.success(res, departementsWithRatios);
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la récupération des statistiques de corrélation', error);
+    }
+};
+
+// Obtenir des statistiques de corrélation par région
+exports.getCorrelationStatsByRegion = async (req, res) => {
+    try {
+        // Vérifier d'abord si des données existent
+        const count = await DepartementEtRegion.countDocuments();
+        if (count === 0) {
+            return responseFormatter.success(res, []);
+        }
+
+        const statsRegions = await DepartementEtRegion.aggregate([
+            {
+                $group: {
+                    _id: "$REGION",
+                    totalVehiculesElectriques: { $sum: "$somme_NB_VP_RECHARGEABLES_EL" },
+                    totalBornes: { $sum: "$Nombre_Bornes" },
+                    totalStations: { $sum: "$Nombre_stations" },
+                    totalVehiculesThermiques: { $sum: "$NB_VP" },
+                    totalPopulation: { $sum: "$POPULATION" },
+                    totalSuperficie: { $sum: "$SUPERFICIE" },
+                    nombreDepartements: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    region: "$_id",
+                    totalVehiculesElectriques: 1,
+                    totalBornes: 1,
+                    totalStations: 1,
+                    totalVehiculesThermiques: 1,
+                    totalPopulation: 1,
+                    totalSuperficie: 1,
+                    nombreDepartements: 1,
+                    densite: {
+                        $cond: [
+                            { $eq: ["$totalSuperficie", 0] },
+                            0,
+                            { $divide: ["$totalPopulation", "$totalSuperficie"] }
+                        ]
+                    },
+                    pourcentageVehiculesElectriques: {
+                        $cond: [
+                            { $eq: ["$totalVehiculesThermiques", 0] },
+                            0,
+                            { $multiply: [
+                                    { $divide: ["$totalVehiculesElectriques", "$totalVehiculesThermiques"] },
+                                    100
+                                ]}
+                        ]
+                    },
+                    ratioVehiculesParBorne: {
+                        $cond: [
+                            { $eq: ["$totalBornes", 0] },
+                            0,
+                            { $divide: ["$totalVehiculesElectriques", "$totalBornes"] }
+                        ]
+                    },
+                    bornesPour1000Vehicules: {
+                        $cond: [
+                            { $eq: ["$totalVehiculesElectriques", 0] },
+                            0,
+                            { $multiply: [{ $divide: ["$totalBornes", "$totalVehiculesElectriques"] }, 1000] }
+                        ]
+                    }
+                }
+            },
+            { $sort: { totalVehiculesElectriques: -1 } }
+        ]);
+
+        return responseFormatter.success(res, statsRegions);
+    } catch (error) {
+        console.error('Erreur dans getCorrelationStatsByRegion:', error);
+        return responseFormatter.error(res, 'Erreur lors de la récupération des statistiques de corrélation par région', error);
+    }
+};
+
+// Obtenir les départements les plus équipés en bornes
+exports.getMostEquippedDepartements = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const departements = await DepartementEtRegion.find().sort({ Nombre_Bornes: -1 }).limit(limit);
+        return responseFormatter.success(res, departements);
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la récupération des départements les plus équipés en bornes', error);
+    }
+};
+
+// Obtenir les départements avec le plus de stations
+exports.getMostStationsDepartements = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const departements = await DepartementEtRegion.find().sort({ Nombre_stations: -1 }).limit(limit);
+        return responseFormatter.success(res, departements);
+    } catch (error) {
+        return responseFormatter.error(res, 'Erreur lors de la récupération des départements avec le plus de stations', error);
     }
 };
